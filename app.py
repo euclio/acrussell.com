@@ -7,7 +7,7 @@ import re
 
 from flask import *
 import jinja2
-from jinja2.filters import do_truncate, do_striptags, do_mark_safe
+from jinja2.filters import do_truncate, do_striptags
 
 import markdown
 import yaml
@@ -18,15 +18,6 @@ GOOGLE_SITE_VERIFICATION = os.environ.get('GOOGLE_SITE_VERIFICATION',
 app = Flask(__name__)
 app.config.from_object(__name__)
 app.jinja_env.trim_blocks = True
-
-def autoescape_exceptions(template_name):
-    if not template_name:
-        return True
-    elif template_name.rsplit('.', 1)[-1] in {'.jnlp'}:
-        return False
-    else:
-        return True
-
 app.jinja_env.autoescape = False
 
 class Post(object):
@@ -77,12 +68,12 @@ class Post(object):
         preview_text = do_striptags(self._content)
         link = '... <a href="{}">Continue Reading&rarr;</a>'.format(self.url)
         preview_html = do_truncate(preview_text, length=200, end=link)
-        return do_mark_safe(preview_html)
+        return preview_html
 
     @property
     def content(self):
         """The content of the blog post."""
-        return do_mark_safe(self._content)
+        return self._content
 
     @property
     def date(self):
