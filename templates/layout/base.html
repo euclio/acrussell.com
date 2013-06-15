@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>acrussell.com | {% block title %}{% endblock %}</title>
+    {% block styles %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/base.css') }}" />
+    {% endblock %}
+  </head>
+  <body>
+  {% block header %}
+    {% include "layout/header.html" %}
+  {% endblock %}
+    <div class="main">
+    {% block layout %}
+    {% endblock %}
+    </div>
+  {% block footer %}
+    {% include "layout/footer.html" %}
+  {% endblock %}
+  {% block scripts %}
+    <script type="application/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+    <script type="application/javascript" src="{{ url_for('static', filename='js/navbar.js') }}"></script>
+  {% endblock %}
+  </body>
+</html>

@@ -1,0 +1,33 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/blog.css') }}" />
+{% endblock %}
+
+{% block layout %}
+<div class="readable column">
+    <div class="content textpadder">
+      <h1>Andy Russell</h1>
+      <hr />
+      <p>Welcome to my homepage. I am a student of Computer Science at Pomona college. On this site you can find out a little bit about me, try out some of my personal projects, view my resume, and check out my Github or blog. I created this site to learn more about web programming. The source code is available on Github.</p>
+    </div>
+  <div class="pictures imgpadder">
+      <img class="center" src="{{ url_for('static', filename='images/photos/code.png') }}" alt="Programming" />
+  </div>
+</div>
+
+<div class="readable column content posts textpadder">
+  <h1>Recent Blog Posts</h1>
+  <hr />
+  <div class="smallposts">
+  {% for post in recent_posts %}
+    <h2><a class="postlink" href="{{ post.url }}">{{ post.title }}</a></h2>
+    <h3>{{ post.date }}</h3>
+    <p>{{ post.preview }}</p>
+  {% endfor %}
+  </div>
+</div>
+{% endblock %}

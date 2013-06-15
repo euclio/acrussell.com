@@ -1,0 +1,22 @@
+title: Minor Updates and Git
+date: 10:45pm 04/18/12
+categories: [news]
+tags: [doodler, git]
+
+!END
+
+Today I played around with Doodler some more. It is still far from complete,
+but I fixed the issue with the program not exiting correctly. I also
+restructured the code to make its style a bit more object-oriented. I am
+excited to keep adding functionality to this program. There's so much more
+potential to it, and I'm learning a lot about Java user interface in the
+process.
+
+Another, bigger update: I pushed my first Git repository on Github!  My source
+is now downloadable publicly for doodler and I can't wait to add more.  While
+Git is pretty simple to use from the command line, I tried to implement it
+through Eclipse which was more of a challenge.  I eventually got it working,
+and it should be very convenient to upload my source.
+
+That's all for today, it feels great to have a central place to compile (haha)
+all my programming materials.

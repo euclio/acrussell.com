@@ -1,0 +1,28 @@
+{% extends "layout/base.html" %}
+
+{% block scripts %}
+{{ super() }}
+<link rel="stylesheet" type="stylesheet" href="{{ url_for('static', filename='styles/blog.css') }}">
+{% endblock %}
+
+{% block title %}Blog{% endblock %}
+
+{% block layout %}
+{% block content %}
+<div class="content readable textpadder">
+  <h1>Blog</h1>
+  <hr />
+  <p>Welcome to my blog.</p>
+</div>
+<div class="blogposts">
+{% for post in posts %}
+  <div class="content textpadder post">
+    <h1><a class="postlink" href="{{ post.url }}">{{ post.title }}</a></h1>
+    <h2>{{ post.date }}</h2>
+    <hr />
+    <p>{{ post.preview }}</p>
+  </div>
+{% endfor %}
+</div>
+{% endblock %}
+{% endblock %}

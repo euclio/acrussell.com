@@ -1,0 +1,44 @@
+{% extends "layout/base.html" %}
+
+{% block title %}About Me{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/slideshow.css') }}" />
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script type="application/javascript" src="http://cloud.github.com/downloads/malsup/cycle/jquery.cycle.all.latest.js"></script>
+<script type="application/javascript">
+  $(document).ready(function() {
+    $('.slides').cycle({
+      fx: 'fade',
+      timeout: 9000,
+      speed: 2000,
+    });
+  });
+</script>
+{% endblock %}
+
+{% block layout %}
+<div class="pictures slideshow">
+  <div class="slides">
+    {% for image_url in image_urls %}
+    <img src="{{ image_url }}" />
+    {% endfor %}
+  </div>
+</div>
+<div class="readable content textpadder">
+  <h1>About Me</h1>
+  <hr />
+  <p>My name is Andy Russell. I am a junior at Pomona College in beautiful Claremont, California.</p>
+  <p>I'm a programmer at heart, but I have significant experience in web design. I created this site my freshman year of college to improve my knowledge of both.</p>
+  <p>I've been programming for about 6 years. I'm comfortable with Java, Python, C++ and C. I can code HTML, CSS, and Javascript as well.</p>
+  <p>I've used UNIX plenty, and vim is my editor of choice! When I look at a problem, I try to survey it from every angle: I want to ensure that it is solved the right way the first time. I'm always striving to learn new skills and improve my current techniques. I also enjoy teaching others how to program.</p>
+  <p>In 2011 I graduated from Parkway West High School. At Pomona I expect to ear a B.A. in Computer Science.</p>
+  <p>I grew up just outside of St. Louis, Missouri. I love the outdoors, meeting people and playing video games.</p>
+  <p>I'd like to give a shoutout to my wonderful family, the spibs of H2E, and my cute dog Sadie!</p>
+  <p>Thanks for visiting my site! It's been a blast making it.</p>
+</div>
+{% endblock %}

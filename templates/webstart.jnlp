@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8?>
+<jnlp
+    spec="1.5+"
+    href="{{ name }}.jnlp">
+    <information>
+        <title>{{ title }}</title>
+        <vendor>Andy Russell</vendor>
+        <homepage href="{{ url_for('projects') }}"/>
+        <description>{{ description }}</description>
+        <offline-allowed/>
+    </information>
+    {% if permissions == 'all' %}
+    <security>
+        <all-permissions/>
+    </security>
+    {% endif %}
+    <resources>
+        <j2se version="1.4.2+" href="http://java.sun.com/products/autodl/j2se" />
+        <jar href="{{ jar_url }}" main="true"/>
+    </resources>
+    <application-desc main-class="Main"/>
+</jnlp>

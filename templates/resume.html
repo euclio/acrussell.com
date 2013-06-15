@@ -1,0 +1,15 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Resume{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/resume.css') }}" />
+{% endblock %}
+
+{% block layout %}
+<div class="docviewer">
+  <iframe class="resume" src="http://docs.google.com/gview?url={{ url_for('static', filename='resume.pdf', _external=True) }}&embedded=true" frameborder="0"></iframe>
+  <p>Document viewer not showing? Try the direct link <a href="{{ url_for('static', filename='resume.pdf', _external=True) }}">here</a>.</p>
+</div>
+{% endblock %}

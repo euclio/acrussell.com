@@ -1,0 +1,139 @@
+@charset "utf-8";
+
+.header {
+    margin: 1em;
+}
+
+.header img {
+    margin-bottom: 1em;
+}
+
+nav {
+    display: table;
+    margin: auto;
+    margin-bottom: 1.3%;
+    width: auto;
+    font: .9em Avant-garde, Verdana, sans-serif;
+    text-align: center;
+    background-color: #EDEDED;
+    border-radius: 1em;
+    padding: 1em 0;
+}
+
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 2em;
+    display: float;
+    clear: left;
+}
+
+nav ul li {
+    padding: 0;
+    margin: 0;
+    display: inline;
+}
+
+nav ul li:not(:last-child):after {
+    content: " | ";
+    color: #8080ff;
+}
+
+nav ul.external li a:after {
+    content: "";
+}
+
+
+a {
+    color: #8080ff;
+}
+
+a.currentlink {
+    color: black;
+    text-decoration: none;
+    cursor: default;
+}
+
+nav ul li:hover > a:not(.currentlink) {
+    color: #ff8040;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #DCDCDC;
+    text-align: center;
+    margin: 0 auto;
+}
+
+.main {
+    display: flex;
+    display: -webkit-flex;
+    flex-direction: row;
+    -webkit-flex-direction: row;
+    flex-wrap: nowrap;
+    -webkit-flex-wrap: nowrap;
+    justify-content: center;
+    -webkit-justify-content: center;
+    align-content: center;
+    -webkit-align-content: center;
+    align-items: flex-start;
+    -webkit-align-items: flex-start;
+}
+
+.content, .pictures {
+    background-color: #EDEDED;
+    border-radius: 0.9375em;
+    align-self: auto;
+    -webkit-align-self: auto;
+    margin: 0 8px 16px;
+}
+
+
+.readable {
+    min-width: 25em;
+    max-width: 33em;
+}
+
+.column {
+    flex-flow: column wrap;
+    -webkit-flex-flow: column wrap;
+    min-width: auto;
+    min-height: auto;
+}
+
+.textpadder { padding: 1em; }
+
+.imgpadder { padding: 0.6em; }
+
+.content {
+    font-family: Georgia, serif;
+    text-align: justify;
+}
+
+.content h1, .content h2 {
+    margin: 0 auto;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+img.center {
+    width: 100%;
+    max-height: 100%;
+    max-width: 100%;
+}
+
+.footer {
+    position: relative;
+    top: 1em;
+    padding-bottom: 1em;
+    text-align: center;
+    clear: both;
+    font: .7em Verdana, Arial, Helvetica, sans-serif;
+    color: #666666;
+}
+
+.footer img {
+    border: 0;
+    height: 3em;
+    width: 3em;
+}
