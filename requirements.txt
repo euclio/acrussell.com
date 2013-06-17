@@ -1,0 +1,10 @@
+Flask==0.9
+Jinja2==2.7
+Markdown==2.3.1
+MarkupSafe==0.18
+PyYAML==3.10
+Werkzeug==0.8.3
+argparse==1.2.1
+distribute==0.6.24
+ez-setup==0.9
+wsgiref==0.1.2
