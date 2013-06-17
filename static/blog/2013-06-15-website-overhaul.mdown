@@ -1,0 +1,29 @@
+title: Website Overhaul
+date: 4:21pm 06/15/13
+categories: [news]
+tags: [web, python, flask]
+
+!END
+
+Since finishing my sophomore year, I've finally had some time to sit down and
+complete some projects that I've been meaning to work on for a long time. The
+first of these was to rewrite my entire site using a web framework.
+
+When I created this site, I wanted to ensure that it would be easy to extend
+and maintain. I also wanted to minimize the amount of work I would have to do
+to add things to it. I accomplished this by using a large amount of PHP and
+JavaScript. However, there were still a lot of things that were bothering me
+about the site. For example, nearly all of the HTML had to be hand written for
+each new addition to the site. Worst of all, my layout was based around floats
+and hacky percentages, which made it very difficult to maintain.
+
+The first step was to choose the technologies that I would use. The framework
+decision was an easy one; I've used [Flask][flask] for a number of projects
+before, and I really enjoy writing things in Python.
+
+One of the first things I did for the new site was to take advantage of Flask's
+templating engine. The syntax is based on Django's engine, but it has few
+additional features that make it really easy to generate relatively complicated
+HTML.
+
+[flask](flask.pocoo.org)
