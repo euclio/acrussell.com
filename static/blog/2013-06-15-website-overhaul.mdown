@@ -17,13 +17,17 @@ about the site. For example, nearly all of the HTML had to be hand written for
 each new addition to the site. Worst of all, my layout was based around floats
 and hacky percentages, which made it very difficult to maintain.
 
-The first step was to choose the technologies that I would use. The framework
-decision was an easy one; I've used [Flask][flask] for a number of projects
-before, and I really enjoy writing things in Python.
+I've learned a lot about web development since I first wrote the code for this
+site. I hated to look at all my old code when I knew that there existed
+solutions for all of the problems that I was facing. And so, I began the site
+redesign.
 
-One of the first things I did for the new site was to take advantage of Flask's
-templating engine. The syntax is based on Django's engine, but it has few
-additional features that make it really easy to generate relatively complicated
-HTML.
+While I plan to expand upon the improvements to the sites in a series of future
+blog posts, the full list of changes is as follows:
 
-[flask](flask.pocoo.org)
+* Moved the backend from PHP to Python/Flask
+* Rewrote all layout code to use the CSS3 flexible box model
+* Moved blog from Wordpress to my own format
+
+I'm definitely excited to be moving forward with the site. Thanks for reading,
+and I'm looking forward to explaining my design decisions in future posts.
