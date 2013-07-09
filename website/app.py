@@ -104,7 +104,7 @@ def about_me():
     image_urls = [slideshow_path + name for name in image_names]
     return render_template('about.html', image_urls=image_urls)
 
-@app.route('/blog')
+@app.route('/blog/')
 def blog():
     return render_template('blog.html', posts=blog_posts())
 
