@@ -1,6 +1,7 @@
 from collections import namedtuple
 import datetime
 import glob
+import httplib
 import itertools
 import os
 import re
@@ -80,9 +81,9 @@ class Post(object):
         return self._date.strftime('%B %-d, %Y')
 
 
-@app.errorhandler(404)
+@app.errorhandler(httplib.NOT_FOUND)
 def page_not_found(e):
-    return render_template('404.html'), 404
+    return render_template('not_found.html'), httplib.NOT_FOUND
 
 @app.route('/' + GOOGLE_SITE_VERIFICATION)
 @app.route('/robots.txt')
