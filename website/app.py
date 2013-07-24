@@ -19,7 +19,7 @@ GOOGLE_SITE_VERIFICATION = os.environ.get('GOOGLE_SITE_VERIFICATION',
 app = Flask(__name__)
 app.config.from_object(__name__)
 app.jinja_env.trim_blocks = True
-app.jinja_env.autoescape = False 
+app.jinja_env.autoescape = False
 class Post(object):
     """Represents one post on the blog.
 
