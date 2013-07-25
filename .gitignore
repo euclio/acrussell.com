@@ -1,6 +1,6 @@
-.pyc
+*.pyc
 include
 lib
 local
 .dotcloud
-.swp
+*.swp
