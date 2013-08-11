@@ -23,6 +23,21 @@
     font-family: Arial, Helvetica, sans-serif;
 }
 
+div .blog {
+    display: flex;
+    display: -webkit-flex;
+    flex-direction: row;
+    -webkit-flex-direction: row;
+    flex-wrap: nowrap;
+    -webkit-flex-wrap: nowrap;
+    justify-content: center;
+    -webkit-justify-content: center;
+    align-content: center;
+    -webkit-align-content: center;
+    align-items: flex-start;
+    -webkit-align-items: flex-start;
+}
+
 .blogposts div {
     width: 40em;
 }
