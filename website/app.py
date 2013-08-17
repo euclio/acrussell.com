@@ -14,8 +14,6 @@ import markdown
 import yaml
 
 DEBUG = True
-GOOGLE_SITE_VERIFICATION = os.environ.get('GOOGLE_SITE_VERIFICATION',
-                                          '404.html')
 app = Flask(__name__)
 app.config.from_object(__name__)
 app.jinja_env.trim_blocks = True
@@ -85,7 +83,6 @@ class Post(object):
 def page_not_found(e):
     return render_template('not_found.html'), httplib.NOT_FOUND
 
-@app.route('/' + GOOGLE_SITE_VERIFICATION)
 @app.route('/robots.txt')
 @app.route('/favicon.ico')
 def static_from_root():
