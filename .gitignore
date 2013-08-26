@@ -5,3 +5,4 @@ local
 .dotcloud
 *.swp
 bin
+scripts
