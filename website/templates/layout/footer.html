@@ -1,14 +1,15 @@
 {% macro social(name, url, icon) -%}
-<a href="{{ url|safe }}" alt="{{ name }}"><img class="social" src="{{ url_for('static', filename='images/icons/' + icon) }}" alt="{{ name + ' icon' }}" /></a>
+<a href="{{ url|safe }}" alt="{{ name }}"><i class="{{ icon }} icon-4x"></i></a>
 {%- endmacro %}
 
 <div class="footer">
-  <p>Questions or comments? Use any of the social links below to contact me.</p>
-  {{ social('Email', '&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#97;&#110;&#100;&#121;&#64;&#97;&#99;&#114;&#117;&#115;&#115;&#101;&#108;&#108;&#46;&#99;&#111;&#109;', 'mail.png') }}
-  {{ social('Facebook', 'http://facebook.com/arussell123', 'facebook.png') }}
-  {{ social('Twitter', 'http://twitter.com/arussell300', 'twitter.png') }}
-  {{ social('Google Plus', 'http://plus.google.com/112963504692519305934?rel=author', 'googleplus.png') }}
-  {{ social('LinkedIn', 'http://www.linkedin.com/pub/andy-russell/42/604/56b', 'linkedin.png') }}
-  <p>2012-present. Coded and designed in full by Andy Russell. Social media images courtesy of <a href="http://ristaumedia.deviantart.com">ristaumedia</a>.</p>
-  <p>Thank you to the makers of all the technologies that went into this site: including <a href="http://python.org">Python</a>, <a href="http://flask.pocoo.org">Flask</a>, and <a href="http://jquery.com">jQuery</a>.</p>
+  <ul class="social">
+    <li>{{ social('Email', '&#109;&#97;&#105;&#108;&#116;&#111;&#58;&#97;&#110;&#100;&#121;&#64;&#97;&#99;&#114;&#117;&#115;&#115;&#101;&#108;&#108;&#46;&#99;&#111;&#109;', 'icon-envelope') }}</li>
+    <li>{{ social('Facebook', 'http://facebook.com/arussell123', 'icon-facebook-sign') }}</li>
+    <li>{{ social('Twitter', 'http://twitter.com/arussell300', 'icon-twitter-sign') }}</li>
+    <li>{{ social('Google Plus', 'http://plus.google.com/112963504692519305934?rel=author', 'icon-google-plus-sign') }}</li>
+    <li>{{ social('LinkedIn', 'http://www.linkedin.com/pub/andy-russell/42/604/56b', 'icon-linkedin-sign') }}</li>
+  </ul>
+  <p>2012-present. Coded and designed in full by Andy Russell.</p>
+  <p>Thank you to the makers of all the technologies that went into this site: including <a href="http://python.org">Python</a>, <a href="http://flask.pocoo.org">Flask</a>, <a href="http://jquery.com">jQuery</a>, and <a href="http://fontawesome.io">Font Awesome</a>.</p>
 </div>
