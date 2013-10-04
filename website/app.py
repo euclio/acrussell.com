@@ -76,7 +76,7 @@ class Post(object):
     @property
     def date(self):
         """Returns a formatted version of the date."""
-        return self._date.strftime('%B %-d, %Y')
+        return self._date.strftime('%B %d, %Y')
 
 
 @app.errorhandler(httplib.NOT_FOUND)
@@ -138,7 +138,7 @@ def parse_post(abs_path):
     content = markdown.markdown(content_markdown)
 
     # Extract the raw data from the file name
-    file_name = abs_path.rsplit('/', 1)[-1]
+    file_name = os.path.basename(abs_path)
     year, month, day, title = Post.FILE_PATTERN.match(file_name).groups()
     date = datetime.date(int(year), int(month), int(day))
 
