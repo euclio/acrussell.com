@@ -1,6 +1,8 @@
 from collections import namedtuple
+from glob import glob
+from os import path
+
 import datetime
-import glob
 import httplib
 import itertools
 import os
@@ -18,6 +20,7 @@ app = Flask(__name__)
 app.config.from_object(__name__)
 app.jinja_env.trim_blocks = True
 app.jinja_env.autoescape = False
+
 class Post(object):
     """Represents one post on the blog.
 
@@ -97,9 +100,12 @@ def index():
 
 @app.route('/about')
 def about_me():
-    slideshow_path = url_for('static', filename='images/slideshow/')
-    image_names = os.listdir(os.getcwd() + slideshow_path)
-    image_urls = [slideshow_path + name for name in image_names]
+    # We need to find all the slideshow images and list them
+    slideshow_url = url_for('static', filename='images/slideshow/')
+    slideshow_rel_path = path.normpath(slideshow_url.strip('/'))
+    slideshow_dir = path.join(os.getcwd(), slideshow_rel_path)
+    images = os.listdir(slideshow_dir)
+    image_urls = [slideshow_url + image for image in os.listdir(slideshow_dir)]
     return render_template('about.html', image_urls=image_urls)
 
 @app.route('/blog/')
@@ -112,9 +118,9 @@ def get_post(year, month, day, title):
     Each post is uniquely identified by its date and title.
 
     """
-    posts_directory = url_for('static', filename='blog/')
+    posts_directory = url_for('static', filename='blog/').strip('/')
     file_name = '{:04d}-{:02d}-{:02d}-{}.mdown'.format(year, month, day, title)
-    abs_path = os.getcwd() + posts_directory + file_name
+    abs_path = path.join(os.getcwd(), posts_directory, file_name)
     return parse_post(abs_path)
 
 def parse_post(abs_path):
@@ -146,8 +152,9 @@ def parse_post(abs_path):
 
 def blog_posts():
     """Generates all blog posts from the blog/ directory."""
-    posts_directory = os.getcwd() + url_for('static', filename='blog/')
-    post_file_names = glob.glob(posts_directory + '*.mdown')
+    posts_rel_path = url_for('static', filename='blog/').strip('/')
+    posts_directory = path.join(os.getcwd(), posts_rel_path)
+    post_file_names = glob(path.join(posts_directory, '*.mdown'))
     for file_name in sorted(post_file_names, reverse=True):
         yield parse_post(file_name)
 
