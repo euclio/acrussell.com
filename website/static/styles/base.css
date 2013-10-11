@@ -146,8 +146,13 @@ img.center {
     clear: left;
 }
 
+.social a:hover {
+    color: #8080ff;
+}
+
 .social a {
     text-decoration: none;
+    color: #333333;
 }
 
 .social li {
