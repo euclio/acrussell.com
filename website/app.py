@@ -15,7 +15,7 @@ from jinja2.filters import do_truncate, do_striptags
 import markdown
 import yaml
 
-DEBUG = True
+DEBUG = False
 app = Flask(__name__)
 app.config.from_object(__name__)
 app.jinja_env.trim_blocks = True
