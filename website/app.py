@@ -9,78 +9,18 @@ import os
 import re
 
 from flask import *
-import jinja2
-from jinja2.filters import do_truncate, do_striptags
 
-import markdown
-import yaml
+import blog
 
-DEBUG = False
-app = Flask(__name__)
-app.config.from_object(__name__)
-app.jinja_env.trim_blocks = True
-app.jinja_env.autoescape = False
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(__name__)
+    app.jinja_env.trim_blocks = True
+    app.jinja_env.autoescape = False
+    blog.parse_posts(path.join(os.getcwd(), app.static_folder, 'blog'))
+    return app
 
-class Post(object):
-    """Represents one post on the blog.
-
-    Parameters:
-        title : The "raw title" of the blog post. Used as a fallback when no
-        title metadata is found.
-
-        date : The "raw date" of the blog post. Used as a fallback when no date
-        metadata is found.
-
-        content : The text of the blog post. Can contain html tags.
-
-        metadata : Optional. A dictionary containing additional data describing
-        the post. Accepted fields are 'title', 'date', 'categories', and 'tags'
-
-    """
-
-    # Regex matching valid blog post files
-    FILE_PATTERN = re.compile(r'(\d{4})-(\d{2})-(\d{2})-(.+)\.mdown\Z')
-
-    def __init__(self, title, date, content, metadata):
-        self._title = title
-        self._date = date
-        self._content = content
-        self.metadata = metadata or {}
-        self.url = url_for(
-                'show_post',  year=self._date.year, month=self._date.month,
-                day=self._date.day, title=self._title)
-
-    @property
-    def title(self):
-        """Returns a displayable title for the post."""
-        try:
-            return self.metadata['title']
-        except KeyError:
-            return self._title.replace('-', ' ').title()
-
-    @property
-    def preview(self):
-        """HTML representing a short preview of the post.
-
-        Contains the first 200 characters of the post's content, followed by a
-        link to the post itself.
-
-        """
-        preview_text = do_striptags(self._content)
-        link = '... <a href="{}">Continue Reading&rarr;</a>'.format(self.url)
-        preview_html = do_truncate(preview_text, length=200, end=link)
-        return preview_html
-
-    @property
-    def content(self):
-        """The content of the blog post."""
-        return self._content
-
-    @property
-    def date(self):
-        """Returns a formatted version of the date."""
-        return self._date.strftime('%B %d, %Y')
-
+app = create_app()
 
 @app.errorhandler(httplib.NOT_FOUND)
 def page_not_found(e):
@@ -92,10 +32,9 @@ def static_from_root():
     """Serves files expected to be at the web root out of the static folder."""
     return send_from_directory(app.static_folder, request.path[1:])
 
-
 @app.route('/')
 def index():
-    recent_posts = itertools.islice(blog_posts(), 4)
+    recent_posts = itertools.islice(blog.posts(), 4)
     return render_template('index.html', recent_posts=recent_posts)
 
 @app.route('/about')
@@ -109,59 +48,14 @@ def about_me():
     return render_template('about.html', image_urls=image_urls)
 
 @app.route('/blog/')
-def blog():
-    return render_template('blog.html', posts=blog_posts())
+def render_blog():
+    return render_template('blog.html', posts=blog.posts())
 
-def get_post(year, month, day, title):
-    """Returns a Post representing a given blog post.
-
-    Each post is uniquely identified by its date and title.
-
-    """
-    posts_directory = url_for('static', filename='blog/').strip('/')
-    file_name = '{:04d}-{:02d}-{:02d}-{}.mdown'.format(year, month, day, title)
-    abs_path = path.join(os.getcwd(), posts_directory, file_name)
-    return parse_post(abs_path)
-
-def parse_post(abs_path):
-    """Parses a Post object from a file name."""
-    END_METADATA = '!END\n'
-
-    with open(abs_path) as f:
-        lines = f.readlines()
-
-    metadata_yaml = None
-    try:
-        metadata_end_index = lines.index(END_METADATA)
-    except ValueError:
-        # If no metadata is found, then the entire file is Markdown
-        content_markdown = ''.join(lines)
-    else:
-        metadata_yaml = ''.join(lines[:metadata_end_index])
-        content_markdown = ''.join(lines[metadata_end_index+1:])
-
-    metadata = yaml.load(metadata_yaml) if metadata_yaml else None
-    content = markdown.markdown(content_markdown)
-
-    # Extract the raw data from the file name
-    file_name = os.path.basename(abs_path)
-    year, month, day, title = Post.FILE_PATTERN.match(file_name).groups()
-    date = datetime.date(int(year), int(month), int(day))
-
-    return Post(date=date, content=content, title=title, metadata=metadata)
-
-def blog_posts():
-    """Generates all blog posts from the blog/ directory."""
-    posts_rel_path = url_for('static', filename='blog/').strip('/')
-    posts_directory = path.join(os.getcwd(), posts_rel_path)
-    post_file_names = glob(path.join(posts_directory, '*.mdown'))
-    for file_name in sorted(post_file_names, reverse=True):
-        yield parse_post(file_name)
 
 @app.route('/blog/<int:year>/<int:month>/<int:day>/<title>')
 def show_post(year, month, day, title):
-    return render_template('blog_post.html',
-            post=get_post(year, month, day, title))
+    date = datetime.date(year, month, day)
+    return render_template('blog_post.html', post=blog.get_post(date, title))
 
 def get_projects():
     """Returns a list of objects representing the current projects."""
@@ -201,7 +95,7 @@ def get_projects():
 @app.route('/static/bin/<folder>/<repo>.jnlp')
 def serve_jnlp(folder, repo):
     projects = get_projects()
-    project = next((project for project in projects if project.repo == repo))
+    project = next(project for project in projects if project.repo == repo)
     return render_template('bin/template.jnlp', project=project)
 
 @app.route('/projects')
@@ -213,4 +107,4 @@ def resume():
     return render_template('resume.html')
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
