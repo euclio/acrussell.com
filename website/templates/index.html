@@ -25,7 +25,7 @@
   <div class="smallposts">
   {% for post in recent_posts %}
     <h2><a class="postlink" href="{{ post.url }}">{{ post.title }}</a></h2>
-    <h3>{{ post.date }}</h3>
+    <h3>{{ post.pretty_date }}</h3>
     <p>{{ post.preview }}</p>
   {% endfor %}
   </div>

@@ -5,7 +5,7 @@
 {% block content %}
 <div itemscope="blogPost" class="content post textpadder">
   <h1 itemprop="headline">{{ post.title}}</h1>
-  <h2 itemprop="datePublished">{{ post.date }}</h2>
+  <h2 itemprop="datePublished">{{ post.pretty_date }}</h2>
   <hr />
   <div itemprop="text">{{ post.content }}</div>
   <p><a href="{{ url_for('render_blog') }}">&larr;Back to blog</a><p>
