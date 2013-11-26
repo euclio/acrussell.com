@@ -9,6 +9,7 @@
     color: #EDEDED;
     text-shadow: 0 0 10px #00ffff;
     font-family: Courier, monospace;
+    cursor: default;
 }
 
 .header img {
