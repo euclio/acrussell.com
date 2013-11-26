@@ -1,7 +1,14 @@
 @charset "utf-8";
 
 .header {
-    margin: 1em;
+    margin: 0 1em 1em;
+}
+
+#logo {
+    font-size: 98px;
+    color: #EDEDED;
+    text-shadow: 0 0 10px #00ffff;
+    font-family: Courier, monospace;
 }
 
 .header img {
