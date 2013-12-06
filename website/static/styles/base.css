@@ -5,10 +5,10 @@
 }
 
 #logo {
-    font-size: 98px;
+    font-size: 128px;
     color: #EDEDED;
-    text-shadow: 0 0 10px #00ffff;
-    font-family: Courier, monospace;
+    text-shadow: 0 0 20px #ffa500;
+    font-family: vt323, monospace;
     cursor: default;
 }
 
