@@ -110,6 +110,24 @@ body {
     min-height: auto;
 }
 
+#decorative_code {
+    overflow: hidden;
+    height: 15em;
+    border-width: 5px;
+}
+
+#decorative_code > * {
+    transform: rotate(-15deg);
+    -webkit-transform: rotate(-15deg);
+    transform-origin: 0% 30%;
+    -webkit-transform-origin: 0% 30%;
+}
+
+#decorative_code code {
+    font-size: 18px;
+    font-family: inconsolata, monospace;
+}
+
 .textpadder { padding: 1em; }
 
 .imgpadder { padding: 0.6em; }

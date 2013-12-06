@@ -14,8 +14,29 @@
     <hr />
     <p>Welcome to my homepage. I am a student of Computer Science at Pomona college. On this site you can find out a little bit about me, try out some of my personal projects, view my resume, and check out my Github or blog. I created this site to learn more about web programming. The source code is available on Github.</p>
   </div>
-  <div class="pictures imgpadder">
-      <img class="center" src="{{ url_for('static', filename='images/photos/code.png') }}" alt="Programming" />
+  <div class="content textpadder">
+    <div id="decorative_code">
+      <pre>
+        <code>
+// Execute with Java
+processParams.add("java");
+
+// Add directory of main file to classpath
+processParams.add("-cp");
+processParams.add(mainClass.getParent());
+
+// Extract the name of the class from the file
+String mainClassName = mainClass.getName().split("\\.")[0];
+processParams.add(mainClassName);
+
+// Add the program's runtime parameters
+processParams.addAll(parameters);
+
+ProcessBuilder pb = new ProcessBuilder(processParams);
+status.appendLine(String.format("Running %s.java...", mainClassName));
+        </code>
+      </pre>
+    </div>
   </div>
 </div>
 
