@@ -59,7 +59,7 @@ class Post(object):
 
         """
         preview_text = do_striptags(self._content)
-        link = '... <a href="{}">Continue Reading&rarr;</a>'.format(self.url)
+        link = '... <a href="{}">Continue&rarr;</a>'.format(self.url)
         preview_html = do_truncate(preview_text, length=200, end=link)
         return preview_html
 
