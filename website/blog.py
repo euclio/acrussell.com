@@ -6,13 +6,14 @@ import os
 import re
 import yaml
 
-from flask import *
+from flask import url_for
 from jinja2.filters import do_truncate, do_striptags
 
 # Regex matching valid blog post files
 _FILE_PATTERN = re.compile(r'(\d{4})-(\d{2})-(\d{2})-(.+)\.mdown\Z')
 
 _posts = []
+
 
 class Post(object):
     """Represents one post on the blog.
@@ -39,8 +40,9 @@ class Post(object):
 
     @property
     def url(self):
-        return url_for( 'show_post',  year=self.date.year,
-                month=self.date.month, day=self.date.day, title=self._title)
+        return url_for('show_post',  year=self.date.year,
+                       month=self.date.month, day=self.date.day,
+                       title=self._title)
 
     @property
     def title(self):
@@ -73,6 +75,7 @@ class Post(object):
         """Returns a formatted version of the date."""
         return self.date.strftime('%B %d, %Y')
 
+
 def get_post(date, title):
     """Returns a Post representing a given blog post.
 
@@ -83,8 +86,10 @@ def get_post(date, title):
             if post.date == date and post._title == title)
     return next(post)
 
+
 def posts():
     return iter(_posts)
+
 
 def parse_post(abs_path):
     """Parses a Post object from a file name."""
@@ -112,6 +117,7 @@ def parse_post(abs_path):
     date = datetime.date(int(year), int(month), int(day))
 
     return Post(date=date, content=content, title=title, metadata=metadata)
+
 
 def parse_posts(directory):
     """Parses all of the blog posts from the blog/ directory into Post objects.
