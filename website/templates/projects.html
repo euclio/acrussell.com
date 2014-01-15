@@ -18,7 +18,7 @@
         {% if project.available %}<a href="{{ project.location }}">{{ project.name }}</a>{% if project.needs_fs %}*{% endif %}
         {% else %}{{ project.name }}&dagger;{% endif %}</td>
       <td class="description readable">{{ project.description|safe }}</td>
-      <td class="source"><a href="http://github.com/euclio/{{ project.repo }}">Source ({{ project.language }})</a></td>
+      <td class="source"><a href="http://github.com/{{ project.repo }}">Source ({{ project.language }})</a></td>
     </tr>
   {% endfor %}
   </table>
