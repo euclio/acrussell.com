@@ -1,0 +1,37 @@
+title: In Defense of TI-Basic
+date: 3:21pm 12/11/13
+categories: [programming]
+
+!END
+
+[Edsger Dijkstra], famed Computer Scientist, once said "It is
+practically impossible to teach good programming to students that have had a
+prior exposure to BASIC: as potential programmers they are mentally mutilated
+beyond hope of regeneration." Of course, Dijkstra didn't mean that all BASIC
+programmers are essentially bad programmers, but that BASIC instilled bad
+practices into their style that were difficult to rectify. Frankly this quote
+makes sense coming from the man who wrote the famous essay [Go To Statement
+Considered Harmful], a criticism of one of the most important statements
+of the language.
+
+However, this post isn't meant to be about the merits or demerits of BASIC. I
+want to talk about a more obscure language: TI-BASIC, the programming language
+included on certain classes of TI graphing calculators (mainly the TI-83 and
+TI-84).
+
+I must admit that this language is very special to me: it's essentially my first
+experience with real programming. I did have some experience with LOGO and Lego
+Robotics when I was a kid, but I wouldn't necessarily consider those
+"programming" in the sense of the word that most people are accustomed to. I
+really had my first taste of traditional programming with TI-BASIC, as have many
+others. I remember sitting in Algebra class in 8th grade (where I first was able
+to use a graphing calculator) and seeing the mysterious "PRGM" key. I was
+fascinated by the concept of writing programs that could do things like solve
+quadratic equations.
+
+As I said earlier, some people think that BASIC inspires poor coding habits. I
+agree with this to an extent; certain language features almost encourage the use
+of bad habits. But in fact, the language teaches you why certain habits are bad.
+
+[Edsgser Dijkstra]: http://en.wikipedia.org/wiki/Edsger_Wybe_Dijkstra
+[Go To Statement Considered Harmful]: http://www.u.arizona.edu/~rubinson/copyright_violations/Go_To_Considered_Harmful.html
