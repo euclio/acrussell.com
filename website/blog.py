@@ -87,6 +87,7 @@ def get_post(date, title):
     Each post is uniquely identified by its date and title.
 
     """
+    global _posts
     if _posts is None:
         raise PostsNotParsedError
 
@@ -96,6 +97,8 @@ def get_post(date, title):
 
 
 def posts():
+    """Returns the blog posts as an iterator."""
+    global _posts
     if _posts is None:
         raise PostsNotParsedError
     return iter(_posts)
@@ -137,5 +140,6 @@ def parse_posts(directory):
 
     """
     file_names = glob(os.path.join(directory, '*.mdown'))
+    global _posts
     _posts = [parse_post(file_name) for file_name in file_names]
     _posts.sort(key=lambda p: p.date, reverse=True)
