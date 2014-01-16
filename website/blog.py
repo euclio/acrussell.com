@@ -12,7 +12,12 @@ from jinja2.filters import do_truncate, do_striptags
 # Regex matching valid blog post files
 _FILE_PATTERN = re.compile(r'(\d{4})-(\d{2})-(\d{2})-(.+)\.mdown\Z')
 
-_posts = []
+_posts = None
+
+
+class PostsNotParsedError(Exception):
+    """Raised when the application requests blog posts without parsing them
+    from the filesystem first."""
 
 
 class Post(object):
@@ -82,12 +87,17 @@ def get_post(date, title):
     Each post is uniquely identified by its date and title.
 
     """
+    if _posts is None:
+        raise PostsNotParsedError
+
     post = (post for post in _posts
             if post.date == date and post._title == title)
     return next(post)
 
 
 def posts():
+    if _posts is None:
+        raise PostsNotParsedError
     return iter(_posts)
 
 
@@ -127,6 +137,5 @@ def parse_posts(directory):
 
     """
     file_names = glob(os.path.join(directory, '*.mdown'))
-    for file_name in file_names:
-        _posts.append(parse_post(file_name))
+    _posts = [parse_post(file_name) for file_name in file_names]
     _posts.sort(key=lambda p: p.date, reverse=True)
