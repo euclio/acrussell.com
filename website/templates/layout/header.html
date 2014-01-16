@@ -2,12 +2,22 @@
   <span id="logo">acrussell.com</span>
   <nav>
     <ul>
-      <li><a href="{{ url_for('index') }}">Home</a></li>
-      <li><a href="{{ url_for('about_me')}}">About Me</a></li>
-      <li><a href="{{ url_for('render_blog') }}">Blog</a></li>
-      <li><a href="{{ url_for('render_projects') }}">Projects</a></li>
-      <li><a href="{{ url_for('resume') }}">Resume</a></li>
-      <li class="external"><a href="http://www.github.com/euclio">Github</a></li>
+      {%- for endpoint, title in [
+        ('index', 'Home'),
+        ('about_me', 'About Me'),
+        ('render_blog', 'Blog'),
+        ('render_projects', 'Projects'),
+        ('resume', 'Resume'),
+      ] %}
+      <li {% if endpoint == request.endpoint %}class="currentLink"{% endif %}>
+        <a href="{{ url_for(endpoint) }}">{{ title }}</a>
+      </li>
+      {%- endfor %}
+      {%- for external_link, title in [
+        ('http://www.github.com/euclio', 'Github'),
+      ] %}
+      <li class="external"><a href="{{ external_link }}">{{ title }}</a></li>
+      {%- endfor %}
     </ul>
   </nav>
 </div>
