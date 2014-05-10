@@ -1,0 +1,12 @@
+---
+name: FBFS
+language: C++
+description:
+    An alternative interface to Facebook. Friends, statuses, photos, etc. are
+    represented as files or directories. Leverages filesystem features such as
+    permissions and symbolic links to provide as smooth a user-experience as
+    possible.
+repo: euclio/fbfs
+available: false
+binary_location: null
+needs_fs: false
