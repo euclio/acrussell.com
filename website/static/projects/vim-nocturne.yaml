@@ -2,8 +2,9 @@
 name: Vim-Nocturne
 language: VimScript
 description:
-    My personal Vim colorscheme. Dark, high-contrast, with lots of oranges and
-    yellows for the code while UI elements are most gray.
+    My personal Vim colorscheme. It is a dark, high-contrast colorscheme with
+    lots of oranges and yellows to emphasize the code while fading the UI into
+    the background.
 repo: euclio/vim-nocturne
 available: false
 binary_location: null
