@@ -1,9 +1,9 @@
 title: What I've Been Up To Lately
 date: 2:31pm 04/14/12
-categories: [news]
-tags: [c, c++, python]
-
-!END
+categories: news
+tags: c
+      c++
+      python
 
 Before the blog update I hadn't done much in my site in about a month. However,
 I didn't sit idle during that time. I mostly spent this time learning the C

@@ -1,9 +1,8 @@
 title: Liquidity and Elasticity
 date: 3:02pm 05/17/12
-categories: [news, websites]
-tags: [html]
-
-!END
+categories: news
+            websites
+tags: html
 
 To help accommodate more browsers, the site's layout is now almost completely
 elastic and liquid. This means that the size of fonts and content will change

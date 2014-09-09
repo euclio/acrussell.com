@@ -1,8 +1,6 @@
 title: In Defense of TI-Basic
 date: 3:21pm 01/14/2014
-categories: [programming]
-
-!END
+categories: programming
 
 [Edsger Dijkstra], famed Computer Scientist, once said "It is practically
 impossible to teach good programming to students that have had a prior exposure

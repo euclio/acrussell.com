@@ -1,8 +1,6 @@
 title: Summer Coming to a Close
 date: 10:28pm 08/23/2012
-categories: [news]
-
-!END
+categories: news
 
 As I get ready to start my sophomore year of college I thought that I should
 write a bit about my job at Washington University. I worked for the computer
@@ -34,14 +32,16 @@ interface, I decided that this was the prime opportunity to improve my vim
 skills. There are three things I did that vastly improved my workflow. First of
 all, I disabled the arrow keys completely in my `.vimrc` using
 
-    noremap <up> <nop>
-    noremap <down> <nop>
-    noremap <left> <nop>
-    noremap <right> <nop>
-    inoremap <up> <nop>
-    inoremap <down> <nop>
-    inoremap <left> <nop>
-    inoremap <right> <nop>
+```vim
+noremap <up> <nop>
+noremap <down> <nop>
+noremap <left> <nop>
+noremap <right> <nop>
+inoremap <up> <nop>
+inoremap <down> <nop>
+inoremap <left> <nop>
+inoremap <right> <nop>
+```
 
 At first this addition made me a lot slower, because I would press the arrow
 keys every once in a while out of habit. However, eventually the tweak forced
@@ -81,27 +81,31 @@ shell. Secondly, the language is very high level. It makes resource management
 a breeze. For example, this Java code to read a file and print out the each
 line and its number:
 
-    Scanner reader = null;
-    try {
-        reader = new Scanner(new BufferedReader(new FileReader("data.txt")));
-        int count = 1;
-        while (reader.hasNextLine()) {
-            System.out.println(count + ". " + reader.nextLine());
-            count++;
-        }
-    } finally {
-        if (reader != null) { 
-            reader.close();
-        }
+```java
+Scanner reader = null;
+try {
+    reader = new Scanner(new BufferedReader(new FileReader("data.txt")));
+    int count = 1;
+    while (reader.hasNextLine()) {
+        System.out.println(count + ". " + reader.nextLine());
+        count++;
     }
+} finally {
+    if (reader != null) { 
+        reader.close();
+    }
+}
+```
 
 Java 7 has made this kind of set up and tear down of resources a little bit
 less verbose, but the platform has yet to be widely adopted as of now.
 Regardless, the Python version of this program is far more elegant:
 
-    with open('data.txt', 'r') as f:
-        for count, line in enumerate(f):
-            print('{0}. {1}'.format(count, line))
+```python
+with open('data.txt', 'r') as f:
+    for count, line in enumerate(f):
+        print('{0}. {1}'.format(count, line))
+```
 
 High level features like complex string formatting and context managers drew me
 especially to Python for this project. I also used list comprehensions to

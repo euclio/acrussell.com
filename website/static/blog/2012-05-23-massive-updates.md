@@ -1,9 +1,12 @@
 title: Massive Updates!
 date: 10:41am 05/25/12
-categories: [news, projects, website]
-tags: [css, doodler, html, java]
-
-!END
+categories: news
+            projects
+            website
+tags: css
+      doodler
+      html
+      java
 
 With the summer here, I've had a lot more time to give to my personal projects.
 I've made two big updates to the site and to Doodler. I've updated a lot, so

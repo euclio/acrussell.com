@@ -1,8 +1,6 @@
 title: Video Games and Programming
 date: 6:08pm 03/15/14
-categories: [programming]
-
-!END
+categories: programming
 
 It's somewhat of a stereotype that programmers like to play video games. Of
 course, not all programmers enjoy games, but it's undeniable that the

@@ -1,9 +1,9 @@
 title: "Signing JARs: Doodler and the File System"
 date: 11:37pm 05/08/12
-categories: [news, projects]
-tags: [doodler, java]
-
-!END
+categories: news
+            projects
+tags: doodler
+      java
 
 I'm happy to announce that Doodler is now able to save and load images from a
 user's computer. This was accomplished by "signing" the JAR file. This is

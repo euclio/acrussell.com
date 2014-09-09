@@ -1,9 +1,8 @@
 title: The Importance of Semantic HTML
 date: 4:47pm 07/11/12
-categories: [web]
-tags: [css, html]
-
-!END
+categories: web
+tags: css
+      html
 
 The vast majority of modern web developers would agree that semantic HTML is
 good HTML. HTML documents should have meaning, instead of being vehicles of
@@ -20,19 +19,25 @@ a developer to apply a simple modification like a color change to be propagated
 across hundreds of pages automatically. Stylesheets also contribute to a pages
 meaning. For example, it is obvious which HTML is semantic:
 
-    <i color="red">Don't do this!</i>
+```html
+<i color="red">Don't do this!</i>
+```
 
 or
 
-    <em class="warning">Don't do this!</em>
+```html
+<em class="warning">Don't do this!</em>
+```
 
 A web designer can accomplish the same presentation as the former HTML with
 this style:
 
-    .warning {
-        font-style: italic;
-        color: red;
-    }
+```css
+.warning {
+    font-style: italic;
+    color: red;
+}
+```
 
 At work this past week I was writing a script to scrape some biological data
 returned from a website query. The script supplies the site with a small input,
@@ -67,12 +72,14 @@ believe how this page operated! Parsing the site with the HTML parser included
 in the Python standard library was a nightmare. A summary of my script's logic
 in Python pseudocode:
 
-    if correct_table_is_present:
-        if in_correct_table:
-            if in_table_row:
-                if tag_is_link:
-                    if link_text != 'Sites in UTR':
-                        gene_count += 1
+```python
+if correct_table_is_present:
+    if in_correct_table:
+        if in_table_row:
+            if tag_is_link:
+                if link_text != 'Sites in UTR':
+                    gene_count += 1
+```
 
 Incredibly hacky and ugly, but it got the job done. Just goes to show that most
 biologists aren't programmers ;). Thanks for reading, and I hope this tale of

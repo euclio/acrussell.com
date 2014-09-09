@@ -1,9 +1,8 @@
 title: A Taste of Scala
 date: 10:00pm 01/18/13
-categories: [news]
-tags: [cs, scala]
-
-!END
+categories: news
+tags: cs
+      scala
 
 This past semester I took a course entitled "Domain-Specific Languages." I had
 no idea what to expect when I signed up for it, but it ended up being one of
@@ -25,9 +24,11 @@ of programming. This is a praise often sung about Python, but I think it rings
 true about Scala as well. Scala's "Hello World" is a bit more verbose than
 Python, but it is worlds away from Java. Here's how I would implement it:
 
-    object HelloWorld extends App {
-        println("Hello World")
-    }
+```scala
+object HelloWorld extends App {
+    println("Hello World")
+}
+```
 
 There's a bunch of cool things going on in this program. First, note the lack
 of semicolons. They are inserted implicitly, similarly to JavaScript, which
@@ -38,11 +39,13 @@ itself is pretty convenient too. It implicitly defines a main method and
 supplies a variable args that holds the command line arguments. Not bad for
 three lines of code, and a heck of a lot better than this:
 
-    public class HelloWorld {
-        public static void main (String [] args) {
-            System.out.println("Hello world");
-        }
+```java
+public class HelloWorld {
+    public static void main (String [] args) {
+        System.out.println("Hello world");
     }
+}
+```
 
 Another nice feature is that `.scala` files can be named anything you like, and
 can contain all the classes and objects you want, while `.java` files must be
@@ -62,12 +65,12 @@ pattern match, filter and map. Scala allows me to do all of those things in the
 same program. Its syntax for anonymous functions is amazing. There aren't many
 languages out there where squaring
 
-Lastly, Scala allows for some pretty helpful tools for DSLs. Internal DSLs are
-a breeze to implement due to Scala's generous syntax. In most situations, the
+Lastly, Scala allows for some pretty helpful tools for DSLs. Internal DSLs are a
+breeze to implement due to Scala's generous syntax. In most situations, the
 method selector and the parenthesis of nullary functions are optional.
-[ScalaTest][scalatest], a unit-testing library for Scala, is a DSL with such a syntax. As
-for external DSLs, the Scala standard library comes with a number of Parsers,
-included the combinator-parsers I mentioned before.
+[ScalaTest][scalatest], a unit-testing library for Scala, is a DSL with such a
+syntax. As for external DSLs, the Scala standard library comes with a number of
+Parsers, included the combinator-parsers I mentioned before.
 
 There's so much more I could talk about, but this post is already much longer
 than intended. I might write another post down the line about more cool things

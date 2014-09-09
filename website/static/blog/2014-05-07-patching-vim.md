@@ -1,8 +1,7 @@
 title: Patching Vim
 date: 8:39pm 05/09/2014
-categories: [programming,open source]
-
-!END
+categories: programming
+            open source
 
 As those familiar with me probably know, I'm a huge fan of [Vim], an open-source
 text editor that has been around since 1991. I use the editor almost every day,
@@ -37,13 +36,18 @@ One of my plugins returned a message that my "shell doesn't support UNIX-style
 redirects." So, I thought that the issue stemmed from the fact that fish has
 different syntax for redirects than bash. Where a bash scripter might write
 
-    # Redirect both stdout and stderr to a file
-    echo "hello" 2>&1 hello.txt
+```sh
+# Redirect both stdout and stderr to a file
+echo "hello" 2>&1 hello.txt
+```
 
 A fish scripter might write
 
-    # Redirect both stdout and stderr to a file
-    echo "hello" > hello.txt ^ &1
+```fish
+# Redirect both stdout and stderr to a file
+echo "hello" > hello.txt ^ &1
+```
+
 
 I knew that Vim automatically detects which shell as user is using and sets
 variables such as `shellredir` and `shellpipe` to appropriate values for the

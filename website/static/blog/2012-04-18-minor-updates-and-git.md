@@ -1,9 +1,8 @@
 title: Minor Updates and Git
 date: 10:45pm 04/18/12
-categories: [news]
-tags: [doodler, git]
-
-!END
+categories: news
+tags: doodler
+      git
 
 Today I played around with Doodler some more. It is still far from complete,
 but I fixed the issue with the program not exiting correctly. I also

@@ -4,15 +4,16 @@ import datetime
 import markdown
 import os
 import re
-import yaml
 
 from flask import url_for
 from jinja2.filters import do_truncate, do_striptags
 
 # Regex matching valid blog post files
-_FILE_PATTERN = re.compile(r'(\d{4})-(\d{2})-(\d{2})-(.+)\.mdown\Z')
+_FILE_PATTERN = re.compile(r'(\d{4})-(\d{2})-(\d{2})-(.+)\.md\Z')
 
 _posts = None
+
+MD = markdown.Markdown(extensions=['fenced_code', 'meta'])
 
 
 class PostsNotParsedError(Exception):
@@ -53,7 +54,7 @@ class Post(object):
     def title(self):
         """Returns a displayable title for the post."""
         try:
-            return self.metadata['title']
+            return ''.join(self.metadata['title'])
         except KeyError:
             return self._title.replace('-', ' ').title()
 
@@ -106,23 +107,9 @@ def posts():
 
 def parse_post(abs_path):
     """Parses a Post object from a file name."""
-    END_METADATA = '!END\n'
-
-    with open(abs_path) as f:
-        lines = f.readlines()
-
-    metadata_yaml = None
-    try:
-        metadata_end_index = lines.index(END_METADATA)
-    except ValueError:
-        # If no metadata is found, then the entire file is Markdown
-        content_markdown = ''.join(lines)
-    else:
-        metadata_yaml = ''.join(lines[:metadata_end_index])
-        content_markdown = ''.join(lines[metadata_end_index+1:])
-
-    metadata = yaml.load(metadata_yaml) if metadata_yaml else None
-    content = markdown.markdown(content_markdown)
+    with open(abs_path) as md_file:
+        content = MD.convert(md_file.read())
+    metadata = MD.Meta
 
     # Extract the raw data from the file name
     file_name = os.path.basename(abs_path)
@@ -139,7 +126,7 @@ def parse_posts(directory):
         url: The relative url from the application root to the blog posts
 
     """
-    file_names = glob(os.path.join(directory, '*.mdown'))
+    file_names = glob(os.path.join(directory, '*.md'))
     global _posts
     _posts = [parse_post(file_name) for file_name in file_names]
     _posts.sort(key=lambda p: p.date, reverse=True)
