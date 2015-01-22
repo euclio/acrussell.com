@@ -1,13 +1,13 @@
 import datetime
-import httplib
+import http.client
 import itertools
 import os
 from os import path
 
 from flask import Flask, render_template, request, send_from_directory, url_for
 
-import blog
-import projects
+from . import blog
+from . import projects
 
 
 def create_app():
@@ -24,9 +24,9 @@ def create_app():
 app = create_app()
 
 
-@app.errorhandler(httplib.NOT_FOUND)
+@app.errorhandler(http.client.NOT_FOUND)
 def page_not_found(e):
-    return render_template('not_found.html'), httplib.NOT_FOUND
+    return render_template('not_found.html'), http.client.NOT_FOUND
 
 
 @app.route('/robots.txt')
