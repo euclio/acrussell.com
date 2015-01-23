@@ -2,11 +2,6 @@
 
 {% block title %}Home{% endblock %}
 
-{% block styles %}
-{{ super() }}
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/blog.css') }}" />
-{% endblock %}
-
 {% block layout %}
 <div class="readable column">
   <div class="content textpadder">
