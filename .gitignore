@@ -7,3 +7,4 @@ local
 bin
 scripts
 Thumbs.db
+.venv
