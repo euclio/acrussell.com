@@ -2,27 +2,19 @@ import datetime
 import http.client
 import itertools
 import os
-from os import path
 
-from flask import Flask, render_template, request, send_from_directory, url_for
+from flask import render_template, request, send_from_directory, url_for
 
 from . import blog
 from . import projects
 
+from website import app
 
-def create_app():
-    app = Flask(__name__)
-    app.config.from_object(__name__)
-    app.jinja_env.trim_blocks = True
-    app.jinja_env.autoescape = False
-    blog.parse_posts(
-        path.join(os.getcwd(), app.static_folder, 'blog'))
-    projects.parse_projects(
-        path.join(os.getcwd(), app.static_folder, 'projects'))
-    return app
-
-app = create_app()
-
+# Read data from the filesystem
+blog.parse_posts(
+    os.path.join(os.getcwd(), app.static_folder, 'blog'))
+projects.parse_projects(
+    os.path.join(os.getcwd(), app.static_folder, 'projects'))
 
 @app.errorhandler(http.client.NOT_FOUND)
 def page_not_found(e):
@@ -46,8 +38,8 @@ def index():
 def about_me():
     # We need to find all the slideshow images and list them
     slideshow_url = url_for('static', filename='images/slideshow/')
-    slideshow_rel_path = path.normpath(slideshow_url.strip('/'))
-    slideshow_dir = path.join(os.getcwd(), slideshow_rel_path)
+    slideshow_rel_path = os.path.normpath(slideshow_url.strip('/'))
+    slideshow_dir = os.path.join(os.getcwd(), slideshow_rel_path)
     image_urls = [slideshow_url + image for image in os.listdir(slideshow_dir)]
     return render_template('about.html', image_urls=image_urls)
 
@@ -71,6 +63,3 @@ def render_projects():
 @app.route('/resume')
 def resume():
     return render_template('resume.html')
-
-if __name__ == '__main__':
-    app.run(debug=False)
