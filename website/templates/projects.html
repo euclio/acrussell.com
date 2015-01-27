@@ -3,23 +3,28 @@
 {% block title %}Projects{% endblock %}
 
 {% block layout %}
-<div class="content projects textpadder">
+<div class="tabular">
   <h1>Projects</h1>
   <hr />
-  <table class="center">
+  <table>
+    <tr>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Source</th>
+    </tr>
   {% for project in projects %}
     <tr>
       <td class="name">
         {% if project.available %}<a href="{{ project.location }}">{{ project.name }}</a>{% if project.needs_fs %}*{% endif %}
         {% else %}{{ project.name }}&dagger;{% endif %}</td>
       <td class="description readable">{{ project.description|safe }}</td>
-      <td class="source"><a href="http://github.com/{{ project.repo }}">Source ({{ project.language }})</a></td>
+      <td class="source"><a class="external" href="http://github.com/{{ project.repo }}">{{ project.language }}</a></td>
     </tr>
   {% endfor %}
   </table>
   <ul class="warning">
-    <li>* This application will request permission to access your computer's filesystem.</li>
-    <li>&dagger; This project is not quite ready for testing, but I have made the source available.</li>
+    <li><small>* This application will request permission to access your computer's filesystem.</small></li>
+    <li><small>&dagger; This project is not quite ready for testing, but I have made the source available.</small></li>
   </ul>
 </div>
 {% endblock %}

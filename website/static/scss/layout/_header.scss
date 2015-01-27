@@ -1,0 +1,37 @@
+.header {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  margin: 0 1em 1em;
+  text-align: center;
+
+  .logo {
+    color: $white;
+    cursor: default;
+    font-family: vt323, monospace;
+    font-size: 128px;
+    text-shadow: 0 0 20px #ffa500;
+  }
+
+  nav {
+    background-color: $secondarycolor;
+    border-radius: 1em;
+    font: .9em $navfontfamily;
+
+    ul {
+      list-style: none;
+      padding: 0 1em;
+
+      li {
+        display: inline;
+        margin: 0;
+        padding: 0;
+
+        &:not(:last-child):after {
+          color: #8080ff;
+          content: ' | ';
+        }
+      }
+    }
+  }
+}

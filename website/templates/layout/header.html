@@ -1,5 +1,5 @@
 <div class="header">
-  <span id="logo">acrussell.com</span>
+  <span class="logo">acrussell.com</span>
   <nav>
     <ul>
       {%- for endpoint, title in [
@@ -9,14 +9,14 @@
         ('render_projects', 'Projects'),
         ('resume', 'Resume'),
       ] %}
-      <li {% if endpoint == request.endpoint %}class="currentLink"{% endif %}>
-        <a href="{{ url_for(endpoint) }}">{{ title }}</a>
+      <li>
+        <a {% if endpoint == request.endpoint %}class="current-link"{% endif %} href="{{ url_for(endpoint) }}">{{ title }}</a>
       </li>
       {%- endfor %}
       {%- for external_link, title in [
         ('http://www.github.com/euclio', 'Github'),
       ] %}
-      <li class="external"><a href="{{ external_link }}">{{ title }}</a></li>
+      <li><a class="external" href="{{ external_link }}">{{ title }}</a></li>
       {%- endfor %}
     </ul>
   </nav>

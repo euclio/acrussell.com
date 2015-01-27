@@ -1,0 +1,60 @@
+%post {
+  header a {
+    color: $bodycolor;
+
+    &:hover {
+      color: $primarycolor;
+    }
+  }
+
+  time {
+    float: right;
+    font-style: italic;
+    margin-top: .5em;
+  }
+
+  pre {
+    background-color: lighten($secondarycolor, 50);
+    border: 5px outset $tertiarycolor;
+    color: $tertiarycolor;
+    margin: auto;
+    padding: 2em;
+  }
+
+  h1 {
+    float: left;
+  }
+
+  hr {
+    clear: both;
+  }
+
+  footer {
+    align-items: flex-start;
+    color: $bodycolor;
+    font: 1em $altfontfamily;
+    margin: initial;
+  }
+}
+
+.post-summaries {
+  @extend %post;
+
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+
+  blockquote {
+    clear: both;
+    display: inline-block;
+    line-height: 1.5em;
+    margin: .3em 0 0;
+  }
+}
+
+.blog-post {
+  @extend %content;
+  @extend %post;
+  max-width: 50em;
+  padding: 1em;
+}

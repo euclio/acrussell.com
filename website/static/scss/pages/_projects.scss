@@ -1,0 +1,19 @@
+th {
+  font-family: $altfontfamily;
+  text-align: center;
+}
+
+.source {
+  text-align: center;
+  width: 7em;
+}
+
+.name {
+  text-align: center;
+  width: 10em;
+}
+
+.description {
+  @extend %readable;
+  text-align: justify;
+}

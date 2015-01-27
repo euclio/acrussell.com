@@ -1,0 +1,21 @@
+.main {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+%column {
+  display: flex;
+  flex-direction: column;
+}
+
+.column {
+  @extend %column;
+  @extend %readable;
+}
+
+.wide-column {
+  @extend %column;
+  max-width: 50em;
+  min-width: 40em;
+}

@@ -4,22 +4,15 @@
 
 {% block layout %}
 {% block content %}
-<div itemscope itemtype="http://schema.org/Blog" class="blog">
-  <div class="content readable textpadder">
+<div class="column">
+  <div class="text">
     <h1>Blog</h1>
     <hr />
     <p itemprop="description">Welcome to my blog.</p>
   </div>
-  <div class="blogposts">
-  {% for post in posts %}
-    <div itemscope="blogPost" class="content textpadder post">
-      <h1><a itemprop="headline" class="postlink" href="{{ post.url }}">{{ post.title }}</a></h1>
-      <h2 itemprop="datePublished">{{ post.pretty_date }}</h2>
-      <hr />
-      <p>{{ post.preview }}</p>
-    </div>
-  {% endfor %}
-  </div>
+</div>
+<div class="wide-column">
+  {% include "post_summaries.html" %}
 </div>
 {% endblock %}
 {% endblock %}

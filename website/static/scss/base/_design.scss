@@ -1,0 +1,20 @@
+body {
+  background-color: $tertiarycolor;
+  color: $bodycolor;
+  font-family: $basefontfamily;
+  margin: 0 auto;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: $baseheadingfont;
+  margin: 0 auto;
+
+  a {
+    text-decoration: none;
+  }
+}

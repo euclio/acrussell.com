@@ -1,0 +1,37 @@
+$numimages: 2;
+
+$imagedisplaytime: 6s;
+
+$animationlength: $numimages * $imagedisplaytime;
+
+@for $i from 1 through $numimages {
+  .slides > img:nth-child(#{$i}) {
+    animation: slideshowAnimation
+               #{$animationlength}
+               #{$animationlength - ($i * $imagedisplaytime)}
+               infinite;
+  }
+}
+
+.slides {
+  height: 100%;
+  position: relative;
+  width: 100%;
+
+  > img {
+    display: block;
+    max-width: 100%;
+  }
+
+  > img:not(:first-child) {
+    left: 0;
+    position: absolute;
+    top: 0;
+  }
+}
+
+@keyframes slideshowAnimation {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}

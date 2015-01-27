@@ -1,0 +1,40 @@
+%content {
+  background-color: $secondarycolor;
+  border-radius: .9375em;
+  margin: 0 8px 16px;
+}
+
+.text {
+  @extend %content; 
+  padding: 1em;
+}
+
+.wide-text {
+  @extend %content;
+  max-width: 40em;
+  min-width: 30em;
+  padding: 1em;
+}
+
+.images {
+  @extend %content;
+  max-width: 40em;
+  padding: .7em;
+}
+
+.tabular {
+  @extend %content;
+  max-width: 55em;
+  padding: 1em;
+
+  td {
+    padding: 1em;
+  }
+}
+
+.pdf-viewer {
+  @extend %content;
+  height: 70em;
+  padding: 1em;
+  width: 70em;
+}

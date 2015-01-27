@@ -1,0 +1,28 @@
+p {
+  line-height: 1.5;
+}
+
+a {
+  color: $primarycolor;
+
+  &:hover {
+    color: $linkcolorhover;
+  }
+
+  &.external:after {
+    content: ' \f08e';
+    font-family: 'FontAwesome';
+  }
+
+  &.current-link {
+    color: $white;
+    cursor: default;
+    text-decoration: none;
+  }
+}
+
+.warning {
+  color: $warningcolor;
+  font: .8em $altfontfamily;
+  list-style: none;
+}

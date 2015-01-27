@@ -31,7 +31,7 @@ def static_from_root():
 @app.route('/')
 def index():
     recent_posts = itertools.islice(blog.posts(), 3)
-    return render_template('index.html', recent_posts=recent_posts)
+    return render_template('index.html', posts=recent_posts)
 
 
 @app.route('/about')

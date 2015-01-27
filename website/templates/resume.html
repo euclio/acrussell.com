@@ -4,8 +4,8 @@
 
 {% block layout %}
 {% set resume_link = 'https://github.com/euclio/resume/blob/master/resume.pdf?raw=true' %}
-<div class="docviewer">
+<div class="pdf-viewer">
   <iframe class="resume" src="http://docs.google.com/gview?url={{ resume_link }}&embedded=true" frameborder="0"></iframe>
-  <p>Document viewer not showing? Try the direct link <a href="{{ resume_link }}">here</a>.</p>
+  <small class="warning">Document viewer not showing? Try the direct link <a href="{{ resume_link }}">here</a>.</small>
 </div>
 {% endblock %}

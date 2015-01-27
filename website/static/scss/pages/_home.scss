@@ -1,0 +1,15 @@
+.decorative-code {
+  border-width: 5px;
+  height: 15em;
+  overflow: hidden;
+
+  > * {
+    transform: rotate(-15deg);
+    transform-origin: 0% 30%;
+  }
+
+  code {
+    font-family: inconsolata, monospace;
+    font-size: 18px;
+  }
+}
