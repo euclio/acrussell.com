@@ -8,3 +8,4 @@ bin
 scripts
 Thumbs.db
 .venv
+node_modules

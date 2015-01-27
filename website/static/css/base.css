@@ -81,24 +81,17 @@ p {
 
 .main {
     display: flex;
-    display: -webkit-flex;
     flex-direction: row;
-    -webkit-flex-direction: row;
     flex-wrap: nowrap;
-    -webkit-flex-wrap: nowrap;
     justify-content: center;
-    -webkit-justify-content: center;
     align-content: center;
-    -webkit-align-content: center;
     align-items: flex-start;
-    -webkit-align-items: flex-start;
 }
 
 .content, .pictures {
     background-color: #444;
     border-radius: 0.9375em;
     align-self: auto;
-    -webkit-align-self: auto;
     margin: 0 8px 16px;
 }
 
@@ -110,7 +103,6 @@ p {
 
 .column {
     flex-flow: column wrap;
-    -webkit-flex-flow: column wrap;
     min-width: auto;
     min-height: auto;
 }
@@ -123,9 +115,7 @@ p {
 
 #decorative_code > * {
     transform: rotate(-15deg);
-    -webkit-transform: rotate(-15deg);
     transform-origin: 0% 30%;
-    -webkit-transform-origin: 0% 30%;
 }
 
 #decorative_code code {
