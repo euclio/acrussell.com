@@ -2,26 +2,10 @@
 
 {% block title %}About Me{% endblock %}
 
-{% block scripts %}
-{{ super() }}
-<script type="application/javascript" src="http://cloud.github.com/downloads/malsup/cycle/jquery.cycle.all.latest.js"></script>
-<script type="application/javascript">
-  $(document).ready(function() {
-    $('.slides').cycle({
-      fx: 'fade',
-      timeout: 9000,
-      speed: 2000,
-    });
-  });
-</script>
-{% endblock %}
-
 {% block layout %}
 <div class="pictures slideshow">
   <div class="slides">
-    {% for image_url in image_urls %}
-    <img src="{{ image_url }}" />
-    {% endfor %}
+    <img class="placeholder" src="http://placehold.it/2048x1365">
   </div>
 </div>
 <div class="readable content textpadder">

@@ -1,0 +1,37 @@
+$images: '/static/images/slideshow/hackathon.jpg' '/static/images/slideshow/roomFullOfCats.jpg';
+
+@for $i from 1 through length($images) {
+  .slides > img:nth-child(#{$i}) {
+    animation-delay: #{6 * ($i - 1)}s;
+  }
+}
+
+.slideshow {
+  width: 40em;
+}
+
+.slides {
+  background-image: url('/static/images/slideshow/hackathon.jpg');
+  background-size: contain;
+  width: 100%;
+
+  .placeholder {
+    visibility: hidden;
+  }
+
+  > img {
+    animation: slideshowAnimation #{6 * length($images)}s linear infinite 0s;
+    color: transparent;
+    height: auto;
+    opacity: 0;
+    width: 100%;
+  }
+}
+
+@keyframes slideshowAnimation {
+  0% { opacity: 0; animation-timing-function: ease-in; }
+  8% { opacity: 1; animation-timing-function: ease-in; }
+  17% { opacity: 1; }
+  25% { opacity: 0; }
+  100% { opacity: 0; }
+}

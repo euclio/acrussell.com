@@ -2,15 +2,20 @@ import os
 
 from flask.ext.assets import Bundle, Environment
 
+scss = Bundle(
+    'scss/main.scss',
+    filters='pyscss'
+)
+
 css = Bundle(
-    'css/base.css',
     'css/blog.css',
     'css/projects.css',
     'css/resume.css',
-    'css/slideshow.css',
+    scss,
     filters='autoprefixer',
     output='gen/main.css'
 )
+
 
 def init_app(app):
     assets = Environment(app)

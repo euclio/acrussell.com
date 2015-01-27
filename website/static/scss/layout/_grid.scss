@@ -1,0 +1,27 @@
+.main {
+  align-content: center;
+  align-items: flex-start;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: center;
+}
+
+.content,
+.pictures {
+  align-self: auto;
+  background-color: #444;
+  border-radius: .9375em;
+  margin: 0 8px 16px;
+}
+
+.readable {
+  max-width: 33em;
+  min-width: 25em;
+}
+
+.column {
+  flex-flow: column wrap;
+  min-height: auto;
+  min-width: auto;
+}

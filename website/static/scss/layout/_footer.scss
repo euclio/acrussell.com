@@ -1,0 +1,36 @@
+.footer {
+  clear: both;
+  color: #666;
+  font: .7em Verdana, Arial, Helvetica, sans-serif;
+  padding-bottom: 1em;
+  position: relative;
+  text-align: center;
+  top: 1em;
+
+  img {
+    border: 0;
+    height: 3em;
+    width: 3em;
+  }
+}
+
+.social {
+  clear: left;
+  display: float;
+  list-style: none;
+  margin: 0 2em;
+  padding: 0;
+
+  a {
+    color: #444;
+    text-decoration: none;
+
+    :hover {
+      color: #ff0;
+    }
+  }
+
+  li {
+    display: inline;
+  }
+}
