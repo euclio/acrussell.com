@@ -15,10 +15,29 @@
     }
 
     /*
-     * Writes lines of code into the page.
+     * Writes lines of code into the page. Optionally specify additional
+     * information about the source of the code.
      */
-    function appendLines(lines) {
-        document.querySelector('#code code').textContent = lines.join('\n');
+    function appendLines(lines, startingLineNumber, fileData) {
+        var codeNode = document.querySelector('#code code');
+        codeNode.textContent = lines.join('\n');
+
+        // Add some additional information about where the lines came from.
+        if (fileData) {
+            var linkToFile = document.createElement('a');
+            linkToFile.textContent = 'here';
+            linkToFile.setAttribute('href',
+                    fileData.html_url + '#L' + startingLineNumber);
+
+            var info = document.createElement('small');
+            info.appendChild(document.createTextNode(
+                    "This code was randomly pulled from my GitHub. " +
+                    "See the original file "));
+            info.appendChild(linkToFile);
+            info.appendChild(document.createTextNode("."));
+
+            document.querySelector('.decorative-code').appendChild(info);
+        }
     }
 
     /*
@@ -83,31 +102,37 @@
             });
         },
 
-        function getRandomLines(response, callback) {
-            var fileData = response.content;
-            var fileContent = atob(fileData);
+        function getRandomLines(fileData, callback) {
+            var fileContent = atob(fileData.content);
             var lines = fileContent.split('\n');
 
             // Ideally, we will get the number of lines we want from this file.
             // However, if the file is smaller than what we request lines, then
             // we will just use all of the lines.
-            var LINES_TO_GET = 10;
+            var LINES_TO_GET = 20;
             if (lines.length <= LINES_TO_GET) {
                 return callback(null, lines);
             }
 
             var firstIndex = Math.floor(
                     Math.random() * (lines.length - LINES_TO_GET));
-            callback(null, lines.slice(firstIndex, firstIndex + LINES_TO_GET));
+
+            var randomLines =
+                    lines.slice(firstIndex, firstIndex + LINES_TO_GET);
+            console.log(randomLines);
+
+            // TODO: We should probably strip the left side to ensure that the
+            // code always lines up nicely.
+            callback(null, randomLines, firstIndex + 1, fileData);
         }
-    ], function(err, lines) {
+    ], function(err, lines, startingLineNumber, fileData) {
         if (!err) {
             if (document.readyState == 'loading') {
                 document.addEventListener('DOMContentLoaded', function(e) {
-                    appendLines(lines);
+                    appendLines(lines, startingLineNumber, fileData);
                 });
             } else {
-                appendLines(lines);
+                appendLines(lines, startingLineNumber, fileData);
             }
         } else {
             if (err.request.status === 403) {
