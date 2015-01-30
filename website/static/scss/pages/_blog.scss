@@ -1,4 +1,6 @@
 %post {
+  @extend %codebox;
+
   header {
     position: relative;
 
@@ -20,14 +22,6 @@
       right: 0;
       top: 0;
     }
-  }
-
-  pre {
-    background-color: lighten($secondarycolor, 50);
-    border: 5px outset $tertiarycolor;
-    color: $tertiarycolor;
-    margin: auto;
-    padding: 2em;
   }
 
   footer {

@@ -1,15 +1,20 @@
 .decorative-code {
-  border-width: 5px;
-  height: 15em;
-  overflow: hidden;
+  @extend %codebox;
 
-  > * {
-    transform: rotate(-15deg);
-    transform-origin: 0% 30%;
+  border-width: 5px;
+  min-height: 20em;
+
+  pre {
+    margin: 0 initial;
+    min-height: 21em;
   }
 
-  code {
-    font-family: inconsolata, monospace;
-    font-size: 18px;
+  small {
+    color: $warningcolor;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 1em;
+    text-align: center;
   }
 }

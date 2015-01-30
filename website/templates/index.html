@@ -2,6 +2,15 @@
 
 {% block title %}Home{% endblock %}
 
+{% block scripts %}
+{{ super() }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/async/0.9.0/async.js"></script>
+  {% assets "snippets" %}
+  <script src="{{ ASSET_URL }}"></script>
+  {% endassets %}
+{% endblock %}
+
+
 {% block layout %}
 <div class="column">
   <div class="text">
@@ -10,26 +19,7 @@
   </div>
   <div class="text">
     <div class="decorative-code">
-      <pre>
-        <code>
-// Execute with Java
-processParams.add("java");
-
-// Add directory of main file to classpath
-processParams.add("-cp");
-processParams.add(mainClass.getParent());
-
-// Extract the name of the class from the file
-String mainClassName = mainClass.getName().split("\\.")[0];
-processParams.add(mainClassName);
-
-// Add the program's runtime parameters
-processParams.addAll(parameters);
-
-ProcessBuilder pb = new ProcessBuilder(processParams);
-status.appendLine(String.format("Running %s.java...", mainClassName));
-        </code>
-      </pre>
+      <pre id="code"><code></code></pre>
     </div>
   </div>
 </div>
