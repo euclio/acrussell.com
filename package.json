@@ -16,6 +16,7 @@
   },
   "homepage": "https://github.com/euclio/acrussell.com",
   "dependencies": {
-    "autoprefixer": "^5.0.0"
+    "autoprefixer": "^5.0.0",
+    "uglify-js": "^2.4.16"
   }
 }
