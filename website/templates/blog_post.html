@@ -7,11 +7,9 @@
   <header>
     <h1 itemprop="headline">{{ post.title}}</h1>
     <time itemprop="datePublished">{{ post.pretty_date }}</time>
-    <hr />
   </header>
-  <div itemprop="text">{{ post.content }}</div>
+  <div class="post" itemprop="text">{{ post.content }}</div>
   <nav><a href="{{ url_for('render_blog') }}">&larr;Back to blog</a></nav>
-  <hr />
   <footer>
     <address>
       by <span itemprop="author">Andy Russell</span>

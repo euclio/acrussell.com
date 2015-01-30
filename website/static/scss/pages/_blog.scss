@@ -1,16 +1,25 @@
 %post {
-  header a {
-    color: $bodycolor;
+  header {
+    position: relative;
 
-    &:hover {
-      color: $primarycolor;
+    h1 {
+      float: left;
     }
-  }
 
-  time {
-    float: right;
-    font-style: italic;
-    margin-top: .5em;
+    a {
+      color: $bodycolor;
+
+      &:hover {
+        color: $primarycolor;
+      }
+    }
+
+    time {
+      font-style: italic;
+      position: absolute;
+      right: 0;
+      top: 0;
+    }
   }
 
   pre {
@@ -19,14 +28,6 @@
     color: $tertiarycolor;
     margin: auto;
     padding: 2em;
-  }
-
-  h1 {
-    float: left;
-  }
-
-  hr {
-    clear: both;
   }
 
   footer {
@@ -57,4 +58,8 @@
   @extend %post;
   max-width: 50em;
   padding: 1em;
+
+  .post {
+    margin-top: 3em;
+  }
 }
