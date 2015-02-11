@@ -26,8 +26,11 @@
         if (fileData) {
             var linkToFile = document.createElement('a');
             linkToFile.textContent = 'here';
+            // Link to the original range of lines.
             linkToFile.setAttribute('href',
-                    fileData.html_url + '#L' + startingLineNumber);
+                    fileData.html_url +
+                    '#L' + startingLineNumber +
+                    '-' + (startingLineNumber + lines.length - 1));
 
             var info = document.createElement('small');
             info.appendChild(document.createTextNode(
@@ -109,7 +112,7 @@
             // Ideally, we will get the number of lines we want from this file.
             // However, if the file is smaller than what we request lines, then
             // we will just use all of the lines.
-            var LINES_TO_GET = 20;
+            var LINES_TO_GET = 12;
             if (lines.length <= LINES_TO_GET) {
                 return callback(null, lines);
             }
@@ -119,7 +122,6 @@
 
             var randomLines =
                     lines.slice(firstIndex, firstIndex + LINES_TO_GET);
-            console.log(randomLines);
 
             // TODO: We should probably strip the left side to ensure that the
             // code always lines up nicely.
