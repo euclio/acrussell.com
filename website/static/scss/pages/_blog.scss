@@ -24,6 +24,14 @@
     }
   }
 
+  p {
+    margin: initial;
+  }
+
+  pre {
+    margin: 1em;
+  }
+
   footer {
     align-items: flex-start;
     color: $bodycolor;

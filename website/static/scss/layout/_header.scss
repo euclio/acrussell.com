@@ -2,6 +2,7 @@
   align-items: center;
   display: flex;
   flex-direction: column;
+  line-height: 1;
   margin: 0 1em 1em;
   text-align: center;
 
@@ -11,6 +12,8 @@
     font-family: vt323, monospace;
     font-size: 128px;
     text-shadow: 0 0 20px #ffa500;
+
+    @include respond-to(medium-screens) { font-size: 15vw; }
   }
 
   nav {

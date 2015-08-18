@@ -17,6 +17,19 @@
 
   code {
     font-family: inconsolata, monospace;
-    font-size: 12px;
+    font-size: 100%;
+    line-height: normal;
+  }
+}
+
+@mixin respond-to($media) {
+  @if $media == small-screens {
+    @media only screen and (max-width: $break-small) { @content; }
+  @if $media == medium-screens {
+    @media only screen and (min-width: $break-small + 1) and (max-width: $break-medium) { @content; }
+  } @else if $media == wide-screens {
+    @media only screen and (min-width: $break-medium + 1) { @content; }
+  } @else {
+    @error 'Invalid media type specified.'
   }
 }
