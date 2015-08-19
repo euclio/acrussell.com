@@ -38,7 +38,7 @@ def about_me():
     # We need to find all the slideshow images and list them
     slideshow_url = url_for('static', filename='images/slideshow/')
     slideshow_rel_path = os.path.normpath(slideshow_url.strip('/'))
-    slideshow_dir = os.path.join(os.getcwd(), slideshow_rel_path)
+    slideshow_dir = os.path.join(os.getcwd(), 'website', slideshow_rel_path)
     image_urls = [slideshow_url + image for image in os.listdir(slideshow_dir)]
     return render_template('about.html', image_urls=image_urls)
 
