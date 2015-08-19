@@ -6,15 +6,14 @@ import os
 from flask import render_template, request, send_from_directory, url_for
 
 from . import blog
-from . import projects
 
+import website
 from website import app
 
 # Read data from the filesystem
 blog.parse_posts(
     os.path.join(os.getcwd(), app.static_folder, 'blog'))
-projects.parse_projects(
-    os.path.join(os.getcwd(), app.static_folder, 'projects'))
+
 
 @app.errorhandler(http.client.NOT_FOUND)
 def page_not_found(e):
@@ -57,7 +56,7 @@ def show_post(year, month, day, title):
 
 @app.route('/projects')
 def render_projects():
-    return render_template('projects.html', projects=projects.get_projects())
+    return render_template('projects.html', projects=website.projects)
 
 
 @app.route('/resume')

@@ -13,17 +13,15 @@
     </tr>
   {% for project in projects %}
     <tr>
-      <td class="name">
-        {% if project.available %}<a href="{{ project.location }}">{{ project.name }}</a>{% if project.needs_fs %}*{% endif %}
-        {% else %}{{ project.name }}&dagger;{% endif %}</td>
+      <td class="name">{{ project.name }}</td>
       <td class="description readable">{{ project.description|safe }}</td>
-      <td class="source"><a class="external" href="http://github.com/{{ project.repo }}">{{ project.language }}</a></td>
+      <td class="source">
+        <a class="external" href="{{ project.url }}">
+          ({{ project.languages|reject('equalto', 'CMake')|join(', ') }})
+        </a>
+      </td>
     </tr>
   {% endfor %}
   </table>
-  <ul class="warning">
-    <li><small>* This application will request permission to access your computer's filesystem.</small></li>
-    <li><small>&dagger; This project is not quite ready for testing, but I have made the source available.</small></li>
-  </ul>
 </div>
 {% endblock %}

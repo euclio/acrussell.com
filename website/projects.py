@@ -1,32 +1,49 @@
-from glob import glob
-import yaml
+from collections import namedtuple
+import logging
+import os
 import os.path
 
-_projects = None
+from github import Github, GithubException
+import yaml
 
 
-class ProjectsNotParsedError(Exception):
-    """Raised when the application requests project information without parsing
-    it from the filesystem first."""
+class Project(object):
+
+    def __init__(self, name, repo):
+        self.name = name
+        self.owner = repo.owner
+        self.url = repo.url
+        self.languages = repo.languages
+        self.description = repo.description
 
 
-def parse_projects(directory):
-    """Parse all of the projects described by the YAML in a directory."""
-    file_names = glob(os.path.join(directory, '*.yaml'))
-    global _projects
-    _projects = [parse_project(file_name) for file_name in file_names]
+Repo = namedtuple('Repo', ['owner', 'url', 'languages', 'description'])
 
 
-def parse_project(file_name):
-    """Return an object that contains the same information as the YAML."""
-    with open(file_name) as f:
-        project = yaml.load(f)
-    return project
+def parse(config_file):
+    github = Github(
+        os.environ['GITHUB_USERNAME'], os.environ['GITHUB_PASSWORD'])
+    with open(config_file) as config:
+        projects_yaml = yaml.load(config)['projects']
 
+        projects = []
 
-def get_projects():
-    """Returns all projects that have been parsed."""
-    global _projects
-    if _projects is None:
-        raise ProjectsNotParsedError
-    return _projects
+        for project in projects_yaml:
+            name = project['name']
+            custom_description = project.get('description')
+            (username, _, repo_name) = project['repo'].partition('/')
+            try:
+                gh_repo = github.get_user(login=username).get_repo(repo_name)
+                languages = list(gh_repo.get_languages().keys())
+                description = custom_description or gh_repo.description
+                repo = Repo(username, gh_repo.html_url, languages, description)
+
+            except GithubException as ghe:
+                logging.exception(ghe)
+                # Attempt to guess some information
+                repo = Repo(username, 'http://github.com/' + repo_name,
+                            [], custom_description)
+
+            projects.append(Project(name, repo))
+
+    return projects

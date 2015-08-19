@@ -1,0 +1,36 @@
+---
+projects:
+    - name: Doodler
+      repo: euclio/doodler
+      description:
+        A drawing application. Sketch a doodle, and save it to your computer
+        for later. There is a variety of tools including different shapes and
+        colors.
+    - name: Room Full of Cats
+      repo: gamefolk/room-full-of-cats
+      description:
+        A puzzle-action game for the Nintendo Gameboy. The game runs on both
+        actual hardware and emulation.
+    - name: Learn A Language
+      description:
+      repo: euclio/learnalanguage
+      description:
+        A program that aims to teach beginners the Java programming language.
+        It walks users through making their first Java programs in an
+        interactive terminal, and allows them to compile and run their code
+        while receiving feedback. Inspired by <a
+        href="http://codecademy.com">Codecademy</a>.
+    - name: FBFS
+      repo: euclio/fbfs
+      description:
+        An alternative interface to Facebook. Friends, statuses, photos, etc.
+        are represented as files or directories. Leverages filesystem features
+        such as permissions and symbolic links to provide as smooth a
+        user-experience as possible.
+    - name: nocturne
+      repo: euclio/vim-nocturne
+      description:
+        My personal Vim colorscheme. It is a dark, high-contrast colorscheme
+        with lots of oranges and yellows to emphasize the code while fading the
+        UI into the background.
+
