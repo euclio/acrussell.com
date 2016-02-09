@@ -1,5 +1,5 @@
 title: Patching Vim
-date: 8:39pm 05/09/2014
+date: 8:39pm 05/09/14
 categories: programming
             open source
 

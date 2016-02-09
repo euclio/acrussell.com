@@ -1,5 +1,5 @@
 title: In Defense of TI-Basic
-date: 3:21pm 01/14/2014
+date: 3:21pm 01/14/14
 categories: programming
 
 [Edsger Dijkstra], famed Computer Scientist, once said "It is practically

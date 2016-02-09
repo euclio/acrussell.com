@@ -1,5 +1,5 @@
 title: Summer Coming to a Close
-date: 10:28pm 08/23/2012
+date: 10:28pm 08/23/12
 categories: news
 
 As I get ready to start my sophomore year of college I thought that I should
