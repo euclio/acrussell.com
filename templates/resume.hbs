@@ -1,11 +1,10 @@
-{% extends "layout/base.html" %}
+{{#partial title}}Resume{{/partial}}
 
-{% block title %}Resume{% endblock %}
-
-{% block layout %}
-{% set resume_link = 'https://github.com/euclio/resume/blob/master/resume.pdf?raw=true' %}
+{{#partial layout}}
 <div class="pdf-viewer">
   <iframe class="resume" src="https://docs.google.com/gview?url={{ resume_link }}&embedded=true" frameborder="0"></iframe>
   <small class="warning">Document viewer not showing? Try the direct link <a href="{{ resume_link }}">here</a>.</small>
 </div>
-{% endblock %}
+{{/partial}}
+
+{{> base}}

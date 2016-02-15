@@ -1,0 +1,17 @@
+{{#partial title}}Blog{{/partial}}
+
+{{#partial layout}}
+{{#block content}}
+<div class="column">
+  <div class="text">
+    <h1>Blog</h1>
+    <p itemprop="description">Welcome to my blog.</p>
+  </div>
+</div>
+<div class="wide-column">
+  {{> summaries}}
+</div>
+{{/block}}
+{{/partial}}
+
+{{> base}}

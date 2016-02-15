@@ -1,14 +1,12 @@
-{% extends "layout/base.html" %}
+{{#partial title}}About Me{{/partial}}
 
-{% block title %}About Me{% endblock %}
-
-{% block layout %}
+{{#partial layout}}
 <div class="column">
   <div class="images">
     <div class="slides">
-      {% for image_url in image_urls %}
-        <img src="{{ image_url }}" />
-      {% endfor %}
+      {{#each image_urls}}
+      <img src="{{ this }}" />
+      {{/each}}
     </div>
   </div>
 </div>
@@ -25,4 +23,6 @@
     <p>Thanks for visiting my site! It's been a blast making it, both from a programming and design perspective.</p>
   </div>
 </div>
-{% endblock %}
+{{/partial}}
+
+{{> base}}

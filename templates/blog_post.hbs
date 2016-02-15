@@ -1,0 +1,17 @@
+{{#partial content}}
+<article itemscope="blogPost" class="blog-post">
+  <header>
+    <h1 itemprop="headline">{{ title }}</h1>
+    <time itemprop="datePublished">{{ date }}</time>
+  </header>
+  <div class="post" itemprop="text">{{{ content }}}</div>
+  <nav><a href="/blog">&larr;Back to blog</a></nav>
+  <footer>
+    <address>
+      by <span itemprop="author">Andy Russell</span>
+    </address>
+  </footer>
+</div>
+{{/partial}}
+
+{{> blog}}

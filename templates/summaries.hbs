@@ -1,0 +1,15 @@
+<ul class="post-summaries">
+  {{#each posts}}
+  <li class="text">
+    <article itemscope="blogPost" class="summary">
+      <header>
+        <h1><a itemprop="headline" class="postlink" href="{{ url }}">{{ title }}</a></h1>
+        <time itemprop="datePublished">{{ date }}</time>
+      </header>
+      <blockquote>
+        {{{ preview }}}
+      </blockquote>
+    </article>
+  </li>
+  {{/each}}
+</ul>

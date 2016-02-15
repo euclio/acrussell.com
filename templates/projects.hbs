@@ -1,0 +1,27 @@
+{{#partial title}}Projects{{/partial}}
+
+{{#partial layout}}
+<div class="tabular">
+  <h1>Projects</h1>
+  <table>
+    <tr>
+      <th>Name</th>
+      <th>Description</th>
+      <th>Source</th>
+    </tr>
+    {{#each projects }}
+    <tr>
+      <td class="name">{{ name }}</td>
+      <td class="description readable">{{{ description }}}</td>
+      <td class="source">
+        <a class="external" href="{{ url }}">
+          ({{join languages}})
+        </a>
+      </td>
+    </tr>
+    {{/each}}
+  </table>
+</div>
+{{/partial}}
+
+{{> base}}

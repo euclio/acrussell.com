@@ -1,17 +1,11 @@
-{% extends "layout/base.html" %}
+{{#partial title}}Home{{/partial}}
 
-{% block title %}Home{% endblock %}
-
-{% block scripts %}
-{{ super() }}
+{{#partial scripts}}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/async/0.9.0/async.js"></script>
-  {% assets "snippets" %}
-  <script src="{{ ASSET_URL }}"></script>
-  {% endassets %}
-{% endblock %}
+<script src="/static/js/github_snippets.js"></script>
+{{/partial}}
 
-
-{% block layout %}
+{{#partial layout}}
 <div class="column">
   <div class="text">
     <h1>Andy Russell</h1>
@@ -28,6 +22,8 @@
   <div class="text">
     <h1>Recent Blog Posts</h1>
   </div>
-  {% include "post_summaries.html" %}
+  {{> summaries}}
 </div>
-{% endblock %}
+{{/partial}}
+
+{{> base}}

@@ -9,3 +9,7 @@ scripts
 Thumbs.db
 .venv
 node_modules
+
+target/
+static/
+.sass-cache
