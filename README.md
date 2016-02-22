@@ -9,6 +9,6 @@ they're awesome!
 
 * [Rust/Iron](http://ironframework.io)
 * [hoedown](https://github.com/hoedown/rust-hoedown)
-* [PyYAML](https://github.com/chyh1990/yaml-rust)
+* [yaml-rust](https://github.com/chyh1990/yaml-rust)
 
 [acrussell.com]: https://acrussell.com
