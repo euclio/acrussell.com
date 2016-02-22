@@ -7,13 +7,14 @@ use std::fs;
 use std::path::Path;
 
 use chrono::Datelike;
+use hbs::Template;
 use iron::prelude::*;
 use iron::status;
-use hbs::Template;
+use persistent::Read;
 use router::Router;
 
 use blog::{self, Post, Summary};
-use projects;
+use persistence::Projects;
 
 const RESUME_LINK: &'static str =
     r"https://github.com/euclio/resume/blob/master/resume.pdf?raw=true";
@@ -36,10 +37,10 @@ fn resume(_: &mut Request) -> IronResult<Response> {
     Ok(res)
 }
 
-fn projects(_: &mut Request) -> IronResult<Response> {
+fn projects(req: &mut Request) -> IronResult<Response> {
     let mut res = Response::new();
 
-    let projects = projects::projects("config.yaml").unwrap();
+    let projects = req.get::<Read<Projects>>().unwrap();
 
     let data = btreemap!{
         "projects" => projects,

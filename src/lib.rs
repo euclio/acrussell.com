@@ -34,6 +34,7 @@ extern crate hoedown;
 extern crate hyper;
 extern crate iron;
 extern crate mount;
+extern crate persistent;
 extern crate rustc_serialize;
 extern crate serde;
 extern crate serde_json;
@@ -43,6 +44,7 @@ extern crate yaml_rust as yaml;
 
 pub mod blog;
 pub mod helpers;
+pub mod persistence;
 pub mod projects;
 pub mod routes;
 
@@ -55,8 +57,13 @@ use iron::AfterMiddleware;
 use iron::prelude::*;
 use iron::status;
 use mount::Mount;
+use persistent::Read;
 use router::{NoRoute, Router};
 use staticfile::Static;
+
+use persistence::Projects;
+
+const PROJECT_PATH: &'static str = "config.yaml";
 
 fn initialize_templates(folder: &str,
                         extension: &str)
@@ -80,6 +87,11 @@ pub fn listen<A>(addr: A)
 
     let router: Router = routes::get_router();
     let mut chain = Chain::new(router);
+
+    info!("loading projects from {}", PROJECT_PATH);
+    let projects = projects::projects(PROJECT_PATH).unwrap();
+    info!("loaded {} projects successfully", projects.len());
+    chain.link_before(Read::<Projects>::one(projects));
 
     chain.link_after(ErrorReporter);
     chain.link_after(ErrorHandler);
