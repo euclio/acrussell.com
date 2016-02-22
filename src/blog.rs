@@ -131,10 +131,7 @@ fn parse_post(post: &str) -> Result<Post, PostParseError> {
     let metadata = try!(YamlLoader::load_from_str(metadata))[0].to_owned();
 
     let content = contents[1];
-    let markdown = Markdown::new(content)
-                       .extensions(AUTOLINK)
-                       .extensions(FENCED_CODE)
-                       .extensions(TABLES);
+    let markdown = Markdown::new(content).extensions(AUTOLINK | FENCED_CODE | TABLES);
 
     let mut html = hoedown::Html::new(html::Flags::empty(), 0);
     let html_string = html.render(&markdown).to_str().unwrap().to_owned();
