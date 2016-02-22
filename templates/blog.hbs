@@ -1,5 +1,18 @@
 {{#partial title}}Blog{{/partial}}
 
+{{#partial styles}}
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/styles/atelier-plateau.dark.min.css">
+{{/partial}}
+
+{{#partial scripts}}
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/highlight.min.js"></script>
+<!-- Languages to highlight that are not included in the default highlight.js package.
+     TODO: Add fish when supported -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/languages/scala.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/languages/vim.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+{{/partial}}
+
 {{#partial layout}}
 {{#block content}}
 <div class="column">

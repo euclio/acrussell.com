@@ -7,10 +7,10 @@ fn main() {
     let out_dir = Path::new(env!("OUT_DIR")).to_owned();
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).to_owned();
 
-    let scss_out = &out_dir.join("styles.css");
     // Compile SCSS
+    let scss_out = &out_dir.join("styles.css");
     Command::new("sass")
-        .arg(out_dir.join("scss/main.scss"))
+        .arg("scss/main.scss")
         .arg(scss_out.as_path().to_str().unwrap())
         .spawn()
         .unwrap_or_else(|e| {
