@@ -5,6 +5,7 @@
 #![feature(plugin)]
 
 #![plugin(clippy)]
+#![plugin(dotenv_macros)]
 #![plugin(serde_macros)]
 #![plugin(regex_macros)]
 
@@ -28,6 +29,7 @@ extern crate quick_error;
 
 extern crate ammonia;
 extern crate chrono;
+extern crate dotenv;
 extern crate handlebars;
 extern crate handlebars_iron as hbs;
 extern crate hoedown;

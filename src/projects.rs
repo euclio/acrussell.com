@@ -6,7 +6,7 @@ use std::fs::File;
 use std::path::Path;
 
 use hyper::Client;
-use hyper::header::{Connection, UserAgent};
+use hyper::header::{Authorization, Bearer, Connection, UserAgent};
 use rustc_serialize::json::Json;
 use yaml::{Yaml, YamlLoader};
 
@@ -41,14 +41,18 @@ pub struct Project {
 }
 
 struct Github {
+    token: String,
     client: Client,
 }
 
 impl Github {
     const ENDPOINT: &'static str = "https://api.github.com";
 
-    fn new() -> Self {
-        Github { client: Client::new() }
+    fn new(token: &str) -> Self {
+        Github {
+            client: Client::new(),
+            token: token.to_owned(),
+        }
     }
 
     fn request(&self, endpoint: &str) -> Option<Json> {
@@ -62,6 +66,7 @@ impl Github {
         let mut response = self.client
                                .get(url)
                                .header(UserAgent("acrussell.com".to_owned()))
+                               .header(Authorization(Bearer { token: self.token.to_owned() }))
                                .header(Connection::close())
                                .send()
                                .unwrap();
@@ -71,7 +76,7 @@ impl Github {
 }
 
 fn parse_project(project: &Yaml) -> Result<Project, ProjectParseError> {
-    let github = Github::new();
+    let github = Github::new(dotenv!("GITHUB_TOKEN"));
 
     let name = try!(project["name"]
                         .as_str()
