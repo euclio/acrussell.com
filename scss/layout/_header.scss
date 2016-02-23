@@ -17,9 +17,9 @@
   }
 
   nav {
-    background-color: $secondarycolor;
-    border-radius: 1em;
+    @extend %content;
     font: .9em $navfontfamily;
+    margin: 0;
 
     ul {
       list-style: none;
