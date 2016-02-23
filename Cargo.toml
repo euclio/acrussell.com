@@ -10,7 +10,7 @@ name = "main"
 
 [dependencies]
 chrono = "0.2.19"
-clippy = "0.0.41"
+clippy = "0.0.44"
 docopt = "0.6.78"
 docopt_macros = "0.6.80"
 dotenv = "0.8.0"
