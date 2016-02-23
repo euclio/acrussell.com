@@ -8,6 +8,7 @@ use std::path::Path;
 use hyper::Client;
 use hyper::header::{Authorization, Bearer, Connection, UserAgent};
 use rustc_serialize::json::Json;
+use url::Url;
 use yaml::{Yaml, YamlLoader};
 
 quick_error!{
@@ -38,6 +39,7 @@ pub struct Project {
     owner: String,
     languages: Vec<String>,
     description: String,
+    url: Url,
 }
 
 struct Github {
@@ -93,17 +95,22 @@ fn parse_project(project: &Yaml) -> Result<Project, ProjectParseError> {
                           .and_then(|json| json.as_string())
                           .unwrap();
 
-    let url = repository.find("languages_url")
-                        .and_then(|json| json.as_string())
-                        .unwrap();
-    let response = github.request_url(&url).unwrap();
-    let languages = response.as_object()
-                            .and_then(|obj| {
-                                Some(obj.keys()
-                                        .cloned()
-                                        .collect())
-                            })
+    let url = Url::parse(repository.find("html_url").and_then(|json| json.as_string()).unwrap())
+                  .unwrap();
+
+    let languages = {
+        let url = repository.find("languages_url")
+                            .and_then(|json| json.as_string())
                             .unwrap();
+        let response = github.request_url(&url).unwrap();
+        response.as_object()
+                .and_then(|obj| {
+                    Some(obj.keys()
+                            .cloned()
+                            .collect())
+                })
+                .unwrap()
+    };
 
     let description = try!(project["description"]
                                .as_str()
@@ -115,6 +122,7 @@ fn parse_project(project: &Yaml) -> Result<Project, ProjectParseError> {
         owner: owner.to_owned(),
         description: description.to_owned(),
         languages: languages,
+        url: url,
     })
 }
 

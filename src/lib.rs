@@ -42,6 +42,7 @@ extern crate serde;
 extern crate serde_json;
 extern crate staticfile;
 extern crate toml;
+extern crate url;
 extern crate yaml_rust as yaml;
 
 pub mod blog;

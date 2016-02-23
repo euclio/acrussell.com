@@ -44,6 +44,10 @@ git = "https://github.com/notriddle/ammonia"
 features = ["pattern"]
 version = "0.1.48"
 
+[dependencies.url]
+features = ["serde_serialization"]
+version = "0.5.5"
+
 [features]
 default = ["handlebars-iron/serde_type"]
 watch = ["handlebars-iron/watch"]
