@@ -1,12 +1,10 @@
 .main {
+  align-content: center;
   align-items: flex-start;
   display: flex;
-  flex-direction: row;
+  flex-flow: row wrap;
   justify-content: center;
   max-width: 100%;
-
-  @include respond-to(medium-screens) { flex-direction: column; }
-  @include respond-to(small-screens) { flex-direction: column; }
 }
 
 %column {
