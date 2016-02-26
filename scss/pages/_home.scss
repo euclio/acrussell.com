@@ -2,11 +2,10 @@
   @extend %codebox;
 
   border-width: 5px;
-  min-height: 20em;
 
   pre {
     margin: 0 initial;
-    min-height: 21em;
+    min-height: 15em;
   }
 
   small {
