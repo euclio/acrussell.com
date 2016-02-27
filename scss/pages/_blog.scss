@@ -61,6 +61,11 @@
 .blog-post {
   @extend %content;
   @extend %post;
+
+  h1 {
+    font-size: 2em;
+  }
+
   max-width: 50em;
   padding: 1em;
 }
