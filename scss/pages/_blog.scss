@@ -32,9 +32,14 @@
 
   footer {
     align-items: flex-start;
+    border-top: 1px solid $white;
     color: $bodycolor;
+    display: flex;
+    flex-direction: row;
     font: 1em $altfontfamily;
-    margin: initial;
+    justify-content: space-between;
+    margin: 1em 0 0;
+    padding-top: 1em;
   }
 }
 
