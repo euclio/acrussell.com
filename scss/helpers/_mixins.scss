@@ -24,7 +24,6 @@
     border: 5px outset $tertiarycolor;
     color: $tertiarycolor;
     margin: auto;
-    margin-bottom: 1em;
     overflow-x: hidden;
 
     code {
@@ -34,8 +33,8 @@
   }
 
   code {
-    font-family: inconsolata, monospace;
-    font-size: 100%;
+    font-family: $codefontfamily;
+    font-size: .9em;
     line-height: normal;
   }
 }

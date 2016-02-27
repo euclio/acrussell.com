@@ -9,7 +9,7 @@
   .logo {
     color: $white;
     cursor: default;
-    font-family: vt323, monospace;
+    font-family: $logofontfamily;
     font-size: 128px;
     text-shadow: 0 0 20px $linkcolorhover;
 
@@ -19,7 +19,7 @@
 
   nav {
     @extend %content;
-    font: .9em $navfontfamily;
+    font-family: $navfontfamily;
     margin: 0;
 
     ul {
