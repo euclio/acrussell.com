@@ -13,8 +13,8 @@ programmed in C++. I even managed to buy a "C++ for Dummies" book (In fact, it
 predates the C++98 standard, making it interesting from a historical
 standpoint). Unfortunately, I was way over my head. Programming is difficult,
 and without any guidance I didn't have the attention or the understanding to
-follow through. I did not attempt programming again until [much later][Learning
-to Program].
+follow through. I did not attempt programming again until
+[much later][Learning to Program].
 
 I wasn't the only kid that wanted to learn how to make games. Many people manage
 to scratch that itch by using tools like [GameMaker] or [RPGMaker]. I've used
