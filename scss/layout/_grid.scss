@@ -22,5 +22,7 @@
 .wide-column {
   @extend %column;
   max-width: 50em;
-  min-width: 40em;
+
+  @include respond-to(medium-screens) { min-width: 40em; }
+  @include respond-to(wide-screens) { min-width: 40em; }
 }
