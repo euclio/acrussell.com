@@ -131,8 +131,6 @@ fn parse_project(project: &Yaml) -> Result<Project, ProjectParseError> {
 pub fn projects<P>(path: P) -> Result<Vec<Project>, ProjectParseError>
     where P: AsRef<Path>
 {
-    use self::ProjectParseError::*;
-
     let yaml = {
         let mut yaml_file = try!(File::open(path.as_ref()));
         let mut string = String::new();

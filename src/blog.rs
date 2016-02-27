@@ -120,7 +120,6 @@ quick_error! {
 
 fn parse_post(post: &str) -> Result<Post, PostParseError> {
     use hoedown::{AUTOLINK, FENCED_CODE, TABLES};
-    use self::PostParseError::*;
 
     // Read up to the first double newline to determine the end of metadata.
     //
