@@ -11,7 +11,7 @@
     cursor: default;
     font-family: vt323, monospace;
     font-size: 128px;
-    text-shadow: 0 0 20px #ffa500;
+    text-shadow: 0 0 20px $linkcolorhover;
 
     @include respond-to(medium-screens) { font-size: 15vw; }
     @include respond-to(small-screens) { font-size: 15vw; }
