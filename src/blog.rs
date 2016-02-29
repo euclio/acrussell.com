@@ -1,33 +1,19 @@
 //! Static blog generation.
 
 use std::fs::{self, File};
-use std::ops::Deref;
 use std::path::Path;
 use std::io;
 use std::io::prelude::*;
 
 use ammonia::Ammonia;
 use chrono::{self, Datelike, DateTime, TimeZone, UTC};
-use hoedown::{self, Markdown};
-use hoedown::renderer::html;
-use hoedown::Render;
 use yaml::YamlLoader;
 use yaml::ScanError;
 
+use markdown::{self, Html};
+
 /// The length of a blog post preview.
 const PREVIEW_LENGTH: usize = 200;
-
-/// An owned string containing HTML.
-#[derive(Debug, Clone)]
-pub struct Html(String);
-
-impl Deref for Html {
-    type Target = String;
-
-    fn deref(&self) -> &String {
-        &self.0
-    }
-}
 
 /// A struct representing a blog post.
 #[derive(Debug, Clone)]
@@ -119,8 +105,6 @@ quick_error! {
 }
 
 fn parse_post(post: &str) -> Result<Post, PostParseError> {
-    use hoedown::{AUTOLINK, FENCED_CODE, TABLES};
-
     // Read up to the first double newline to determine the end of metadata.
     //
     // TODO: This could probably be more robust. Investigate separating the metadata and
@@ -128,12 +112,6 @@ fn parse_post(post: &str) -> Result<Post, PostParseError> {
     let contents = post.splitn(2, "\n\n").collect::<Vec<_>>();
     let metadata = contents[0];
     let metadata = try!(YamlLoader::load_from_str(metadata))[0].to_owned();
-
-    let content = contents[1];
-    let markdown = Markdown::new(content).extensions(AUTOLINK | FENCED_CODE | TABLES);
-
-    let mut html = hoedown::Html::new(html::Flags::empty(), 0);
-    let html_string = html.render(&markdown).to_str().unwrap().to_owned();
 
     let title = try!(metadata["title"]
                          .as_str()
@@ -147,10 +125,13 @@ fn parse_post(post: &str) -> Result<Post, PostParseError> {
                                                                          .to_owned())));
     let date = try!(UTC.datetime_from_str(date_string, "%l:%M%P %m/%d/%y"));
 
+    let content = contents[1];
+    let html_content = markdown::render_html(&content);
+
     Ok(Post {
         title: title,
         date: date,
-        html: Html(html_string),
+        html: html_content,
     })
 }
 

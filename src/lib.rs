@@ -47,6 +47,7 @@ extern crate yaml_rust as yaml;
 
 pub mod blog;
 pub mod helpers;
+pub mod markdown;
 pub mod persistence;
 pub mod projects;
 pub mod routes;

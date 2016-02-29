@@ -3,6 +3,7 @@
 use std::io;
 use std::io::prelude::*;
 use std::fs::File;
+use std::ops::Deref;
 use std::path::Path;
 
 use hyper::Client;
@@ -10,6 +11,8 @@ use hyper::header::{Authorization, Bearer, Connection, UserAgent};
 use rustc_serialize::json::Json;
 use url::Url;
 use yaml::{Yaml, YamlLoader};
+
+use markdown;
 
 quick_error!{
     /// Encapsulates errors that might occur while parsing a project.
@@ -20,6 +23,14 @@ quick_error!{
             from()
             description("io error")
             display("I/O error: {}", err)
+            cause(err)
+        }
+
+        /// There was a syntax error in the YAML.
+        YamlSyntax(err: ::yaml::ScanError) {
+            from()
+            description("YAML syntax error")
+            display("YAML syntax error: {}", err)
             cause(err)
         }
 
@@ -38,6 +49,7 @@ pub struct Project {
     name: String,
     owner: String,
     languages: Vec<String>,
+    // FIXME: Replace with markdown::Html once serde 0.7 is supported by dependencies
     description: String,
     url: Url,
 }
@@ -112,15 +124,18 @@ fn parse_project(project: &Yaml) -> Result<Project, ProjectParseError> {
                 .unwrap()
     };
 
-    let description = try!(project["description"]
-                               .as_str()
-                               .ok_or(ProjectParseError::Format("could not find key \
-                                                                 'description'")));
+    let description = {
+        let description = try!(project["description"]
+                                   .as_str()
+                                   .ok_or(ProjectParseError::Format("could not find key \
+                                                                     'description'")));
+        markdown::render_html(&description)
+    };
 
     Ok(Project {
         name: name.to_owned(),
         owner: owner.to_owned(),
-        description: description.to_owned(),
+        description: description.deref().to_owned(),
         languages: languages,
         url: url,
     })
@@ -138,7 +153,7 @@ pub fn projects<P>(path: P) -> Result<Vec<Project>, ProjectParseError>
         string
     };
 
-    let doc = &YamlLoader::load_from_str(&yaml).unwrap()[0];
+    let doc = &try!(YamlLoader::load_from_str(&yaml))[0];
 
     let projects = try!(doc["projects"]
                             .as_vec()
