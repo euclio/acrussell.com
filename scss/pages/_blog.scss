@@ -2,11 +2,11 @@
   @extend %codebox;
 
   header {
+    align-content: flex-start;
+    align-items: flex-start;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    align-items: flex-start;
-    align-content: flex-start;
 
     h1 {
       flex: 0 1 auto;
@@ -40,6 +40,10 @@
     justify-content: space-between;
     margin: 1em 0 0;
     padding-top: 1em;
+
+    nav {
+      font-family: $navfontfamily;
+    }
   }
 }
 
