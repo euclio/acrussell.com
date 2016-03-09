@@ -26,15 +26,19 @@
       list-style: none;
       padding: 0 1em;
 
-      li {
-        display: inline;
-        margin: 0;
-        padding: 0;
+    }
 
-        &:not(:last-child):after {
-          color: $white;
-          content: ' ∷ ';
-        }
+    li {
+      display: inline;
+      margin: 0;
+      padding: 0;
+
+      &:not(:first-child) {
+        margin-left: 1em;
+      }
+
+      &:not(:last-child) {
+        margin-right: 1em;
       }
     }
   }
