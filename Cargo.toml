@@ -10,7 +10,6 @@ name = "main"
 
 [dependencies]
 chrono = "0.2.19"
-clippy = "*"
 docopt = "0.6.78"
 docopt_macros = "0.6.80"
 dotenv = "0.8.0"
@@ -38,6 +37,10 @@ yaml-rust = "0.3.0"
 
 [dependencies.ammonia]
 git = "https://github.com/notriddle/ammonia"
+
+[dependencies.clippy]
+version = "*"
+optional = true
 
 [dependencies.regex]
 features = ["pattern"]

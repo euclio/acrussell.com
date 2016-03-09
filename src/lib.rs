@@ -4,7 +4,7 @@
 #![feature(custom_derive)]
 #![feature(plugin)]
 
-#![plugin(clippy)]
+#![cfg_attr(feature="clippy", plugin(clippy))]
 #![plugin(dotenv_macros)]
 #![plugin(serde_macros)]
 
@@ -84,7 +84,6 @@ fn initialize_templates(folder: &str,
 pub fn listen<A>(addr: A)
     where A: ToSocketAddrs
 {
-
     let router: Router = routes::get_router();
     let mut chain = Chain::new(router);
 

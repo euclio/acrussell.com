@@ -1,7 +1,7 @@
 //! Contains the routing logic for the website.
 
 // FIXME: maplit creates a *lot* of these warnings.
-#![allow(used_underscore_binding)]
+#![cfg_attr(feature="clippy", allow(used_underscore_binding))]
 
 use std::fs;
 use std::path::Path;
