@@ -7,12 +7,8 @@
 #![plugin(clippy)]
 #![plugin(dotenv_macros)]
 #![plugin(serde_macros)]
-#![plugin(regex_macros)]
 
 #![warn(missing_docs)]
-
-// FIXME: Yeah, it's slow, but the compile-time guarantee of correct syntax is worth it.
-#![allow(regex_macro)]
 
 #[macro_use]
 extern crate maplit;
