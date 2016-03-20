@@ -3,7 +3,6 @@
 use std::io;
 use std::io::prelude::*;
 use std::fs::File;
-use std::ops::Deref;
 use std::path::Path;
 
 use hyper::Client;
@@ -12,7 +11,7 @@ use rustc_serialize::json::Json;
 use url::Url;
 use yaml::{Yaml, YamlLoader};
 
-use markdown;
+use markdown::{self, Html};
 
 quick_error!{
     /// Encapsulates errors that might occur while parsing a project.
@@ -49,8 +48,7 @@ pub struct Project {
     name: String,
     owner: String,
     languages: Vec<String>,
-    // FIXME: Replace with markdown::Html once serde 0.7 is supported by dependencies
-    description: String,
+    description: Html,
     url: Url,
 }
 
@@ -135,7 +133,7 @@ fn parse_project(project: &Yaml) -> Result<Project, ProjectParseError> {
     Ok(Project {
         name: name.to_owned(),
         owner: owner.to_owned(),
-        description: description.deref().to_owned(),
+        description: description,
         languages: languages,
         url: url,
     })
