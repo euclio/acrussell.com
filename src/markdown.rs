@@ -20,7 +20,7 @@ impl Deref for Html {
 
 impl ::serde::Serialize for Html {
     fn serialize<S>(&self, serializer: &mut S) -> Result<(), S::Error>
-        where S: ::serde::Serializer,
+        where S: ::serde::Serializer
     {
         serializer.serialize_str(self.deref())
     }

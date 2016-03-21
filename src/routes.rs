@@ -14,10 +14,7 @@ use persistent::Read;
 use router::{Router, NoRoute};
 
 use blog::{self, Post, Summary};
-use persistence::Projects;
-
-const RESUME_LINK: &'static str =
-    r"https://github.com/euclio/resume/blob/master/resume.pdf?raw=true";
+use persistence::Config;
 
 fn generate_blog_post_summaries() -> Vec<Summary> {
     let mut posts = blog::parse_posts(Path::new("blog/")).unwrap();
@@ -27,11 +24,11 @@ fn generate_blog_post_summaries() -> Vec<Summary> {
          .collect::<Vec<_>>()
 }
 
-fn resume(_: &mut Request) -> IronResult<Response> {
+fn resume(req: &mut Request) -> IronResult<Response> {
     let mut res = Response::new();
 
     let data = btreemap!{
-        "resume_link" => RESUME_LINK,
+        "resume_link" => req.get::<Read<Config>>().unwrap().resume_link.to_owned(),
     };
     res.set_mut(Template::new("resume", data)).set_mut(status::Ok);
     Ok(res)
@@ -40,7 +37,7 @@ fn resume(_: &mut Request) -> IronResult<Response> {
 fn projects(req: &mut Request) -> IronResult<Response> {
     let mut res = Response::new();
 
-    let projects = req.get::<Read<Projects>>().unwrap();
+    let projects = &req.get::<Read<Config>>().unwrap().projects;
 
     let data = btreemap!{
         "projects" => projects,

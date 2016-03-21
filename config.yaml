@@ -50,3 +50,5 @@ projects:
         My personal Vim colorscheme. It is a dark, high-contrast colorscheme
         with lots of oranges and yellows to emphasize the code while fading the
         UI into the background.
+resume:
+    link: "https://github.com/euclio/resume/blob/master/resume.pdf?raw=true"

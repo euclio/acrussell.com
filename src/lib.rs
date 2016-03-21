@@ -42,12 +42,14 @@ extern crate url;
 extern crate yaml_rust as yaml;
 
 pub mod blog;
+pub mod config;
 pub mod helpers;
 pub mod markdown;
 pub mod persistence;
 pub mod projects;
 pub mod routes;
 
+use std::env;
 use std::error::Error;
 use std::net::ToSocketAddrs;
 use std::path::Path;
@@ -61,9 +63,7 @@ use persistent::Read;
 use router::{NoRoute, Router};
 use staticfile::Static;
 
-use persistence::Projects;
-
-const PROJECT_PATH: &'static str = "config.yaml";
+use persistence::Config;
 
 fn initialize_templates(folder: &str,
                         extension: &str)
@@ -87,10 +87,9 @@ pub fn listen<A>(addr: A)
     let router: Router = routes::get_router();
     let mut chain = Chain::new(router);
 
-    info!("loading projects from {}", PROJECT_PATH);
-    let projects = projects::projects(PROJECT_PATH).unwrap();
-    info!("loaded {} projects successfully", projects.len());
-    chain.link_before(Read::<Projects>::one(projects));
+    let config = config::load(env::var("WEBSITE_CONFIG").unwrap_or("config.yaml".into()))
+                     .expect("Problem loading configuration");
+    chain.link_before(Read::<Config>::one(config));
 
     chain.link_after(ErrorReporter);
     chain.link_after(ErrorHandler);

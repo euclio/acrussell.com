@@ -1,46 +1,15 @@
 //! Information about projects that I have worked on.
 
-use std::io;
 use std::io::prelude::*;
-use std::fs::File;
-use std::path::Path;
 
 use hyper::Client;
 use hyper::header::{Authorization, Bearer, Connection, UserAgent};
 use rustc_serialize::json::Json;
 use url::Url;
-use yaml::{Yaml, YamlLoader};
+use yaml::Yaml;
 
+use config::ConfigError;
 use markdown::{self, Html};
-
-quick_error!{
-    /// Encapsulates errors that might occur while parsing a project.
-    #[derive(Debug)]
-    pub enum ProjectParseError {
-        /// There was a problem reading the file.
-        Io(err: io::Error) {
-            from()
-            description("io error")
-            display("I/O error: {}", err)
-            cause(err)
-        }
-
-        /// There was a syntax error in the YAML.
-        YamlSyntax(err: ::yaml::ScanError) {
-            from()
-            description("YAML syntax error")
-            display("YAML syntax error: {}", err)
-            cause(err)
-        }
-
-        /// The project configuration file was formatted incorrectly.
-        Format(err: &'static str) {
-            from()
-            description("the project configuration file was formatted incorrectly")
-            display("Error parsing project configuration: {}", err)
-        }
-    }
-}
 
 /// Encapsulates a project that I have worked on.
 #[derive(Debug, Serialize)]
@@ -87,16 +56,16 @@ impl Github {
     }
 }
 
-fn parse_project(project: &Yaml) -> Result<Project, ProjectParseError> {
+fn parse_project(project: &Yaml) -> Result<Project, ConfigError> {
     let github = Github::new(dotenv!("GITHUB_TOKEN"));
 
     let name = try!(project["name"]
                         .as_str()
-                        .ok_or(ProjectParseError::Format("could not find key 'name'")));
+                        .ok_or(ConfigError::Format("could not find key 'name'")));
 
     let repo = try!(project["repo"]
                         .as_str()
-                        .ok_or(ProjectParseError::Format("could not find key 'repo'")));
+                        .ok_or(ConfigError::Format("could not find key 'repo'")));
 
     let path = format!("/repos/{}", repo);
     let repository = github.request(&path).unwrap();
@@ -125,8 +94,7 @@ fn parse_project(project: &Yaml) -> Result<Project, ProjectParseError> {
     let description = {
         let description = try!(project["description"]
                                    .as_str()
-                                   .ok_or(ProjectParseError::Format("could not find key \
-                                                                     'description'")));
+                                   .ok_or(ConfigError::Format("could not find key 'description'")));
         markdown::render_html(&description)
     };
 
@@ -141,20 +109,10 @@ fn parse_project(project: &Yaml) -> Result<Project, ProjectParseError> {
 
 
 /// Returns a list of projects parsed from a file.
-pub fn projects<P>(path: P) -> Result<Vec<Project>, ProjectParseError>
-    where P: AsRef<Path>
-{
-    let yaml = {
-        let mut yaml_file = try!(File::open(path.as_ref()));
-        let mut string = String::new();
-        try!(yaml_file.read_to_string(&mut string));
-        string
-    };
+pub fn projects(projects: &Yaml) -> Result<Vec<Project>, ConfigError> {
+    let projects = try!(projects.as_vec()
+                                .ok_or(ConfigError::Format("expected vector in project \
+                                                            configuration")));
 
-    let doc = &try!(YamlLoader::load_from_str(&yaml))[0];
-
-    let projects = try!(doc["projects"]
-                            .as_vec()
-                            .ok_or(ProjectParseError::Format("could not find key \"projects\"")));
     projects.iter().map(|project| parse_project(project)).collect()
 }

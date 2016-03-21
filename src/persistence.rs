@@ -2,12 +2,12 @@
 
 use iron::typemap::Key;
 
-use projects::Project;
+use config;
 
-/// Contains all projects that will be displayed on the site.
+/// Contains data found in the website configuration.
 #[derive(Copy, Clone)]
-pub struct Projects;
+pub struct Config;
 
-impl Key for Projects {
-    type Value = Vec<Project>;
+impl Key for Config {
+    type Value = config::Config;
 }
