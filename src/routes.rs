@@ -6,12 +6,12 @@
 use std::fs;
 use std::path::Path;
 
-use chrono::Datelike;
+use chrono::NaiveDate;
 use hbs::Template;
 use iron::prelude::*;
 use iron::status;
 use persistent::Read;
-use router::Router;
+use router::{Router, NoRoute};
 
 use blog::{self, Post, Summary};
 use persistence::Projects;
@@ -52,31 +52,44 @@ fn projects(req: &mut Request) -> IronResult<Response> {
 fn blog_post(req: &mut Request) -> IronResult<Response> {
     let mut res = Response::new();
 
-    let year = req.extensions.get::<Router>().unwrap().find("year").unwrap();
-    let month = req.extensions.get::<Router>().unwrap().find("month").unwrap();
-    let day = req.extensions.get::<Router>().unwrap().find("day").unwrap();
-    let title = req.extensions.get::<Router>().unwrap().find("title").unwrap();
+    let year = req.extensions.get::<Router>().unwrap().find("year");
+    let month = req.extensions.get::<Router>().unwrap().find("month");
+    let day = req.extensions.get::<Router>().unwrap().find("day");
+    let title = req.extensions.get::<Router>().unwrap().find("title");
 
     let post = blog::parse_posts(Path::new("blog/"))
                    .unwrap()
-                   .iter()
+                   .into_iter()
                    .find(|post| {
-                       post.date.year() == year.parse().unwrap() &&
-                       post.date.month() == month.parse().unwrap() &&
-                       post.date.day() == day.parse().unwrap() &&
-                       post.title.to_lowercase().replace(" ", "-") == title
-                   })
-                   .unwrap()
-                   .to_owned();
+                       let year = year.and_then(|y| y.parse().ok());
+                       let month = month.and_then(|m| m.parse().ok());
+                       let day = day.and_then(|d| d.parse().ok());
 
-    let data = btreemap!{
-        "title" => post.title.to_owned(),
-        "date" => post.date.format(Post::DATE_FORMAT).to_string(),
-        "content" => post.html.to_string(),
-    };
-    res.set_mut(Template::new("blog_post", data)).set_mut(status::Ok);
+                       if let (Some(year), Some(month), Some(day)) = (year, month, day) {
+                           let title_match = match title {
+                               Some(title) => post.title.to_lowercase().replace(" ", "-") == title,
+                               None => false,
+                           };
 
-    Ok(res)
+                           let requested_date = NaiveDate::from_ymd(year, month, day);
+                           post.date.naive_utc().date() == requested_date && title_match
+                       } else {
+                           false
+                       }
+                   });
+
+    match post {
+        Some(ref post) => {
+            let data = btreemap!{
+                "title" => post.title.to_owned(),
+                "date" => post.date.format(Post::DATE_FORMAT).to_string(),
+                "content" => post.html.to_string(),
+            };
+            res.set_mut(Template::new("blog_post", data)).set_mut(status::Ok);
+            Ok(res)
+        }
+        None => Err(IronError::new(NoRoute, status::NotFound)),
+    }
 }
 
 fn blog(_: &mut Request) -> IronResult<Response> {
