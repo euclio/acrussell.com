@@ -16,14 +16,6 @@
       flex: 0 1 auto;
       font-family: $altfontfamily;
     }
-
-    a {
-      color: $bodycolor;
-
-      &:hover {
-        color: $primarycolor;
-      }
-    }
   }
 
   pre {

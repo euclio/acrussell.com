@@ -17,6 +17,11 @@ h6 {
   margin: 0;
 
   a {
+    color: $bodycolor;
     text-decoration: none;
+
+    &:hover {
+      color: $primarycolor;
+    }
   }
 }
