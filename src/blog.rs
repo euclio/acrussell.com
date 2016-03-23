@@ -6,7 +6,7 @@ use std::io;
 use std::io::prelude::*;
 
 use ammonia::Ammonia;
-use chrono::{self, Datelike, DateTime, TimeZone, UTC};
+use chrono::{self, NaiveDateTime, Datelike};
 use yaml::YamlLoader;
 use yaml::ScanError;
 
@@ -22,7 +22,7 @@ pub struct Post {
     pub title: String,
 
     /// The time that the post was written.
-    pub date: DateTime<UTC>,
+    pub date: NaiveDateTime,
 
     /// The post rendered as HTML.
     pub html: Html,
@@ -123,7 +123,7 @@ fn parse_post(post: &str) -> Result<Post, PostParseError> {
                                .as_str()
                                .ok_or(PostParseError::MetadataSyntax("could not find 'key'"
                                                                          .to_owned())));
-    let date = try!(UTC.datetime_from_str(date_string, "%l:%M%P %m/%d/%y"));
+    let date = try!(NaiveDateTime::parse_from_str(date_string, "%l:%M%P %m/%d/%y"));
 
     let content = contents[1];
     let html_content = markdown::render_html(&content);

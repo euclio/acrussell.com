@@ -69,7 +69,7 @@ fn blog_post(req: &mut Request) -> IronResult<Response> {
                            };
 
                            let requested_date = NaiveDate::from_ymd(year, month, day);
-                           post.date.naive_utc().date() == requested_date && title_match
+                           post.date.date() == requested_date && title_match
                        } else {
                            false
                        }
