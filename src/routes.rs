@@ -13,16 +13,8 @@ use iron::status;
 use persistent::Read;
 use router::{Router, NoRoute};
 
-use blog::{self, Post, Summary};
-use persistence::Config;
-
-fn generate_blog_post_summaries() -> Vec<Summary> {
-    let mut posts = blog::parse_posts(Path::new("blog/")).unwrap();
-    posts.sort_by(|a, b| b.date.cmp(&a.date));
-    posts.into_iter()
-         .map(|p| p.to_summary())
-         .collect::<Vec<_>>()
-}
+use blog::{self, Post};
+use persistence::{self, Config};
 
 fn resume(req: &mut Request) -> IronResult<Response> {
     let mut res = Response::new();
@@ -92,8 +84,30 @@ fn blog_post(req: &mut Request) -> IronResult<Response> {
 fn blog(_: &mut Request) -> IronResult<Response> {
     let mut res = Response::new();
 
+    #[derive(Debug, Serialize)]
+    struct Post {
+        title: String,
+        date: String,
+        html: String,
+    }
+
+    let connection = persistence::get_db_connection();
+
+    let mut posts_stmt = connection.prepare("SELECT title, date, html FROM posts").unwrap();
+
+    let posts = posts_stmt.query_map(&[], |row| {
+                              Post {
+                                  title: row.get(0),
+                                  date: row.get(1),
+                                  html: row.get(2),
+                              }
+                          })
+                          .unwrap()
+                          .map(Result::unwrap)
+                          .collect::<Vec<_>>();
+
     let data = btreemap!{
-        "posts" => generate_blog_post_summaries(),
+        "posts" => posts,
     };
     res.set_mut(Template::new("blog", data)).set_mut(status::Ok);
     Ok(res)
@@ -119,10 +133,32 @@ fn about(_: &mut Request) -> IronResult<Response> {
 fn index(_: &mut Request) -> IronResult<Response> {
     let mut res = Response::new();
 
-    let summaries = generate_blog_post_summaries();
+    #[derive(Debug, Serialize)]
+    struct Summary {
+        title: String,
+        date: String,
+        summary: String,
+        url: String,
+    }
+
+    let connection = persistence::get_db_connection();
+    let mut summaries_stmt = connection.prepare("SELECT title, date, summary, url FROM posts \
+                                                 ORDER BY date desc LIMIT 3")
+                                       .unwrap();
+    let summaries = summaries_stmt.query_map(&[], |row| {
+                                      Summary {
+                                          title: row.get(0),
+                                          date: row.get(1),
+                                          summary: row.get(2),
+                                          url: row.get(3),
+                                      }
+                                  })
+                                  .unwrap()
+                                  .map(Result::unwrap)
+                                  .collect::<Vec<_>>();
 
     let data = btreemap!{
-        "posts" => summaries.iter().take(3).collect::<Vec<_>>(),
+        "posts" => summaries,
     };
     res.set_mut(Template::new("index", data)).set_mut(status::Ok);
     Ok(res)

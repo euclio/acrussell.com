@@ -13,7 +13,7 @@ use yaml::ScanError;
 use markdown::{self, Html};
 
 /// The length of a blog post preview.
-const PREVIEW_LENGTH: usize = 200;
+const SUMMARY_LENGTH: usize = 200;
 
 /// A struct representing a blog post.
 #[derive(Debug, Clone)]
@@ -26,59 +26,17 @@ pub struct Post {
 
     /// The post rendered as HTML.
     pub html: Html,
+
+    /// A short preview of the post.
+    pub summary: String,
+
+    /// A URL to reach the full post.
+    pub url: String,
 }
 
 impl Post {
     /// The human-readable format that the date should appear as when rendering the post.
     pub const DATE_FORMAT: &'static str = "%B %e, %Y";
-
-    /// Returns the URL to retrieve a blog post.
-    pub fn url(&self) -> String {
-        let escaped_title = self.title.to_lowercase().replace(" ", "-");
-        format!("/blog/{}/{}/{}/{}",
-                self.date.year(),
-                self.date.month(),
-                self.date.day(),
-                escaped_title)
-    }
-
-    /// Creates a summarized version of the blog post.
-    pub fn to_summary(&self) -> Summary {
-        let mut ammonia = Ammonia::default();
-
-        ammonia.url_relative = true;
-
-        // Add a link at the end of the preview, then sanitize the HTML and close any unclosed
-        // tags.
-        let preview_link = format!(r#"... <a href="{}">Continue&rarr;</a>"#, self.url());
-        let preview = &self.html
-                           .chars()
-                           .take(PREVIEW_LENGTH)
-                           .chain(preview_link.chars())
-                           .collect::<String>();
-        Summary {
-            title: self.title.to_owned(),
-            date: self.date.format(Self::DATE_FORMAT).to_string(),
-            preview: ammonia.clean(preview).to_owned(),
-            url: self.url(),
-        }
-    }
-}
-
-/// A brief summary of a blog post.
-#[derive(Serialize, Debug)]
-pub struct Summary {
-    /// The title of the post.
-    pub title: String,
-
-    /// The date the post was written.
-    pub date: String,
-
-    /// A short preview of the post.
-    pub preview: String,
-
-    /// A URL to reach the full post.
-    pub url: String,
 }
 
 quick_error! {
@@ -128,10 +86,31 @@ fn parse_post(post: &str) -> Result<Post, PostParseError> {
     let content = contents[1];
     let html_content = markdown::render_html(&content);
 
+    let escaped_title = title.to_lowercase().replace(" ", "-");
+    let url = format!("/blog/{}/{}/{}/{}",
+                      date.year(),
+                      date.month(),
+                      date.day(),
+                      escaped_title);
+
+    let mut ammonia = Ammonia::default();
+
+    ammonia.url_relative = true;
+
+    // Add a link at the end of the preview, then sanitize the HTML and close any unclosed
+    // tags.
+    let summary_link = format!(r#"... <a href="{}">Continue&rarr;</a>"#, url);
+    let summary = html_content.chars()
+                              .take(SUMMARY_LENGTH)
+                              .chain(summary_link.chars())
+                              .collect::<String>();
+
     Ok(Post {
         title: title,
         date: date,
         html: html_content,
+        summary: summary,
+        url: url,
     })
 }
 

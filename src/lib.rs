@@ -34,6 +34,7 @@ extern crate iron;
 extern crate mount;
 extern crate persistent;
 extern crate rustc_serialize;
+extern crate rusqlite;
 extern crate serde;
 extern crate serde_json;
 extern crate staticfile;
@@ -50,7 +51,9 @@ pub mod projects;
 pub mod routes;
 
 use std::env;
+use std::fs::File;
 use std::error::Error;
+use std::io::prelude::*;
 use std::net::ToSocketAddrs;
 use std::path::Path;
 
@@ -59,7 +62,6 @@ use iron::AfterMiddleware;
 use iron::prelude::*;
 use iron::status;
 use mount::Mount;
-use persistent::Read;
 use router::{NoRoute, Router};
 use staticfile::Static;
 
@@ -89,7 +91,28 @@ pub fn listen<A>(addr: A)
 
     let config = config::load(env::var("WEBSITE_CONFIG").unwrap_or("config.yaml".into()))
                      .expect("Problem loading configuration");
-    chain.link_before(Read::<Config>::one(config));
+    chain.link_before(persistent::Read::<Config>::one(config));
+
+    // Insert blog posts into the database.
+    let connection = persistence::get_db_connection();
+    let schema = {
+        let mut schema_file = File::open("schema.sql").unwrap();
+        let mut schema = String::new();
+        schema_file.read_to_string(&mut schema).unwrap();
+        schema
+    };
+    connection.execute_batch(&schema).unwrap();
+
+    for post in blog::parse_posts(Path::new("blog/")).expect("problem parsing blog posts") {
+        connection.execute(r"INSERT INTO posts (title, date, html, summary, url)
+                            VALUES ($1, $2, $3, $4, $5)",
+                           &[&post.title,
+                             &post.date.to_string(),
+                             &post.html.to_string(),
+                             &post.summary,
+                             &post.url])
+                  .unwrap();
+    }
 
     chain.link_after(ErrorReporter);
     chain.link_after(ErrorHandler);

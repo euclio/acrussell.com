@@ -1,6 +1,7 @@
 //! Data to be used with a persistent router.
 
 use iron::typemap::Key;
+use rusqlite::Connection;
 
 use config;
 
@@ -10,4 +11,14 @@ pub struct Config;
 
 impl Key for Config {
     type Value = config::Config;
+}
+
+/// Create a new connection to an in-memory database.
+///
+/// Reading and writing from multiple database connections is thread-safe.
+///
+/// # Panics
+/// This function panics when a connection cannot be established.
+pub fn get_db_connection() -> Connection {
+    Connection::open(":memory:?cache=shared").expect("problem connecting to database.")
 }
