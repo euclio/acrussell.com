@@ -13,16 +13,11 @@ use iron::status;
 use persistent::Read;
 use router::{Router, NoRoute};
 
-use blog::{self, Post, Summary};
-use persistence::Config;
+use blog::{self, Post};
+use persistence::{self, Config};
 
-fn generate_blog_post_summaries() -> Vec<Summary> {
-    let mut posts = blog::parse_posts(Path::new("blog/")).unwrap();
-    posts.sort_by(|a, b| b.date.cmp(&a.date));
-    posts.into_iter()
-         .map(|p| p.to_summary())
-         .collect::<Vec<_>>()
-}
+/// The number of blog post summaries that should be displayed.
+const NUM_SUMMARIES: usize = 3;
 
 fn resume(req: &mut Request) -> IronResult<Response> {
     let mut res = Response::new();
@@ -49,51 +44,46 @@ fn projects(req: &mut Request) -> IronResult<Response> {
 fn blog_post(req: &mut Request) -> IronResult<Response> {
     let mut res = Response::new();
 
-    let year = req.extensions.get::<Router>().unwrap().find("year");
-    let month = req.extensions.get::<Router>().unwrap().find("month");
-    let day = req.extensions.get::<Router>().unwrap().find("day");
+    let year = req.extensions.get::<Router>().unwrap().find("year").and_then(|y| y.parse().ok());
+    let month = req.extensions.get::<Router>().unwrap().find("month").and_then(|m| m.parse().ok());
+    let day = req.extensions.get::<Router>().unwrap().find("day").and_then(|d| d.parse().ok());
     let title = req.extensions.get::<Router>().unwrap().find("title");
 
-    let post = blog::parse_posts(Path::new("blog/"))
-                   .unwrap()
-                   .into_iter()
-                   .find(|post| {
-                       let year = year.and_then(|y| y.parse().ok());
-                       let month = month.and_then(|m| m.parse().ok());
-                       let day = day.and_then(|d| d.parse().ok());
+    let date = match (year, month, day) {
+        (Some(year), Some(month), Some(day)) => NaiveDate::from_ymd(year, month, day),
+        _ => return Err(IronError::new(NoRoute, status::NotFound)),
+    };
 
-                       if let (Some(year), Some(month), Some(day)) = (year, month, day) {
-                           let title_match = match title {
-                               Some(title) => post.title.to_lowercase().replace(" ", "-") == title,
-                               None => false,
-                           };
+    let title = match title {
+        Some(title) => title,
+        None => return Err(IronError::new(NoRoute, status::NotFound)),
+    };
 
-                           let requested_date = NaiveDate::from_ymd(year, month, day);
-                           post.date.date() == requested_date && title_match
-                       } else {
-                           false
-                       }
-                   });
+    match blog::get_post(&date, &title) {
+        Ok(ref post) => {
+            let date: String = post.date.format(Post::DATE_FORMAT).to_string();
 
-    match post {
-        Some(ref post) => {
             let data = btreemap!{
-                "title" => post.title.to_owned(),
-                "date" => post.date.format(Post::DATE_FORMAT).to_string(),
-                "content" => post.html.to_string(),
+                "title" => &post.title,
+                "date" => &date,
+                "content" => &post.html,
             };
             res.set_mut(Template::new("blog_post", data)).set_mut(status::Ok);
             Ok(res)
         }
-        None => Err(IronError::new(NoRoute, status::NotFound)),
+        Err(err) => {
+            error!("Error retrieving blog post: {}", err);
+            Err(IronError::new(NoRoute, status::NotFound))
+        }
     }
 }
 
 fn blog(_: &mut Request) -> IronResult<Response> {
     let mut res = Response::new();
 
+    let connection = persistence::get_db_connection();
     let data = btreemap!{
-        "posts" => generate_blog_post_summaries(),
+        "posts" => blog::get_summaries(&connection).unwrap(),
     };
     res.set_mut(Template::new("blog", data)).set_mut(status::Ok);
     Ok(res)
@@ -119,10 +109,11 @@ fn about(_: &mut Request) -> IronResult<Response> {
 fn index(_: &mut Request) -> IronResult<Response> {
     let mut res = Response::new();
 
-    let summaries = generate_blog_post_summaries();
+    let connection = persistence::get_db_connection();
+    let posts = blog::get_summaries(&connection);
 
     let data = btreemap!{
-        "posts" => summaries.iter().take(3).collect::<Vec<_>>(),
+        "posts" => posts.unwrap().into_iter().take(NUM_SUMMARIES).collect::<Vec<_>>(),
     };
     res.set_mut(Template::new("index", data)).set_mut(status::Ok);
     Ok(res)

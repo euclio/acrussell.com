@@ -6,22 +6,26 @@ use std::io;
 use std::io::prelude::*;
 
 use ammonia::Ammonia;
-use chrono::{self, NaiveDateTime, Datelike};
+use chrono::{self, NaiveDateTime, NaiveDate, Datelike};
+use rusqlite::{self, Connection};
+use serde;
 use yaml::YamlLoader;
 use yaml::ScanError;
 
 use markdown::{self, Html};
+use persistence;
 
 /// The length of a blog post preview.
-const PREVIEW_LENGTH: usize = 200;
+const SUMMARY_LENGTH: usize = 200;
 
 /// A struct representing a blog post.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Post {
     /// The title of the post.
     pub title: String,
 
     /// The time that the post was written.
+    #[serde(serialize_with="Self::serialize_date")]
     pub date: NaiveDateTime,
 
     /// The post rendered as HTML.
@@ -30,38 +34,14 @@ pub struct Post {
 
 impl Post {
     /// The human-readable format that the date should appear as when rendering the post.
+    #[cfg_attr(rustfmt, rustfmt_skip)]
+    // TODO: Remove the above attribute. For some reason rustfmt wants to remove the visibility.
     pub const DATE_FORMAT: &'static str = "%B %e, %Y";
 
-    /// Returns the URL to retrieve a blog post.
-    pub fn url(&self) -> String {
-        let escaped_title = self.title.to_lowercase().replace(" ", "-");
-        format!("/blog/{}/{}/{}/{}",
-                self.date.year(),
-                self.date.month(),
-                self.date.day(),
-                escaped_title)
-    }
-
-    /// Creates a summarized version of the blog post.
-    pub fn to_summary(&self) -> Summary {
-        let mut ammonia = Ammonia::default();
-
-        ammonia.url_relative = true;
-
-        // Add a link at the end of the preview, then sanitize the HTML and close any unclosed
-        // tags.
-        let preview_link = format!(r#"... <a href="{}">Continue&rarr;</a>"#, self.url());
-        let preview = &self.html
-                           .chars()
-                           .take(PREVIEW_LENGTH)
-                           .chain(preview_link.chars())
-                           .collect::<String>();
-        Summary {
-            title: self.title.to_owned(),
-            date: self.date.format(Self::DATE_FORMAT).to_string(),
-            preview: ammonia.clean(preview).to_owned(),
-            url: self.url(),
-        }
+    fn serialize_date<S>(date: &NaiveDateTime, serializer: &mut S) -> Result<(), S::Error>
+        where S: serde::Serializer
+    {
+        serializer.serialize_str(&date.format(Self::DATE_FORMAT).to_string())
     }
 }
 
@@ -72,13 +52,31 @@ pub struct Summary {
     pub title: String,
 
     /// The date the post was written.
-    pub date: String,
+    #[serde(serialize_with="Self::serialize_date")]
+    pub date: NaiveDateTime,
 
     /// A short preview of the post.
-    pub preview: String,
+    pub summary: String,
 
     /// A URL to reach the full post.
     pub url: String,
+}
+
+impl Summary {
+    fn serialize_date<S>(date: &NaiveDateTime, serializer: &mut S) -> Result<(), S::Error>
+        where S: serde::Serializer
+    {
+        serializer.serialize_str(&date.format(Post::DATE_FORMAT).to_string())
+    }
+}
+
+#[derive(Debug)]
+struct ParsedPost {
+    title: String,
+    date: NaiveDateTime,
+    summary: String,
+    html: Html,
+    url: String,
 }
 
 quick_error! {
@@ -101,10 +99,18 @@ quick_error! {
             description("yaml parsing error")
             display("Error parsing metadata: {}", err)
         }
+
+        /// Something went wrong with the database.
+        Database(err: rusqlite::Error) {
+            from()
+            description("problem with the database")
+            display("Error with the database: {}", err)
+            cause(err)
+        }
     }
 }
 
-fn parse_post(post: &str) -> Result<Post, PostParseError> {
+fn parse_post(post: &str) -> Result<ParsedPost, PostParseError> {
     // Read up to the first double newline to determine the end of metadata.
     //
     // TODO: This could probably be more robust. Investigate separating the metadata and
@@ -128,24 +134,104 @@ fn parse_post(post: &str) -> Result<Post, PostParseError> {
     let content = contents[1];
     let html_content = markdown::render_html(&content);
 
-    Ok(Post {
+    let escaped_title = title.to_lowercase().replace(" ", "-");
+    let url = format!("/blog/{}/{}/{}/{}",
+                      date.year(),
+                      date.month(),
+                      date.day(),
+                      escaped_title);
+
+    let mut ammonia = Ammonia::default();
+
+    ammonia.url_relative = true;
+
+    // Add a link at the end of the preview, then sanitize the HTML and close any unclosed
+    // tags.
+    let summary_link = format!(r#"... <a href="{}">Continue&rarr;</a>"#, url);
+    let summary = html_content.chars()
+                              .take(SUMMARY_LENGTH)
+                              .chain(summary_link.chars())
+                              .collect::<String>();
+
+    Ok(ParsedPost {
         title: title,
         date: date,
         html: html_content,
+        summary: ammonia.clean(&summary),
+        url: url,
     })
 }
 
-/// Retrieves blog post content and metadata by parsing all markdown files in a given directory.
-pub fn parse_posts(directory: &Path) -> Result<Vec<Post>, PostParseError> {
-    try!(fs::read_dir(directory))
-        .into_iter()
-        .map(|entry| {
-            let mut file = try!(File::open(try!(entry).path()));
+/// Retrieves blog post content and metadata by parsing all markdown files in a given directory,
+/// then persists the posts into the database.
+pub fn parse_posts<P>(directory: P, connection: &Connection) -> Result<(), PostParseError>
+    where P: AsRef<Path>
+{
+    let posts = try!(fs::read_dir(&directory))
+                    .into_iter()
+                    .map(|entry| {
+                        let mut file = try!(File::open(try!(entry).path()));
 
-            let mut contents = String::new();
-            try!(file.read_to_string(&mut contents));
+                        let mut contents = String::new();
+                        try!(file.read_to_string(&mut contents));
 
-            parse_post(&contents)
-        })
+                        parse_post(&contents)
+                    })
+                    .collect::<Vec<_>>();
+
+    info!("parsed {} blog posts in {:?}",
+          posts.len(),
+          directory.as_ref());
+
+    for post in posts {
+        let post = post.unwrap();
+        connection.execute(r"INSERT INTO posts (title, date, html, summary, url)
+                             VALUES ($1, $2, $3, $4, $5)",
+                           &[&post.title,
+                             &post.date.format(persistence::DATETIME_FORMAT).to_string(),
+                             &post.html.as_str(),
+                             &post.summary,
+                             &post.url.to_string()])
+                  .unwrap();
+    }
+
+    Ok(())
+}
+
+/// Retrieves a blog post from the database given the date it was posted and its title.
+pub fn get_post(date: &NaiveDate, title: &str) -> Result<Post, rusqlite::Error> {
+    let connection = persistence::get_db_connection();
+    connection.query_row(r#"SELECT title, date, html
+                            FROM posts
+                            WHERE REPLACE(LOWER(title), " ", "-") = $1
+                              AND DATE(date) = DATE($2)"#,
+                         &[&title, &date.format(persistence::DATETIME_FORMAT).to_string()],
+                         |row| {
+                             let date = NaiveDateTime::parse_from_str(&row.get::<String>(1),
+                                                                      persistence::DATETIME_FORMAT)
+                                            .unwrap();
+                             Post {
+                                 title: row.get(0),
+                                 date: date,
+                                 html: Html(row.get(2)),
+                             }
+                         })
+}
+
+/// Retrieves blog post summaries from the database.
+pub fn get_summaries(connection: &Connection) -> Result<Vec<Summary>, rusqlite::Error> {
+    try!(try!(connection.prepare(r"SELECT title, date, summary, url
+                                   FROM posts
+                                   ORDER BY date DESC"))
+             .query_map(&[], |row| {
+                 Summary {
+                     title: row.get(0),
+                     date: NaiveDateTime::parse_from_str(&row.get::<String>(1),
+                                                         persistence::DATETIME_FORMAT)
+                               .unwrap(),
+                     summary: row.get(2),
+                     url: row.get(3),
+                 }
+             }))
         .collect()
 }
