@@ -103,16 +103,7 @@ pub fn listen<A>(addr: A)
     };
     connection.execute_batch(&schema).unwrap();
 
-    for post in blog::parse_posts(Path::new("blog/")).expect("problem parsing blog posts") {
-        connection.execute(r"INSERT INTO posts (title, date, html, summary, url)
-                            VALUES ($1, $2, $3, $4, $5)",
-                           &[&post.title,
-                             &post.date.to_string(),
-                             &post.html.to_string(),
-                             &post.summary,
-                             &post.url])
-                  .unwrap();
-    }
+    blog::parse_posts("blog/", &connection).expect("problem parsing blog posts");
 
     chain.link_after(ErrorReporter);
     chain.link_after(ErrorHandler);

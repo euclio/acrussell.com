@@ -20,5 +20,5 @@ impl Key for Config {
 /// # Panics
 /// This function panics when a connection cannot be established.
 pub fn get_db_connection() -> Connection {
-    Connection::open(":memory:?cache=shared").expect("problem connecting to database.")
+    Connection::open("test.sqlite").expect("problem connecting to database.")
 }
