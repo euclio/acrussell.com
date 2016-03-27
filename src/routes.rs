@@ -17,6 +17,9 @@ use blog::{self, Post};
 use markdown::Html;
 use persistence::{self, Config};
 
+/// The number of blog post summaries that should be displayed.
+const NUM_SUMMARIES: i32 = 3;
+
 fn resume(req: &mut Request) -> IronResult<Response> {
     let mut res = Response::new();
 
@@ -80,24 +83,8 @@ fn blog(_: &mut Request) -> IronResult<Response> {
     let mut res = Response::new();
 
     let connection = persistence::get_db_connection();
-    let posts = connection.prepare("SELECT title, date, html FROM posts")
-                          .unwrap()
-                          .query_map(&[], |row| {
-                              let date: String = row.get(1);
-                              let date = NaiveDateTime::parse_from_str(&date, "%+").unwrap();
-
-                              Post {
-                                  title: row.get(0),
-                                  date: date,
-                                  html: Html(row.get(2)),
-                              }
-                          })
-                          .unwrap()
-                          .map(Result::unwrap)
-                          .collect::<Vec<_>>();
-
     let data = btreemap!{
-        "posts" => posts,
+        "posts" => blog::get_posts(&connection).unwrap(),
     };
     res.set_mut(Template::new("blog", data)).set_mut(status::Ok);
     Ok(res)
@@ -124,7 +111,7 @@ fn index(_: &mut Request) -> IronResult<Response> {
     let mut res = Response::new();
 
     let data = btreemap!{
-        "posts" => blog::get_summaries(),
+        "posts" => blog::get_summaries(NUM_SUMMARIES),
     };
     res.set_mut(Template::new("index", data)).set_mut(status::Ok);
     Ok(res)
