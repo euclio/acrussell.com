@@ -2,7 +2,6 @@
 
 #![feature(associated_consts)]
 #![feature(custom_derive)]
-#![feature(inclusive_range_syntax)]
 #![feature(plugin)]
 
 #![cfg_attr(feature="clippy", plugin(clippy))]

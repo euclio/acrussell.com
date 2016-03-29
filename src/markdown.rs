@@ -8,7 +8,7 @@ use hoedown::renderer::html;
 
 /// An owned string containing HTML.
 #[derive(Debug, Clone)]
-pub struct Html(pub String);
+pub struct Html(String);
 
 impl Deref for Html {
     type Target = String;
