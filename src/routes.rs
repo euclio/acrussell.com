@@ -6,7 +6,7 @@
 use std::fs;
 use std::path::Path;
 
-use chrono::{NaiveDate, NaiveDateTime};
+use chrono::NaiveDate;
 use hbs::Template;
 use iron::prelude::*;
 use iron::status;
@@ -14,11 +14,10 @@ use persistent::Read;
 use router::{Router, NoRoute};
 
 use blog::{self, Post};
-use markdown::Html;
 use persistence::{self, Config};
 
 /// The number of blog post summaries that should be displayed.
-const NUM_SUMMARIES: i32 = 3;
+const NUM_SUMMARIES: usize = 3;
 
 fn resume(req: &mut Request) -> IronResult<Response> {
     let mut res = Response::new();
@@ -84,7 +83,7 @@ fn blog(_: &mut Request) -> IronResult<Response> {
 
     let connection = persistence::get_db_connection();
     let data = btreemap!{
-        "posts" => blog::get_posts(&connection).unwrap(),
+        "posts" => blog::get_summaries(&connection).unwrap(),
     };
     res.set_mut(Template::new("blog", data)).set_mut(status::Ok);
     Ok(res)
@@ -110,8 +109,11 @@ fn about(_: &mut Request) -> IronResult<Response> {
 fn index(_: &mut Request) -> IronResult<Response> {
     let mut res = Response::new();
 
+    let connection = persistence::get_db_connection();
+    let posts = blog::get_summaries(&connection);
+
     let data = btreemap!{
-        "posts" => blog::get_summaries(NUM_SUMMARIES),
+        "posts" => posts.unwrap().into_iter().take(NUM_SUMMARIES).collect::<Vec<_>>(),
     };
     res.set_mut(Template::new("index", data)).set_mut(status::Ok);
     Ok(res)

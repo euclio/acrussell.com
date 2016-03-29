@@ -1,7 +1,7 @@
 //! Data to be used with a persistent router.
 
 use iron::typemap::Key;
-use rusqlite::Connection;
+use rusqlite::{Connection, SQLITE_OPEN_URI};
 
 use config;
 
@@ -26,5 +26,6 @@ impl Key for Config {
 /// # Panics
 /// This function panics when a connection cannot be established.
 pub fn get_db_connection() -> Connection {
-    Connection::open("test.sqlite").expect("problem connecting to database.")
+    Connection::open_with_flags(":memory:?cache=shared", SQLITE_OPEN_URI)
+        .expect("problem connecting to database.")
 }
