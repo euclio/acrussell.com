@@ -68,7 +68,7 @@ use persistence::Config;
 fn initialize_templates(folder: &str,
                         extension: &str)
                         -> Result<HandlebarsEngine, hbs::SourceError> {
-    let mut hbse = HandlebarsEngine::new2();
+    let mut hbse = HandlebarsEngine::new();
     hbse.add(Box::new(DirectorySource::new(folder, extension)));
     try!(hbse.reload());
 
