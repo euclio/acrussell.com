@@ -31,15 +31,15 @@ pub fn join(c: &Context,
     let separator = h.params().get(1).unwrap_or(&default_separator).trim_matches('"');
 
     let strings = array.as_array()
-                       .unwrap()
-                       .iter()
-                       .map(|value| {
-                           match *value {
-                               Value::String(ref string) => string.to_owned(),
-                               _ => panic!("unexpected value"),
-                           }
-                       })
-                       .collect::<Vec<_>>();
+        .unwrap()
+        .iter()
+        .map(|value| {
+            match *value {
+                Value::String(ref string) => string.to_owned(),
+                _ => panic!("unexpected value"),
+            }
+        })
+        .collect::<Vec<_>>();
     try!(rc.writer.write(strings.join(separator).as_bytes()));
     Ok(())
 }
@@ -57,10 +57,9 @@ mod tests {
         handlebars.register_helper("join", Box::new(super::join));
         handlebars.register_template("template", template);
 
-        let result = handlebars.render("template",
-                                       &vec!["one".to_owned(),
-                                             "two".to_owned(),
-                                             "three".to_owned()]);
+        let result =
+            handlebars.render("template",
+                              &vec!["one".to_owned(), "two".to_owned(), "three".to_owned()]);
         assert_eq!(result.unwrap(), "one, two, three");
     }
 }

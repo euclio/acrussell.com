@@ -120,15 +120,13 @@ fn parse_post(post: &str) -> Result<ParsedPost, PostParseError> {
     let metadata = try!(YamlLoader::load_from_str(metadata))[0].to_owned();
 
     let title = try!(metadata["title"]
-                         .as_str()
-                         .ok_or(PostParseError::MetadataSyntax("could not find key 'title'"
-                                                                   .to_owned())))
-                    .to_owned();
+            .as_str()
+            .ok_or(PostParseError::MetadataSyntax("could not find key 'title'".to_owned())))
+        .to_owned();
 
     let date_string = try!(metadata["date"]
-                               .as_str()
-                               .ok_or(PostParseError::MetadataSyntax("could not find 'key'"
-                                                                         .to_owned())));
+        .as_str()
+        .ok_or(PostParseError::MetadataSyntax("could not find 'key'".to_owned())));
     let date = try!(NaiveDateTime::parse_from_str(date_string, "%l:%M%P %m/%d/%y"));
 
     let content = contents[1];
@@ -149,9 +147,9 @@ fn parse_post(post: &str) -> Result<ParsedPost, PostParseError> {
     // tags.
     let summary_link = format!(r#"... <a href="{}">Continue&rarr;</a>"#, url);
     let summary = html_content.chars()
-                              .take(SUMMARY_LENGTH)
-                              .chain(summary_link.chars())
-                              .collect::<String>();
+        .take(SUMMARY_LENGTH)
+        .chain(summary_link.chars())
+        .collect::<String>();
 
     Ok(ParsedPost {
         title: title,
@@ -168,16 +166,16 @@ pub fn parse_posts<P>(directory: P, connection: &Connection) -> Result<(), PostP
     where P: AsRef<Path>
 {
     let posts = try!(fs::read_dir(&directory))
-                    .into_iter()
-                    .map(|entry| {
-                        let mut file = try!(File::open(try!(entry).path()));
+        .into_iter()
+        .map(|entry| {
+            let mut file = try!(File::open(try!(entry).path()));
 
-                        let mut contents = String::new();
-                        try!(file.read_to_string(&mut contents));
+            let mut contents = String::new();
+            try!(file.read_to_string(&mut contents));
 
-                        parse_post(&contents)
-                    })
-                    .collect::<Vec<_>>();
+            parse_post(&contents)
+        })
+        .collect::<Vec<_>>();
 
     info!("parsed {} blog posts in {:?}",
           posts.len(),
@@ -187,12 +185,12 @@ pub fn parse_posts<P>(directory: P, connection: &Connection) -> Result<(), PostP
         let post = post.unwrap();
         connection.execute(r"INSERT INTO posts (title, date, html, summary, url)
                              VALUES ($1, $2, $3, $4, $5)",
-                           &[&post.title,
-                             &post.date.format(persistence::DATETIME_FORMAT).to_string(),
-                             &post.html.as_str(),
-                             &post.summary,
-                             &post.url.to_string()])
-                  .unwrap();
+                     &[&post.title,
+                       &post.date.format(persistence::DATETIME_FORMAT).to_string(),
+                       &post.html.as_str(),
+                       &post.summary,
+                       &post.url.to_string()])
+            .unwrap();
     }
 
     Ok(())
@@ -207,15 +205,15 @@ pub fn get_post(date: &NaiveDate, title: &str) -> Result<Post, rusqlite::Error> 
                               AND DATE(date) = DATE($2)"#,
                          &[&title, &date.format(persistence::DATETIME_FORMAT).to_string()],
                          |row| {
-                             let date = NaiveDateTime::parse_from_str(&row.get::<String>(1),
-                                                                      persistence::DATETIME_FORMAT)
-                                            .unwrap();
-                             Post {
-                                 title: row.get(0),
-                                 date: date,
-                                 html: Html(row.get(2)),
-                             }
-                         })
+        let date = NaiveDateTime::parse_from_str(&row.get::<String>(1),
+                                                 persistence::DATETIME_FORMAT)
+            .unwrap();
+        Post {
+            title: row.get(0),
+            date: date,
+            html: Html(row.get(2)),
+        }
+    })
 }
 
 /// Retrieves blog post summaries from the database.
@@ -223,15 +221,15 @@ pub fn get_summaries(connection: &Connection) -> Result<Vec<Summary>, rusqlite::
     try!(try!(connection.prepare(r"SELECT title, date, summary, url
                                    FROM posts
                                    ORDER BY date DESC"))
-             .query_map(&[], |row| {
-                 Summary {
-                     title: row.get(0),
-                     date: NaiveDateTime::parse_from_str(&row.get::<String>(1),
-                                                         persistence::DATETIME_FORMAT)
-                               .unwrap(),
-                     summary: row.get(2),
-                     url: row.get(3),
-                 }
-             }))
+            .query_map(&[], |row| {
+                Summary {
+                    title: row.get(0),
+                    date: NaiveDateTime::parse_from_str(&row.get::<String>(1),
+                                                        persistence::DATETIME_FORMAT)
+                        .unwrap(),
+                    summary: row.get(2),
+                    url: row.get(3),
+                }
+            }))
         .collect()
 }

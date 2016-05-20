@@ -90,7 +90,7 @@ pub fn listen<A>(addr: A)
     let mut chain = Chain::new(router);
 
     let config = config::load(env::var("WEBSITE_CONFIG").unwrap_or("config.yaml".into()))
-                     .expect("Problem loading configuration");
+        .expect("Problem loading configuration");
     chain.link_before(persistent::Read::<Config>::one(config));
 
     // Insert blog posts into the database.

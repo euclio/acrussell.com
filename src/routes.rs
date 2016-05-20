@@ -94,10 +94,10 @@ fn about(_: &mut Request) -> IronResult<Response> {
 
     let images = Path::new("static/images/slideshow");
     let image_urls = fs::read_dir(images)
-                         .unwrap()
-                         .into_iter()
-                         .map(|path| path.unwrap().path().to_str().unwrap().to_owned())
-                         .collect::<Vec<_>>();
+        .unwrap()
+        .into_iter()
+        .map(|path| path.unwrap().path().to_str().unwrap().to_owned())
+        .collect::<Vec<_>>();
 
     let data = btreemap! {
         "image_urls" => image_urls,

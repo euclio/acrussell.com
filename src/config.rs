@@ -69,8 +69,8 @@ pub fn load<P>(path: P) -> Result<Config, ConfigError>
     info!("loaded {} projects successfully", projects.len());
 
     let resume_link = try!(config["resume"]["link"]
-                               .as_str()
-                               .ok_or("could not find resume link in config"));
+        .as_str()
+        .ok_or("could not find resume link in config"));
 
     Ok(Config {
         projects: projects,
