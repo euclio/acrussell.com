@@ -34,8 +34,6 @@ pub struct Post {
 
 impl Post {
     /// The human-readable format that the date should appear as when rendering the post.
-    #[cfg_attr(rustfmt, rustfmt_skip)]
-    // TODO: Remove the above attribute. For some reason rustfmt wants to remove the visibility.
     pub const DATE_FORMAT: &'static str = "%B %e, %Y";
 
     fn serialize_date<S>(date: &NaiveDateTime, serializer: &mut S) -> Result<(), S::Error>
