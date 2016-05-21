@@ -205,7 +205,7 @@ pub fn get_post(date: &NaiveDate, title: &str) -> Result<Post, rusqlite::Error> 
                               AND DATE(date) = DATE($2)"#,
                          &[&title, &date.format(persistence::DATETIME_FORMAT).to_string()],
                          |row| {
-        let date = NaiveDateTime::parse_from_str(&row.get::<String>(1),
+        let date = NaiveDateTime::parse_from_str(&row.get::<_, String>(1),
                                                  persistence::DATETIME_FORMAT)
             .unwrap();
         Post {
@@ -218,18 +218,22 @@ pub fn get_post(date: &NaiveDate, title: &str) -> Result<Post, rusqlite::Error> 
 
 /// Retrieves blog post summaries from the database.
 pub fn get_summaries(connection: &Connection) -> Result<Vec<Summary>, rusqlite::Error> {
-    try!(try!(connection.prepare(r"SELECT title, date, summary, url
+    let mut stmt = connection.prepare(r"SELECT title, date, summary, url
                                    FROM posts
-                                   ORDER BY date DESC"))
-            .query_map(&[], |row| {
-                Summary {
-                    title: row.get(0),
-                    date: NaiveDateTime::parse_from_str(&row.get::<String>(1),
-                                                        persistence::DATETIME_FORMAT)
-                        .unwrap(),
-                    summary: row.get(2),
-                    url: row.get(3),
-                }
-            }))
-        .collect()
+                                   ORDER BY date DESC")
+        .unwrap();
+
+    let summaries = stmt.query_map(&[], |row| {
+            let date = row.get::<_, String>(1);
+
+            Summary {
+                title: row.get(0),
+                date: NaiveDateTime::parse_from_str(&date, persistence::DATETIME_FORMAT).unwrap(),
+                summary: row.get(2),
+                url: row.get(3),
+            }
+        })
+        .unwrap();
+
+    summaries.collect()
 }
