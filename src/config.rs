@@ -4,14 +4,12 @@
 //! in a single human-readable file instead of having to track down the values in the code.
 
 use std::fs::File;
-use std::io;
 use std::io::prelude::*;
+use std::io;
 use std::path::Path;
 
 use url::Url;
-use yaml::YamlLoader;
-
-use projects::{self, Project};
+use serde_yaml;
 
 quick_error!{
     /// Encapsulates errors that might occur while parsing configuration.
@@ -26,7 +24,7 @@ quick_error!{
         }
 
         /// There was a syntax error in the YAML.
-        YamlSyntax(err: ::yaml::ScanError) {
+        YamlSyntax(err: serde_yaml::Error) {
             from()
             description("YAML syntax error")
             display("YAML syntax error: {}", err)
@@ -43,37 +41,42 @@ quick_error!{
 }
 
 /// Configuration values for the website.
+#[derive(Debug, PartialEq, Deserialize)]
 pub struct Config {
-    /// Descriptions of projects that I have implemented.
-    pub projects: Vec<Project>,
-
     /// A link to a PDF copy of my Resume.
     pub resume_link: Url,
 }
 
-/// Load the website configuration from a file.
-pub fn load<P>(path: P) -> Result<Config, ConfigError>
+fn parse_config<R>(reader: R) -> Result<Config, ConfigError>
+    where R: Read
+{
+    let config = try!(serde_yaml::from_reader(reader));
+    Ok(config)
+}
+
+/// Load the website configuration from a path.
+pub fn load<P>(config_path: P) -> Result<Config, ConfigError>
     where P: AsRef<Path>
 {
-    let path = path.as_ref();
-    info!("loading configuration from {:?}", path);
+    info!("loading configuration from {:?}", config_path.as_ref());
+    let config_file = try!(File::open(config_path));
+    parse_config(config_file)
+}
 
-    let config = {
-        let mut yaml_file = try!(File::open(path));
-        let mut string = String::new();
-        try!(yaml_file.read_to_string(&mut string));
-        try!(YamlLoader::load_from_str(&string))[0].to_owned()
-    };
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    let projects = try!(projects::projects(&config["projects"]));
-    info!("loaded {} projects successfully", projects.len());
+    use url::Url;
 
-    let resume_link = try!(config["resume"]["link"]
-        .as_str()
-        .ok_or("could not find resume link in config"));
-
-    Ok(Config {
-        projects: projects,
-        resume_link: Url::parse(resume_link).unwrap(),
-    })
+    #[test]
+    fn load_config() {
+        let test_config = String::from(r#"
+---
+resume_link: http://google.com
+"#);
+        let expected_config = Config { resume_link: Url::parse("http://google.com").unwrap() };
+        assert_eq!(expected_config,
+                   super::parse_config(test_config.as_bytes()).unwrap());
+    }
 }

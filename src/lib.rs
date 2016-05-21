@@ -40,7 +40,7 @@ extern crate serde_json;
 extern crate staticfile;
 extern crate toml;
 extern crate url;
-extern crate yaml_rust as yaml;
+extern crate serde_yaml;
 
 pub mod blog;
 pub mod config;
@@ -65,7 +65,7 @@ use mount::Mount;
 use router::{NoRoute, Router};
 use staticfile::Static;
 
-use persistence::Config;
+use persistence::{Config, Projects};
 
 fn initialize_templates(folder: &str,
                         extension: &str)
@@ -89,8 +89,8 @@ pub fn listen<A>(addr: A)
     let router: Router = routes::get_router();
     let mut chain = Chain::new(router);
 
-    let config = config::load(env::var("WEBSITE_CONFIG").unwrap_or("config.yaml".into()))
-        .expect("Problem loading configuration");
+    let config_path = env::var("WEBSITE_CONFIG").unwrap_or(String::from("config.yaml"));
+    let config = config::load(config_path).expect("could not parse configuration");
     chain.link_before(persistent::Read::<Config>::one(config));
 
     // Insert blog posts into the database.
@@ -103,7 +103,10 @@ pub fn listen<A>(addr: A)
     };
     connection.execute_batch(&schema).unwrap();
 
-    blog::parse_posts("blog/", &connection).expect("problem parsing blog posts");
+    blog::load("blog/", &connection).expect("problem parsing blog posts");
+
+    let projects = projects::load("projects.yaml").expect("problem parsing projects");
+    chain.link_before(persistent::Read::<Projects>::one(projects));
 
     chain.link_after(ErrorReporter);
     chain.link_after(ErrorHandler);

@@ -13,8 +13,8 @@ use iron::status;
 use persistent::Read;
 use router::{Router, NoRoute};
 
-use blog::{self, Post};
-use persistence::{self, Config};
+use blog;
+use persistence::{self, Config, Projects};
 
 /// The number of blog post summaries that should be displayed.
 const NUM_SUMMARIES: usize = 3;
@@ -32,8 +32,7 @@ fn resume(req: &mut Request) -> IronResult<Response> {
 fn projects(req: &mut Request) -> IronResult<Response> {
     let mut res = Response::new();
 
-    let projects = &req.get::<Read<Config>>().unwrap().projects;
-
+    let projects = req.get::<Read<Projects>>().unwrap();
     let data = btreemap!{
         "projects" => projects,
     };
@@ -61,14 +60,7 @@ fn blog_post(req: &mut Request) -> IronResult<Response> {
 
     match blog::get_post(&date, &title) {
         Ok(ref post) => {
-            let date: String = post.date.format(Post::DATE_FORMAT).to_string();
-
-            let data = btreemap!{
-                "title" => &post.title,
-                "date" => &date,
-                "content" => &post.html,
-            };
-            res.set_mut(Template::new("blog_post", data)).set_mut(status::Ok);
+            res.set_mut(Template::new("blog_post", post)).set_mut(status::Ok);
             Ok(res)
         }
         Err(err) => {

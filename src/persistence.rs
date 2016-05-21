@@ -4,6 +4,7 @@ use iron::typemap::Key;
 use rusqlite::{Connection, SQLITE_OPEN_READ_WRITE, SQLITE_OPEN_URI};
 
 use config;
+use projects;
 
 /// Contains data found in the website configuration.
 #[derive(Copy, Clone)]
@@ -11,6 +12,14 @@ pub struct Config;
 
 impl Key for Config {
     type Value = config::Config;
+}
+
+/// Contains projects parsed from a configuration file.
+#[derive(Copy, Clone)]
+pub struct Projects;
+
+impl Key for Projects {
+    type Value = Vec<projects::Project>;
 }
 
 /// Create a new connection to an in-memory database.

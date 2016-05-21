@@ -1,6 +1,8 @@
 //! Static blog generation.
 
+use std::error::Error;
 use std::fs::{self, File};
+use std::ops::Deref;
 use std::path::Path;
 use std::io;
 use std::io::prelude::*;
@@ -8,74 +10,20 @@ use std::io::prelude::*;
 use ammonia::Ammonia;
 use chrono::{self, NaiveDateTime, NaiveDate, Datelike};
 use rusqlite::{self, Connection};
-use serde;
-use yaml::YamlLoader;
-use yaml::ScanError;
+use serde::{self, Deserialize};
+use serde_yaml;
 
-use markdown::{self, Html};
+use markdown::{self, Html, Markdown};
 use persistence;
 
 /// The length of a blog post preview.
 const SUMMARY_LENGTH: usize = 200;
 
-/// A struct representing a blog post.
-#[derive(Debug, Clone, Serialize)]
-pub struct Post {
-    /// The title of the post.
-    pub title: String,
+/// The date format used in the blog posts' markdown files.
+const ON_DISK_FORMAT: &'static str = "%l:%M%P %m/%d/%y";
 
-    /// The time that the post was written.
-    #[serde(serialize_with="Self::serialize_date")]
-    pub date: NaiveDateTime,
-
-    /// The post rendered as HTML.
-    pub html: Html,
-}
-
-impl Post {
-    /// The human-readable format that the date should appear as when rendering the post.
-    pub const DATE_FORMAT: &'static str = "%B %e, %Y";
-
-    fn serialize_date<S>(date: &NaiveDateTime, serializer: &mut S) -> Result<(), S::Error>
-        where S: serde::Serializer
-    {
-        serializer.serialize_str(&date.format(Self::DATE_FORMAT).to_string())
-    }
-}
-
-/// A brief summary of a blog post.
-#[derive(Serialize, Debug)]
-pub struct Summary {
-    /// The title of the post.
-    pub title: String,
-
-    /// The date the post was written.
-    #[serde(serialize_with="Self::serialize_date")]
-    pub date: NaiveDateTime,
-
-    /// A short preview of the post.
-    pub summary: String,
-
-    /// A URL to reach the full post.
-    pub url: String,
-}
-
-impl Summary {
-    fn serialize_date<S>(date: &NaiveDateTime, serializer: &mut S) -> Result<(), S::Error>
-        where S: serde::Serializer
-    {
-        serializer.serialize_str(&date.format(Post::DATE_FORMAT).to_string())
-    }
-}
-
-#[derive(Debug)]
-struct ParsedPost {
-    title: String,
-    date: NaiveDateTime,
-    summary: String,
-    html: Html,
-    url: String,
-}
+/// The date format suitable for displaying on the website.
+const HUMAN_READABLE_FORMAT: &'static str = "%B %e, %Y";
 
 quick_error! {
     /// Encapsulates errors that might occur while parsing a blog post.
@@ -92,7 +40,7 @@ quick_error! {
         /// There was a syntax error in the metadata.
         MetadataSyntax(err: String) {
             from()
-            from(err: ScanError) -> (err.to_string())
+            from(err: serde_yaml::Error) -> (err.to_string())
             from(err: chrono::ParseError) -> (err.to_string())
             description("yaml parsing error")
             display("Error parsing metadata: {}", err)
@@ -108,86 +56,58 @@ quick_error! {
     }
 }
 
-fn parse_post(post: &str) -> Result<ParsedPost, PostParseError> {
-    // Read up to the first double newline to determine the end of metadata.
-    //
-    // TODO: This could probably be more robust. Investigate separating the metadata and
-    // markdown as separate YAML documents.
-    let contents = post.splitn(2, "\n\n").collect::<Vec<_>>();
-    let metadata = contents[0];
-    let metadata = try!(YamlLoader::load_from_str(metadata))[0].to_owned();
+/// A struct representing a blog post.
+#[derive(Debug, Clone, Serialize)]
+pub struct Post {
+    /// The title of the post.
+    pub title: String,
 
-    let title = try!(metadata["title"]
-            .as_str()
-            .ok_or(PostParseError::MetadataSyntax("could not find key 'title'".to_owned())))
-        .to_owned();
+    /// The time that the post was written.
+    #[serde(serialize_with="HumanReadable::serialize_with")]
+    pub date: NaiveDateTime,
 
-    let date_string = try!(metadata["date"]
-        .as_str()
-        .ok_or(PostParseError::MetadataSyntax("could not find 'key'".to_owned())));
-    let date = try!(NaiveDateTime::parse_from_str(date_string, "%l:%M%P %m/%d/%y"));
+    /// The post rendered as HTML.
+    pub html: Html,
+}
 
-    let content = contents[1];
-    let html_content = markdown::render_html(&content);
+/// A brief summary of a blog post.
+#[derive(Serialize, Debug)]
+pub struct Summary {
+    /// The title of the post.
+    pub title: String,
 
-    let escaped_title = title.to_lowercase().replace(" ", "-");
-    let url = format!("/blog/{}/{}/{}/{}",
-                      date.year(),
-                      date.month(),
-                      date.day(),
-                      escaped_title);
+    /// The date the post was written.
+    #[serde(serialize_with="HumanReadable::serialize_with")]
+    pub date: NaiveDateTime,
 
-    let mut ammonia = Ammonia::default();
+    /// A short preview of the post.
+    pub summary: String,
 
-    ammonia.url_relative = true;
-
-    // Add a link at the end of the preview, then sanitize the HTML and close any unclosed
-    // tags.
-    let summary_link = format!(r#"... <a href="{}">Continue&rarr;</a>"#, url);
-    let summary = html_content.chars()
-        .take(SUMMARY_LENGTH)
-        .chain(summary_link.chars())
-        .collect::<String>();
-
-    Ok(ParsedPost {
-        title: title,
-        date: date,
-        html: html_content,
-        summary: ammonia.clean(&summary),
-        url: url,
-    })
+    /// A URL to reach the full post.
+    pub url: String,
 }
 
 /// Retrieves blog post content and metadata by parsing all markdown files in a given directory,
 /// then persists the posts into the database.
-pub fn parse_posts<P>(directory: P, connection: &Connection) -> Result<(), PostParseError>
+pub fn load<P>(directory: P, connection: &Connection) -> Result<(), PostParseError>
     where P: AsRef<Path>
 {
-    let posts = try!(fs::read_dir(&directory))
-        .into_iter()
-        .map(|entry| {
-            let mut file = try!(File::open(try!(entry).path()));
-
-            let mut contents = String::new();
-            try!(file.read_to_string(&mut contents));
-
-            parse_post(&contents)
-        })
-        .collect::<Vec<_>>();
-
+    let posts = parse_posts(&directory).unwrap();
     info!("parsed {} blog posts in {:?}",
           posts.len(),
           directory.as_ref());
 
+
     for post in posts {
-        let post = post.unwrap();
+        let html = markdown::render_html(&post.content);
+        let summary = create_summary(&html, &post.url());
         connection.execute(r"INSERT INTO posts (title, date, html, summary, url)
                              VALUES ($1, $2, $3, $4, $5)",
-                     &[&post.title,
-                       &post.date,
-                       &post.html.as_str(),
-                       &post.summary,
-                       &post.url.to_string()])
+                     &[&post.metadata.title,
+                       &post.metadata.date,
+                       &html.deref(),
+                       &summary.deref(),
+                       &post.url().to_string()])
             .unwrap();
     }
 
@@ -206,7 +126,7 @@ pub fn get_post(date: &NaiveDate, title: &str) -> Result<Post, rusqlite::Error> 
         Post {
             title: row.get(0),
             date: row.get(1),
-            html: Html(row.get(2)),
+            html: Html::new(row.get(2)),
         }
     })
 }
@@ -229,4 +149,152 @@ pub fn get_summaries(connection: &Connection) -> Result<Vec<Summary>, rusqlite::
         .unwrap();
 
     summaries.collect()
+}
+
+#[derive(Debug)]
+struct ParsedPost {
+    metadata: Metadata,
+    content: Markdown,
+}
+
+impl ParsedPost {
+    /// Returns a relative URL to the given post.
+    fn url(&self) -> String {
+        let date = &self.metadata.date;
+
+        // TODO: I'd like to return a String here, but url::Url doesn't allow non-relative URLs. We
+        // could work around this if we knew the server name.
+        format!("/blog/{}/{}/{}/{}",
+                date.year(),
+                date.month(),
+                date.day(),
+                self.escaped_title())
+    }
+
+    fn escaped_title(&self) -> String {
+        self.metadata.title.to_lowercase().replace(" ", "-")
+    }
+}
+
+#[derive(Debug, Deserialize)]
+struct Metadata {
+    title: String,
+    #[serde(deserialize_with="OnDisk::deserialize_with")]
+    date: NaiveDateTime,
+    categories: Vec<String>,
+    tags: Vec<String>,
+}
+
+
+fn parse_post<R>(reader: &mut R) -> Result<ParsedPost, PostParseError>
+    where R: Read
+{
+    let post = {
+        let mut post = String::new();
+        try!(reader.read_to_string(&mut post));
+        post
+    };
+
+    // Read up to the first double newline to determine the end of metadata.
+    //
+    // TODO: This could probably be more robust. Investigate separating the metadata and
+    // markdown as separate YAML documents.
+    let contents = post.splitn(2, "\n\n").collect::<Vec<_>>();
+
+    let metadata: Metadata = try!(serde_yaml::from_str(&contents[0]));
+
+    Ok(ParsedPost {
+        metadata: metadata,
+        content: Markdown::new(contents[1].to_owned()),
+    })
+}
+
+fn create_summary(html: &Html, url: &str) -> Html {
+    let ammonia = Ammonia { url_relative: true, ..Default::default() };
+
+    let summary_link = format!(r#"… <a href="{}">Continue&rarr;</a>"#, url);
+    let summary = html.chars().take(SUMMARY_LENGTH).chain(summary_link.chars()).collect::<String>();
+
+    // Sanitize the summary so that any unclosed tags are closed again.
+    let summary = ammonia.clean(&summary);
+
+    Html::new(summary)
+}
+
+fn parse_posts<P>(directory: P) -> Result<Vec<ParsedPost>, PostParseError>
+    where P: AsRef<Path>
+{
+    try!(fs::read_dir(directory))
+        .into_iter()
+        .map(|entry| {
+            let entry = try!(entry);
+            let mut file = try!(File::open(entry.path()));
+            parse_post(&mut file).map_err(|e| {
+                From::from(format!("problem parsing {:?}: {}", entry.path(), e.description()))
+            })
+        })
+        .collect()
+}
+
+trait DateSerializeWith {
+    const FORMAT: &'static str;
+
+    fn serialize_with<S>(date: &NaiveDateTime, serializer: &mut S) -> Result<(), S::Error>
+        where S: serde::Serializer
+    {
+        serializer.serialize_str(&date.format(Self::FORMAT).to_string())
+    }
+}
+
+trait DateDeserializeWith {
+    const FORMAT: &'static str;
+
+    fn deserialize_with<D>(deserializer: &mut D) -> Result<NaiveDateTime, D::Error>
+        where D: serde::Deserializer
+    {
+        let string = try!(String::deserialize(deserializer));
+        NaiveDateTime::parse_from_str(&string, Self::FORMAT)
+            .or(Err(serde::de::Error::custom(format!("invalid date format: expected '{}'",
+                                                     Self::FORMAT)
+                .as_str())))
+    }
+}
+
+struct HumanReadable;
+
+impl DateSerializeWith for HumanReadable {
+    const FORMAT: &'static str = HUMAN_READABLE_FORMAT;
+}
+
+struct OnDisk;
+
+impl DateDeserializeWith for OnDisk {
+    const FORMAT: &'static str = ON_DISK_FORMAT;
+}
+
+#[cfg(test)]
+mod tests {
+    use markdown::Html;
+
+    #[test]
+    fn parse_all_posts() {
+        super::parse_posts("blog").unwrap();
+    }
+
+    #[test]
+    fn summary_sanitization() {
+        let text = "<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do \
+                    eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim \
+                    veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea \
+                    commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit \
+                    esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat \
+                    cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est \
+                    laborum.</p>";
+        let html = Html::new(String::from(text));
+        assert!(html.len() > super::SUMMARY_LENGTH);
+
+        let summary = super::create_summary(&html, "http://google.com");
+
+        assert!(summary.ends_with("</p>"));
+    }
 }

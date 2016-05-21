@@ -1,15 +1,18 @@
 //! Information about projects that I have worked on.
 
+use std::fs::File;
 use std::io::prelude::*;
+use std::ops::Deref;
+use std::path::Path;
 
 use hyper::Client;
 use hyper::header::{Authorization, Bearer, Connection, UserAgent};
 use rustc_serialize::json::Json;
+use serde_yaml;
 use url::Url;
-use yaml::Yaml;
 
 use config::ConfigError;
-use markdown::{self, Html};
+use markdown::{self, Html, Markdown};
 
 /// Encapsulates a project that I have worked on.
 #[derive(Debug, Serialize)]
@@ -19,6 +22,54 @@ pub struct Project {
     languages: Vec<String>,
     description: Html,
     url: Url,
+}
+
+/// Returns a list of projects parsed from a file.
+pub fn load<P>(projects_path: P) -> Result<Vec<Project>, ConfigError>
+    where P: AsRef<Path>
+{
+    let mut projects_file = try!(File::open(projects_path));
+    let github = Github::new(dotenv!("GITHUB_TOKEN"));
+    parse_projects(&mut projects_file)
+        .expect("problem parsing projects file")
+        .iter()
+        .map(|parsed_project| {
+            let name = &parsed_project.name;
+            let path = format!("/repos/{}", &parsed_project.repo);
+            let repository = github.request(&path).unwrap();
+            let owner = repository.find_path(&["owner", "login"])
+                .and_then(Json::as_string)
+                .unwrap();
+            let url = Url::parse(repository.find("html_url").and_then(Json::as_string).unwrap())
+                .unwrap();
+            let languages = {
+                let url = repository.find("languages_url")
+                    .and_then(Json::as_string)
+                    .unwrap();
+                let response = github.request_url(&url).unwrap();
+                response.as_object()
+                    .and_then(|obj| {
+                        Some(obj.keys()
+                            .cloned()
+                            .collect())
+                    })
+                    .unwrap()
+            };
+
+            let description = {
+                let description = &parsed_project.description;
+                markdown::render_html(&description.deref())
+            };
+
+            Ok(Project {
+                name: name.to_owned(),
+                owner: owner.to_owned(),
+                description: description,
+                languages: languages,
+                url: url,
+            })
+        })
+        .collect()
 }
 
 struct Github {
@@ -56,62 +107,26 @@ impl Github {
     }
 }
 
-fn parse_project(project: &Yaml) -> Result<Project, ConfigError> {
-    let github = Github::new(dotenv!("GITHUB_TOKEN"));
-
-    let name = try!(project["name"]
-        .as_str()
-        .ok_or(ConfigError::Format("could not find key 'name'")));
-
-    let repo = try!(project["repo"]
-        .as_str()
-        .ok_or(ConfigError::Format("could not find key 'repo'")));
-
-    let path = format!("/repos/{}", repo);
-    let repository = github.request(&path).unwrap();
-
-    let owner = repository.find_path(&["owner", "login"])
-        .and_then(|json| json.as_string())
-        .unwrap();
-
-    let url = Url::parse(repository.find("html_url").and_then(|json| json.as_string()).unwrap())
-        .unwrap();
-
-    let languages = {
-        let url = repository.find("languages_url")
-            .and_then(|json| json.as_string())
-            .unwrap();
-        let response = github.request_url(&url).unwrap();
-        response.as_object()
-            .and_then(|obj| {
-                Some(obj.keys()
-                    .cloned()
-                    .collect())
-            })
-            .unwrap()
-    };
-
-    let description = {
-        let description = try!(project["description"]
-            .as_str()
-            .ok_or(ConfigError::Format("could not find key 'description'")));
-        markdown::render_html(&description)
-    };
-
-    Ok(Project {
-        name: name.to_owned(),
-        owner: owner.to_owned(),
-        description: description,
-        languages: languages,
-        url: url,
-    })
+#[derive(Debug, Deserialize)]
+struct ParsedProject {
+    name: String,
+    repo: String,
+    description: Markdown,
 }
 
+fn parse_projects<R>(reader: &mut R) -> Result<Vec<ParsedProject>, ConfigError>
+    where R: Read
+{
+    Ok(try!(serde_yaml::from_reader(reader)))
+}
 
-/// Returns a list of projects parsed from a file.
-pub fn projects(projects: &Yaml) -> Result<Vec<Project>, ConfigError> {
-    let projects = try!(projects.as_vec()
-        .ok_or(ConfigError::Format("expected vector in project configuration")));
+#[cfg(test)]
+mod tests {
+    use std::fs::File;
 
-    projects.iter().map(|project| parse_project(project)).collect()
+    #[test]
+    fn parse_all_projects() {
+        let mut projects_file = File::open("projects.yaml").unwrap();
+        super::parse_projects(&mut projects_file).unwrap();
+    }
 }

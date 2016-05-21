@@ -9,7 +9,6 @@ doc = false
 name = "main"
 
 [dependencies]
-chrono = "0.2.19"
 docopt = "0.6.78"
 docopt_macros = "0.6.80"
 dotenv = "0.8.0"
@@ -29,12 +28,16 @@ rustc-serialize = "0.3.16"
 serde = "0.7.0"
 serde_json = "0.7.0"
 serde_macros = "0.7.0"
+serde_yaml = "0.2.4"
 staticfile = "0.2.0"
 toml = "0.1.26"
-yaml-rust = "0.3.0"
 
 [dependencies.ammonia]
 git = "https://github.com/notriddle/ammonia"
+
+[dependencies.chrono]
+features = ["serde"]
+version = "0.2.19"
 
 [dependencies.clippy]
 optional = true
