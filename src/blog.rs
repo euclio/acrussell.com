@@ -186,7 +186,7 @@ pub fn parse_posts<P>(directory: P, connection: &Connection) -> Result<(), PostP
         connection.execute(r"INSERT INTO posts (title, date, html, summary, url)
                              VALUES ($1, $2, $3, $4, $5)",
                      &[&post.title,
-                       &post.date.format(persistence::DATETIME_FORMAT).to_string(),
+                       &post.date,
                        &post.html.as_str(),
                        &post.summary,
                        &post.url.to_string()])
@@ -202,15 +202,12 @@ pub fn get_post(date: &NaiveDate, title: &str) -> Result<Post, rusqlite::Error> 
     connection.query_row(r#"SELECT title, date, html
                             FROM posts
                             WHERE REPLACE(LOWER(title), " ", "-") = $1
-                              AND DATE(date) = DATE($2)"#,
-                         &[&title, &date.format(persistence::DATETIME_FORMAT).to_string()],
+                              AND DATE(date) = $2"#,
+                         &[&title, date],
                          |row| {
-        let date = NaiveDateTime::parse_from_str(&row.get::<_, String>(1),
-                                                 persistence::DATETIME_FORMAT)
-            .unwrap();
         Post {
             title: row.get(0),
-            date: date,
+            date: row.get(1),
             html: Html(row.get(2)),
         }
     })
@@ -224,11 +221,9 @@ pub fn get_summaries(connection: &Connection) -> Result<Vec<Summary>, rusqlite::
         .unwrap();
 
     let summaries = stmt.query_map(&[], |row| {
-            let date = row.get::<_, String>(1);
-
             Summary {
                 title: row.get(0),
-                date: NaiveDateTime::parse_from_str(&date, persistence::DATETIME_FORMAT).unwrap(),
+                date: row.get(1),
                 summary: row.get(2),
                 url: row.get(3),
             }
