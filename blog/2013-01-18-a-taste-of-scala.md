@@ -1,8 +1,11 @@
+---
 title: A Taste of Scala
-date: 10:00pm 01/18/13
-categories: news
-tags: cs
-      scala
+date: "10:00pm 01/18/13"
+categories:
+  - news
+tags:
+  - cs
+  - scala
 
 This past semester I took a course entitled "Domain-Specific Languages." I had
 no idea what to expect when I signed up for it, but it ended up being one of

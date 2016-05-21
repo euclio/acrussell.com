@@ -1,11 +1,14 @@
+---
 title: New Project
-date: 1:39pm 06/12/12
-categories: news
-            projects
-            website
-tags: css
-      html
-      java
+date: "1:39pm 06/12/12"
+categories:
+  - news
+  - projects
+  - website
+tags:
+  - css
+  - html
+  - java
 
 Well, we're a ways through June and it's time for another blog post. I've had a
 few things keeping me busy, mostly my job. I am a working at Washington

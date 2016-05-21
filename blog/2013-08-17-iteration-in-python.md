@@ -1,7 +1,10 @@
+---
 title: Iteration in Python
-date: 4:32pm 08/17/12
-categories: programmming
-tags: python
+date: "4:32pm 08/17/12"
+categories:
+  - programmming
+tags:
+  - python
 
 Iteration is one of Python's greatest strengths. Once I learned its power, I 
 haven't used an 'i' or a 'j' in ages. Before this summer, I was used to the 

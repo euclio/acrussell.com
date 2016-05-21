@@ -1,8 +1,11 @@
+---
 title: The Importance of Semantic HTML
-date: 4:47pm 07/11/12
-categories: web
-tags: css
-      html
+date: "4:47pm 07/11/12"
+categories:
+  - web
+tags:
+  - css
+  - html
 
 The vast majority of modern web developers would agree that semantic HTML is
 good HTML. HTML documents should have meaning, instead of being vehicles of

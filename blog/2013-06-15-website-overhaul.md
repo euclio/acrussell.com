@@ -1,9 +1,11 @@
+---
 title: Website Overhaul
-date: 4:21pm 06/15/13
+date: "4:21pm 06/15/13"
 categories: [news]
-tags: web
-      python
-      flask
+tags:
+  - web
+  - python
+  - flask
 
 Since finishing my sophomore year, I've finally had some time to sit down and
 complete some projects that I've been meaning to work on for a long time. The

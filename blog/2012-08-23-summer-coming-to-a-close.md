@@ -1,6 +1,9 @@
+---
 title: Summer Coming to a Close
-date: 10:28pm 08/23/12
-categories: news
+date: "10:28pm 08/23/12"
+categories:
+  - news
+tags:
 
 As I get ready to start my sophomore year of college I thought that I should
 write a bit about my job at Washington University. I worked for the computer
