@@ -3,6 +3,8 @@
 use handlebars::{Handlebars, RenderError, RenderContext, Helper, Context};
 use serde_json::Value;
 
+const DEFAULT_SEPARATOR: &'static str = ", ";
+
 /// Simple helper to join an array.
 ///
 /// # Parameters
@@ -19,19 +21,20 @@ use serde_json::Value;
 ///
 /// Result:
 /// `"1, 2, 3"`
-pub fn join(c: &Context,
+pub fn join(_: &Context,
             h: &Helper,
             _: &Handlebars,
             rc: &mut RenderContext)
             -> Result<(), RenderError> {
-    let array_name = h.params().get(0).unwrap();
+    let array = try!(h.param(0)
+        .map(|p| p.value())
+        .ok_or_else(|| RenderError::new("Missing parameter for `join`")));
 
-    let array = c.navigate(rc.get_path(), array_name);
-    let default_separator = ", ".to_owned();
-    let separator = h.params().get(1).unwrap_or(&default_separator).trim_matches('"');
+    let separator =
+        h.param(1).map(|p| p.value()).and_then(|sep| sep.as_string()).unwrap_or(DEFAULT_SEPARATOR);
 
-    let strings = array.as_array()
-        .unwrap()
+    let strings = try!(array.as_array()
+            .ok_or_else(|| RenderError::new("Parameter for `join` must be an array.")))
         .iter()
         .map(|value| {
             match *value {
