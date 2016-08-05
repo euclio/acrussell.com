@@ -1,8 +1,5 @@
 //! Contains the routing logic for the website.
 
-// FIXME: maplit creates a *lot* of these warnings.
-#![cfg_attr(feature="clippy", allow(used_underscore_binding))]
-
 use std::fs;
 use std::path::Path;
 
@@ -58,7 +55,7 @@ fn blog_post(req: &mut Request) -> IronResult<Response> {
         None => return Err(IronError::new(NoRoute, status::NotFound)),
     };
 
-    match blog::get_post(&date, &title) {
+    match blog::get_post(&date, title) {
         Ok(ref post) => {
             res.set_mut(Template::new("blog_post", post)).set_mut(status::Ok);
             Ok(res)

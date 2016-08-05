@@ -253,10 +253,10 @@ trait DateDeserializeWith {
         where D: serde::Deserializer
     {
         let string = try!(String::deserialize(deserializer));
-        NaiveDateTime::parse_from_str(&string, Self::FORMAT)
-            .or(Err(serde::de::Error::custom(format!("invalid date format: expected '{}'",
-                                                     Self::FORMAT)
-                .as_str())))
+        NaiveDateTime::parse_from_str(&string, Self::FORMAT).or_else(|_| {
+            let msg = format!("invalid date format: expected '{}'", Self::FORMAT);
+            Err(serde::de::Error::custom(msg.as_str()))
+        })
     }
 }
 

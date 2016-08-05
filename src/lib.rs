@@ -89,7 +89,7 @@ pub fn listen<A>(addr: A)
     let router: Router = routes::get_router();
     let mut chain = Chain::new(router);
 
-    let config_path = env::var("WEBSITE_CONFIG").unwrap_or(String::from("config.yaml"));
+    let config_path = env::var("WEBSITE_CONFIG").unwrap_or_else(|_| String::from("config.yaml"));
     let config = config::load(config_path).expect("could not parse configuration");
     chain.link_before(persistent::Read::<Config>::one(config));
 

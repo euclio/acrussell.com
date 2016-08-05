@@ -46,7 +46,7 @@ pub fn load<P>(projects_path: P) -> Result<Vec<Project>, ConfigError>
                 let url = repository.find("languages_url")
                     .and_then(Json::as_string)
                     .unwrap();
-                let response = github.request_url(&url).unwrap();
+                let response = github.request_url(url).unwrap();
                 response.as_object()
                     .and_then(|obj| {
                         Some(obj.keys()
@@ -58,7 +58,7 @@ pub fn load<P>(projects_path: P) -> Result<Vec<Project>, ConfigError>
 
             let description = {
                 let description = &parsed_project.description;
-                markdown::render_html(&description.deref())
+                markdown::render_html(description.deref())
             };
 
             Ok(Project {
