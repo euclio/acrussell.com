@@ -31,7 +31,7 @@ pub fn join(_: &Context,
         .ok_or_else(|| RenderError::new("Missing parameter for `join`")));
 
     let separator =
-        h.param(1).map(|p| p.value()).and_then(|sep| sep.as_string()).unwrap_or(DEFAULT_SEPARATOR);
+        h.param(1).map(|p| p.value()).and_then(|sep| sep.as_str()).unwrap_or(DEFAULT_SEPARATOR);
 
     let strings = try!(array.as_array()
             .ok_or_else(|| RenderError::new("Parameter for `join` must be an array.")))

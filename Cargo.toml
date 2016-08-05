@@ -17,21 +17,21 @@ dotenv_macros = "0.9.0"
 env_logger = "0.3.2"
 hoedown = "5.0.0"
 hyper = "0.9.5"
-iron = "0.3.0"
+iron = "0.4.0"
 lazy_static = "0.2.1"
 log = "0.3.5"
 maplit = "0.1.3"
-mount = "0.1.0"
-persistent = "0.1.0"
+mount = "0.2.0"
+persistent = "0.2.0"
 quick-error = "1.0.0"
-router = "0.1.0"
+router = "0.2.0"
 rustc-serialize = "0.3.16"
-serde = "0.7.0"
-serde_json = "0.7.0"
-serde_macros = "0.7.0"
-serde_yaml = "0.3.0"
-staticfile = "0.2.0"
-toml = "0.1.26"
+serde = "0.8.0"
+serde_json = "0.8.0"
+serde_macros = "0.8.0"
+serde_yaml = "0.4.0"
+staticfile = "0.3.0"
+toml = "0.2.0"
 
 [dependencies.chrono]
 features = ["serde"]
@@ -44,12 +44,12 @@ version = "*"
 [dependencies.handlebars]
 default_features = false
 features = ["serde_type"]
-version = "0.18.0"
+version = "0.20.0"
 
 [dependencies.handlebars-iron]
 default_features = false
 features = ["serde_type"]
-version = "0.15.1"
+version = "0.18.0"
 
 [dependencies.regex]
 features = ["pattern"]
