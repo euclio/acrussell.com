@@ -123,6 +123,9 @@ fn get_router() -> Router {
         get "/blog/:year/:month/:day/:title" => blog_post,
         get "/projects" => projects,
         get "/resume" => resume,
+
+        get "/favicon.ico" => Static::new(Path::new("static/images")),
+        get "/robots.txt" => Static::new(Path::new("static")),
     )
 }
 
@@ -146,9 +149,6 @@ fn mount(chain: Chain) -> Mount {
     let mut mount = Mount::new();
     mount.mount("/", chain);
     mount.mount("/static", Static::new(Path::new("static")));
-    mount.mount("/favicon.ico",
-                Static::new(Path::new("static/images/favicon.ico")));
-    mount.mount("/robots.txt", Static::new(Path::new("static/robots.txt")));
     mount
 }
 
@@ -240,6 +240,20 @@ mod tests {
 
         let handler = create_handler();
         let response = request::get("http://localhost:3000/", Headers::new(), &handler).unwrap();
+        assert!(response.status.unwrap().is_success());
+    }
+
+    #[test]
+    fn static_files() {
+        let handler = create_handler();
+        let response = request::get("http://localhost:3000/favicon.ico",
+                                    Headers::new(),
+                                    &handler)
+            .unwrap();
+        assert!(response.status.unwrap().is_success());
+
+        let response = request::get("http://localhost:3000/robots.txt", Headers::new(), &handler)
+            .unwrap();
         assert!(response.status.unwrap().is_success());
     }
 }
