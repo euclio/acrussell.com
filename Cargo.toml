@@ -37,10 +37,6 @@ toml = "0.2.0"
 features = ["serde"]
 version = "0.2.19"
 
-[dependencies.clippy]
-optional = true
-version = "*"
-
 [dependencies.handlebars]
 default_features = false
 features = ["serde_type"]

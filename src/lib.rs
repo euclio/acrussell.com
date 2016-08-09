@@ -4,7 +4,6 @@
 #![feature(custom_derive)]
 #![feature(plugin)]
 
-#![cfg_attr(feature="clippy", plugin(clippy))]
 #![plugin(dotenv_macros)]
 #![plugin(serde_macros)]
 
