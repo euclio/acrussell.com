@@ -55,43 +55,16 @@ use std::fs::File;
 use std::error::Error;
 use std::io::prelude::*;
 use std::net::ToSocketAddrs;
-use std::path::Path;
 
-use hbs::{DirectorySource, HandlebarsEngine, Template};
-use iron::AfterMiddleware;
 use iron::prelude::*;
-use iron::status;
-use mount::Mount;
-use router::{NoRoute, Router};
-use staticfile::Static;
-
-use persistence::{Config, Projects};
-
-fn initialize_templates(folder: &str,
-                        extension: &str)
-                        -> Result<HandlebarsEngine, hbs::SourceError> {
-    let mut hbse = HandlebarsEngine::new();
-    hbse.add(Box::new(DirectorySource::new(folder, extension)));
-    try!(hbse.reload());
-
-    {
-        let mut reg = hbse.registry.write().unwrap();
-        reg.register_helper("join", Box::new(helpers::join));
-    }
-
-    Ok(hbse)
-}
 
 /// Starts the server listening on the provided socket address.
 pub fn listen<A>(addr: A)
     where A: ToSocketAddrs
 {
-    let router: Router = routes::get_router();
-    let mut chain = Chain::new(router);
-
     let config_path = env::var("WEBSITE_CONFIG").unwrap_or_else(|_| String::from("config.yaml"));
     let config = config::load(config_path).expect("could not parse configuration");
-    chain.link_before(persistent::Read::<Config>::one(config));
+    let projects = projects::load("projects.yaml").expect("problem parsing projects");
 
     // Insert blog posts into the database.
     let connection = persistence::get_db_connection();
@@ -101,52 +74,16 @@ pub fn listen<A>(addr: A)
         schema_file.read_to_string(&mut schema).unwrap();
         schema
     };
+
     connection.execute_batch(&schema).unwrap();
 
     blog::load("blog/", &connection).expect("problem parsing blog posts");
 
-    let projects = projects::load("projects.yaml").expect("problem parsing projects");
-    chain.link_before(persistent::Read::<Projects>::one(projects));
+    let handler = routes::handler(config, projects);
 
-    chain.link_after(ErrorReporter);
-    chain.link_after(ErrorHandler);
-    chain.link_after(initialize_templates("./templates/", ".hbs").unwrap());
-
-    let mut mount = Mount::new();
-    mount.mount("/", chain);
-    mount.mount("/static", Static::new(Path::new("static")));
-    mount.mount("/favicon.ico",
-                Static::new(Path::new("static/images/favicon.ico")));
-    mount.mount("/robots.txt", Static::new(Path::new("static/robots.txt")));
-
-    Iron::new(mount)
+    Iron::new(handler)
         .http(addr)
         .unwrap_or_else(|e| {
             panic!("Error: {:?}", e.description());
         });
-
-}
-
-struct ErrorReporter;
-
-impl AfterMiddleware for ErrorReporter {
-    fn catch(&self, _: &mut Request, err: IronError) -> IronResult<Response> {
-        error!("{}", err.description());
-        Err(err)
-    }
-}
-
-struct ErrorHandler;
-
-impl AfterMiddleware for ErrorHandler {
-    fn catch(&self, _: &mut Request, err: IronError) -> IronResult<Response> {
-        let mut res = Response::new();
-
-        if let Some(_) = err.error.downcast::<NoRoute>() {
-            res.set_mut(Template::new("not_found", ())).set_mut(status::NotFound);
-            Ok(res)
-        } else {
-            Err(err)
-        }
-    }
 }

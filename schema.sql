@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS posts;
 
-CREATE TABLE posts (
+CREATE TABLE IF NOT EXISTS posts (
     id      INT PRIMARY KEY,
     title   VARCHAR NOT NULL,
     date    DATETIME NOT NULL,
