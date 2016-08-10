@@ -167,9 +167,9 @@ pub fn handler(config: config::Config, projects: Vec<Project>) -> Box<Handler> {
     chain.link_before(persistent::Read::<Config>::one(config));
     chain.link_before(persistent::Read::<Projects>::one(projects));
 
+    chain.link_after(ErrorHandler);
     chain.link_after(initialize_templates("./templates/", ".hbs").unwrap());
     chain.link_after(ErrorReporter);
-    chain.link_after(ErrorHandler);
 
     let mount = mount(chain);
     Box::new(mount)
@@ -188,11 +188,8 @@ struct ErrorHandler;
 
 impl AfterMiddleware for ErrorHandler {
     fn catch(&self, _: &mut Request, err: IronError) -> IronResult<Response> {
-        let mut res = Response::new();
-
         if let Some(_) = err.error.downcast::<NoRoute>() {
-            res.set_mut(Template::new("not_found", ())).set_mut(status::NotFound);
-            Ok(res)
+            Ok(Response::with((status::NotFound, Template::new("not_found", ()))))
         } else {
             Err(err)
         }
@@ -209,7 +206,7 @@ mod tests {
     use std::io::prelude::*;
 
     use self::iron::{Handler, Headers};
-    use self::iron_test::request;
+    use self::iron_test::{request, response};
 
     use persistence;
 
@@ -255,5 +252,16 @@ mod tests {
         let response = request::get("http://localhost:3000/robots.txt", Headers::new(), &handler)
             .unwrap();
         assert!(response.status.unwrap().is_success());
+    }
+
+    #[test]
+    fn not_found() {
+        let handler = create_handler();
+        let response = request::get("http://localhost:3000/this/path/does/not/exist",
+                                    Headers::new(),
+                                    &handler)
+            .unwrap();
+        let body = response::extract_body_to_string(response);
+        assert!(body.contains("Page Not Found"));
     }
 }
