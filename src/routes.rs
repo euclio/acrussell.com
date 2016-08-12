@@ -148,7 +148,8 @@ fn initialize_templates(folder: &str,
 fn mount(chain: Chain) -> Mount {
     let mut mount = Mount::new();
     mount.mount("/", chain);
-    mount.mount("/static", Static::new(Path::new("static")));
+    mount.mount("/static",
+                Static::new(Path::new(env!("OUT_DIR")).join("static")));
     mount
 }
 
@@ -263,5 +264,15 @@ mod tests {
             .unwrap();
         let body = response::extract_body_to_string(response);
         assert!(body.contains("Page Not Found"));
+    }
+
+    #[test]
+    fn css() {
+        let handler = create_handler();
+        let response = request::get("http://localhost:3000/static/css/styles.css",
+                                    Headers::new(),
+                                    &handler)
+            .unwrap();
+        assert!(response.status.unwrap().is_success());
     }
 }
