@@ -1,16 +1,4 @@
-*.pyc
-include
-lib
-local
-.dotcloud
-*.swp
-bin
-scripts
-Thumbs.db
-.venv
-node_modules
-
 target/
-static/
+node_modules
 .sass-cache
 .env
