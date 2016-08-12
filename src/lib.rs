@@ -80,9 +80,13 @@ pub fn listen<A>(addr: A)
 
     let handler = routes::handler(config, projects);
 
-    Iron::new(handler)
+    info!("initialization complete");
+
+    let listening = Iron::new(handler)
         .http(addr)
         .unwrap_or_else(|e| {
             panic!("Error: {:?}", e.description());
         });
+
+    info!("listening on {}", listening.socket);
 }
