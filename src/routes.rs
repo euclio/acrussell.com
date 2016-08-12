@@ -44,28 +44,26 @@ fn projects(req: &mut Request) -> IronResult<Response> {
 }
 
 fn blog_post(req: &mut Request) -> IronResult<Response> {
-    let mut res = Response::new();
+    let params = req.extensions.get::<Router>().unwrap();
 
-    let year = req.extensions.get::<Router>().unwrap().find("year").and_then(|y| y.parse().ok());
-    let month = req.extensions.get::<Router>().unwrap().find("month").and_then(|m| m.parse().ok());
-    let day = req.extensions.get::<Router>().unwrap().find("day").and_then(|d| d.parse().ok());
-    let title = req.extensions.get::<Router>().unwrap().find("title");
+    let year = params.find("year").and_then(|y| y.parse().ok());
+    let month = params.find("month").and_then(|m| m.parse().ok());
+    let day = params.find("day").and_then(|d| d.parse().ok());
+    let title = try!(req.extensions
+        .get::<Router>()
+        .unwrap()
+        .find("title")
+        .ok_or(IronError::new(NoRoute, status::NotFound)));
 
     let date = match (year, month, day) {
-        (Some(year), Some(month), Some(day)) => NaiveDate::from_ymd(year, month, day),
-        _ => return Err(IronError::new(NoRoute, status::NotFound)),
+        (Some(year), Some(month), Some(day)) => NaiveDate::from_ymd_opt(year, month, day),
+        _ => None,
     };
 
-    let title = match title {
-        Some(title) => title,
-        None => return Err(IronError::new(NoRoute, status::NotFound)),
-    };
+    let date = try!(date.ok_or(IronError::new(NoRoute, status::NotFound)));
 
     match blog::get_post(&date, title) {
-        Ok(ref post) => {
-            res.set_mut(Template::new("blog_post", post)).set_mut(status::Ok);
-            Ok(res)
-        }
+        Ok(ref post) => Ok(Response::with((status::Ok, Template::new("blog_post", post)))),
         Err(err) => {
             error!("Error retrieving blog post: {}", err);
             Err(IronError::new(NoRoute, status::NotFound))
@@ -239,6 +237,17 @@ mod tests {
         let handler = create_handler();
         let response = request::get("http://localhost:3000/", Headers::new(), &handler).unwrap();
         assert!(response.status.unwrap().is_success());
+    }
+
+    #[test]
+    fn post_dates() {
+        let handler = create_handler();
+
+        let response = request::get("http://localhost:3000/blog/2016/13/31/invalid-date",
+                                    Headers::new(),
+                                    &handler)
+            .unwrap();
+        assert!(response.status.unwrap().is_client_error());
     }
 
     #[test]
