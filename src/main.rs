@@ -18,6 +18,7 @@ My personal website.
 
 Usage:
     website [<port>]
+    website (-h | --help)
 ", arg_port: Option<u16>);
 
 fn main() {
