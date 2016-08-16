@@ -1,28 +1,18 @@
 {{#partial title}}Projects{{/partial}}
 
 {{#partial layout}}
-<div class="tabular">
-  <header>
-    <h1>Projects</h1>
-  </header>
-  <table>
-    <tr>
-      <th>Name</th>
-      <th>Description</th>
-      <th>Source</th>
-    </tr>
-    {{#each projects }}
-    <tr>
-      <td class="name">{{ name }}</td>
-      <td class="description readable">{{{ description }}}</td>
-      <td class="source">
-        <a class="external" href="{{ url }}">
-          ({{join languages}})
-        </a>
-      </td>
-    </tr>
-    {{/each}}
-  </table>
+<div class="projects">
+{{#each projects }}
+  <div class="text project">
+    <h3><a href="{{ url }}">{{ name }}</a></h3>
+    {{{ description }}}
+    <nav>
+      <a class="external" href="{{ url }}">
+        View source ({{join languages}})
+      </a>
+    </nav>
+  </div>
+{{/each}}
 </div>
 {{/partial}}
 

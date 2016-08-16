@@ -1,19 +1,27 @@
-th {
-  font-family: $altfontfamily;
-  text-align: center;
+.projects {
+  align-content: center;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
 }
 
-.source {
-  text-align: center;
-  width: 7em;
-}
+.project {
+  display: flex;
+  flex-flow: column;
+  width: 30em;
 
-.name {
-  text-align: center;
-  width: 10em;
-}
+  h3 {
+    border-bottom: 1px solid;
+  }
 
-.description {
-  @extend %readable;
-  text-align: justify;
+  p {
+    height: 100%;
+    margin-top: .5em;
+    text-align: justify;
+  }
+
+  nav {
+    align-self: flex-end;
+    line-height: initial;
+  }
 }
