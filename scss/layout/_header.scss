@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   line-height: 1;
-  margin: 0 0.5em 1em;
+  margin-bottom: 1em;
   text-align: center;
 
   .logo {
@@ -22,10 +22,12 @@
     font-family: $navfontfamily;
     flex-flow: row wrap;
     margin: 0;
+    width: 100%;
 
     ul {
       list-style: none;
-      padding: 0 1em;
+      margin: .5em;
+      padding: 0;
     }
 
     li {
