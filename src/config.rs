@@ -8,6 +8,7 @@ use std::io::prelude::*;
 use std::io;
 use std::path::Path;
 
+use hubcaps;
 use url::Url;
 use serde_yaml;
 
@@ -36,6 +37,13 @@ quick_error!{
             from()
             description("the configuration file was formatted incorrectly")
             display("Error parsing configuration: {}", err)
+        }
+
+        /// There was an error using the GitHub API.
+        GitHub(err: hubcaps::Error) {
+            from()
+            description("there was a problem using the GitHub API")
+            display("GitHub API error: {}", err)
         }
     }
 }

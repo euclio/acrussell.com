@@ -5,9 +5,9 @@ use std::io::prelude::*;
 use std::ops::Deref;
 use std::path::Path;
 
+use hubcaps::{Credentials, Github};
+use hubcaps::repositories::Repository;
 use hyper::Client;
-use hyper::header::{Authorization, Bearer, Connection, UserAgent};
-use rustc_serialize::json::Json;
 use serde_yaml;
 use url::Url;
 
@@ -29,32 +29,23 @@ pub fn load<P>(projects_path: P) -> Result<Vec<Project>, ConfigError>
     where P: AsRef<Path>
 {
     let mut projects_file = try!(File::open(projects_path));
-    let github = Github::new(dotenv!("GITHUB_TOKEN"));
+    let client = Client::new();
+    let github = Github::new(concat!("acrussell.com", "/", env!("CARGO_PKG_VERSION")),
+                             &client,
+                             Credentials::Token(String::from(dotenv!("GITHUB_TOKEN"))));
     parse_projects(&mut projects_file)
         .expect("problem parsing projects file")
         .iter()
         .map(|parsed_project| {
-            let name = &parsed_project.name;
-            let path = format!("/repos/{}", &parsed_project.repo);
-            let repository = github.request(&path).unwrap();
-            let owner = repository.find_path(&["owner", "login"])
-                .and_then(Json::as_string)
-                .unwrap();
-            let url = Url::parse(repository.find("html_url").and_then(Json::as_string).unwrap())
-                .unwrap();
-            let languages = {
-                let url = repository.find("languages_url")
-                    .and_then(Json::as_string)
-                    .unwrap();
-                let response = github.request_url(url).unwrap();
-                response.as_object()
-                    .and_then(|obj| {
-                        Some(obj.keys()
-                            .cloned()
-                            .collect())
-                    })
-                    .unwrap()
+            let repo = {
+                let components = parsed_project.repo.split("/").collect::<Vec<_>>();
+                try!(Repository::new(&github, components[0], components[1]).get())
             };
+
+            let name = &parsed_project.name;
+            let owner = repo.owner.login.clone();
+            let url = Url::parse(&repo.html_url).unwrap();
+            let languages = try!(repo.languages(&github)).keys().cloned().collect();
 
             let description = {
                 let description = &parsed_project.description;
@@ -70,41 +61,6 @@ pub fn load<P>(projects_path: P) -> Result<Vec<Project>, ConfigError>
             })
         })
         .collect()
-}
-
-struct Github {
-    token: String,
-    client: Client,
-}
-
-impl Github {
-    const ENDPOINT: &'static str = "https://api.github.com";
-
-    fn new(token: &str) -> Self {
-        Github {
-            client: Client::new(),
-            token: token.to_owned(),
-        }
-    }
-
-    fn request(&self, endpoint: &str) -> Option<Json> {
-        let url = Self::ENDPOINT.to_owned() + endpoint;
-        self.request_url(&url)
-    }
-
-    fn request_url(&self, url: &str) -> Option<Json> {
-        let mut body = String::new();
-
-        let mut response = self.client
-            .get(url)
-            .header(UserAgent("acrussell.com".to_owned()))
-            .header(Authorization(Bearer { token: self.token.to_owned() }))
-            .header(Connection::close())
-            .send()
-            .unwrap();
-        response.read_to_string(&mut body).unwrap();
-        Some(Json::from_str(&body).unwrap())
-    }
 }
 
 #[derive(Debug, Deserialize)]

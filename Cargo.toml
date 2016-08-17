@@ -47,6 +47,11 @@ default_features = false
 features = ["serde_type"]
 version = "0.18.0"
 
+[dependencies.hubcaps]
+default_features = false
+features = ["nightly"]
+path = "../hubcaps"
+
 [dependencies.regex]
 features = ["pattern"]
 version = "0.1.48"
