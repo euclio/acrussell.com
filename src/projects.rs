@@ -1,5 +1,6 @@
 //! Information about projects that I have worked on.
 
+use std::collections::BTreeMap;
 use std::fs::File;
 use std::io::prelude::*;
 use std::ops::Deref;
@@ -45,7 +46,16 @@ pub fn load<P>(projects_path: P) -> Result<Vec<Project>, ConfigError>
             let name = &parsed_project.name;
             let owner = repo.owner.login.clone();
             let url = Url::parse(&repo.html_url).unwrap();
-            let languages = try!(repo.languages(&github)).keys().cloned().collect();
+
+            // Sort languages by the amount of bytes in the repository.
+            let languages = try!(repo.languages(&github))
+                .into_iter()
+                .map(|(k, v)| (v, k))
+                .collect::<BTreeMap<_, _>>()
+                .values()
+                .cloned()
+                .rev()
+                .collect();
 
             let description = {
                 let description = &parsed_project.description;
