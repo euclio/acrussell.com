@@ -17,33 +17,28 @@ use blog;
 use config;
 use helpers;
 use projects::Project;
-use persistence::{self, Config, Projects};
+use persistence::{DatabaseConnectionPool, ConnectionPool, Config, Projects};
 
 /// The number of blog post summaries that should be displayed.
 const NUM_SUMMARIES: usize = 3;
 
 fn resume(req: &mut Request) -> IronResult<Response> {
-    let mut res = Response::new();
-
     let data = btreemap!{
         "resume_link" => req.get::<Read<Config>>().unwrap().resume_link.to_owned(),
     };
-    res.set_mut(Template::new("resume", data)).set_mut(status::Ok);
-    Ok(res)
+    Ok(Response::with((status::Ok, Template::new("resume", data))))
 }
 
 fn projects(req: &mut Request) -> IronResult<Response> {
-    let mut res = Response::new();
-
     let projects = req.get::<Read<Projects>>().unwrap();
     let data = btreemap!{
         "projects" => projects,
     };
-    res.set_mut(Template::new("projects", data)).set_mut(status::Ok);
-    Ok(res)
+    Ok(Response::with((status::Ok, Template::new("projects", data))))
 }
 
 fn blog_post(req: &mut Request) -> IronResult<Response> {
+    let connection = req.extensions.get::<Read<DatabaseConnectionPool>>().unwrap().get().unwrap();
     let params = req.extensions.get::<Router>().unwrap();
 
     let year = params.find("year").and_then(|y| y.parse().ok());
@@ -62,7 +57,7 @@ fn blog_post(req: &mut Request) -> IronResult<Response> {
 
     let date = try!(date.ok_or(IronError::new(NoRoute, status::NotFound)));
 
-    match blog::get_post(&date, title) {
+    match blog::get_post(&connection, &date, title) {
         Ok(ref post) => Ok(Response::with((status::Ok, Template::new("blog_post", post)))),
         Err(err) => {
             error!("Error retrieving blog post: {}", err);
@@ -71,20 +66,16 @@ fn blog_post(req: &mut Request) -> IronResult<Response> {
     }
 }
 
-fn blog(_: &mut Request) -> IronResult<Response> {
-    let mut res = Response::new();
+fn blog(req: &mut Request) -> IronResult<Response> {
+    let connection = req.get::<Read<DatabaseConnectionPool>>().unwrap().get().unwrap();
 
-    let connection = persistence::get_db_connection();
     let data = btreemap!{
         "posts" => blog::get_summaries(&connection).unwrap(),
     };
-    res.set_mut(Template::new("blog", data)).set_mut(status::Ok);
-    Ok(res)
+    Ok(Response::with((status::Ok, Template::new("blog", data))))
 }
 
 fn about(_: &mut Request) -> IronResult<Response> {
-    let mut res = Response::new();
-
     let images = Path::new("static/images/slideshow");
     let image_urls = fs::read_dir(images)
         .unwrap()
@@ -95,21 +86,17 @@ fn about(_: &mut Request) -> IronResult<Response> {
     let data = btreemap! {
         "image_urls" => image_urls,
     };
-    res.set_mut(Template::new("about", data)).set_mut(status::Ok);
-    Ok(res)
+    Ok(Response::with((status::Ok, Template::new("about", data))))
 }
 
-fn index(_: &mut Request) -> IronResult<Response> {
-    let mut res = Response::new();
-
-    let connection = persistence::get_db_connection();
+fn index(req: &mut Request) -> IronResult<Response> {
+    let connection = req.extensions.get::<Read<DatabaseConnectionPool>>().unwrap().get().unwrap();
     let posts = blog::get_summaries(&connection);
 
     let data = btreemap!{
         "posts" => posts.unwrap().into_iter().take(NUM_SUMMARIES).collect::<Vec<_>>(),
     };
-    res.set_mut(Template::new("index", data)).set_mut(status::Ok);
-    Ok(res)
+    Ok(Response::with((status::Ok, Template::new("index", data))))
 }
 
 /// Returns the router for the server.
@@ -160,11 +147,15 @@ fn mount(chain: Chain) -> Mount {
 ///   - Rendering handlebars templates
 ///   - Error reporting
 ///   - Error handling
-pub fn handler(config: config::Config, projects: Vec<Project>) -> Box<Handler> {
+pub fn handler(config: config::Config,
+               projects: Vec<Project>,
+               connection_pool: ConnectionPool)
+               -> Box<Handler> {
     let mut chain = Chain::new(get_router());
 
     chain.link_before(persistent::Read::<Config>::one(config));
     chain.link_before(persistent::Read::<Projects>::one(projects));
+    chain.link_before(persistent::Read::<DatabaseConnectionPool>::one(connection_pool));
 
     chain.link_after(ErrorHandler);
     chain.link_after(initialize_templates("./templates/", ".hbs").unwrap());
@@ -199,6 +190,7 @@ impl AfterMiddleware for ErrorHandler {
 mod tests {
     extern crate iron;
     extern crate iron_test;
+    extern crate tempfile;
     extern crate url;
 
     use std::fs::File;
@@ -206,25 +198,22 @@ mod tests {
 
     use self::iron::{Handler, Headers};
     use self::iron_test::{request, response};
+    use self::tempfile::NamedTempFile;
+    use self::url::Url;
 
+    use config::Config;
     use persistence;
 
     fn create_handler() -> Box<Handler> {
-        use self::url::Url;
+        let tempfile = NamedTempFile::new().unwrap();
 
-        use config::Config;
-
-        super::handler(Config { resume_link: Url::parse("http://google.com").unwrap() },
-                       vec![])
-    }
-
-    #[test]
-    fn index() {
-        // Create the schema.
+        // Populate the database.
         //
         // FIXME: This should be handled by a server object, to avoid duplication between code and
-        // tests..
-        let connection = persistence::get_db_connection();
+        // tests.
+        let uri = format!("file:{}", tempfile.path().to_str().unwrap());
+        let pool = persistence::get_connection_pool(&uri);
+        let connection = pool.get().unwrap();
         let schema = {
             let mut schema_file = File::open("schema.sql").unwrap();
             let mut schema = String::new();
@@ -234,8 +223,47 @@ mod tests {
 
         connection.execute_batch(&schema).unwrap();
 
+        super::handler(Config { resume_link: Url::parse("http://google.com").unwrap() },
+                       vec![],
+                       pool)
+    }
+
+    #[test]
+    fn index() {
         let handler = create_handler();
         let response = request::get("http://localhost:3000/", Headers::new(), &handler).unwrap();
+        assert!(response.status.unwrap().is_success());
+    }
+
+    #[test]
+    fn blog() {
+        let handler = create_handler();
+        let response = request::get("http://localhost:3000/blog", Headers::new(), &handler)
+            .unwrap();
+        assert!(response.status.unwrap().is_success());
+    }
+
+    #[test]
+    fn about() {
+        let handler = create_handler();
+        let response = request::get("http://localhost:3000/about", Headers::new(), &handler)
+            .unwrap();
+        assert!(response.status.unwrap().is_success());
+    }
+
+    #[test]
+    fn projects() {
+        let handler = create_handler();
+        let response = request::get("http://localhost:3000/projects", Headers::new(), &handler)
+            .unwrap();
+        assert!(response.status.unwrap().is_success());
+    }
+
+    #[test]
+    fn resume() {
+        let handler = create_handler();
+        let response = request::get("http://localhost:3000/resume", Headers::new(), &handler)
+            .unwrap();
         assert!(response.status.unwrap().is_success());
     }
 

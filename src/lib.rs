@@ -33,6 +33,8 @@ extern crate hyper;
 extern crate iron;
 extern crate mount;
 extern crate persistent;
+extern crate r2d2;
+extern crate r2d2_sqlite;
 extern crate rusqlite;
 extern crate serde;
 extern crate serde_json;
@@ -58,7 +60,7 @@ use std::net::ToSocketAddrs;
 use iron::prelude::*;
 
 /// Starts the server listening on the provided socket address.
-pub fn listen<A>(addr: A)
+pub fn listen<A>(addr: A, database_uri: &str)
     where A: ToSocketAddrs
 {
     let config_path = env::var("WEBSITE_CONFIG").unwrap_or_else(|_| String::from("config.yaml"));
@@ -66,19 +68,20 @@ pub fn listen<A>(addr: A)
     let projects = projects::load("projects.yaml").expect("problem parsing projects");
 
     // Insert blog posts into the database.
-    let connection = persistence::get_db_connection();
+    let pool = persistence::get_connection_pool(database_uri);
+    let connection = pool.get().unwrap();
+
     let schema = {
         let mut schema_file = File::open("schema.sql").unwrap();
         let mut schema = String::new();
         schema_file.read_to_string(&mut schema).unwrap();
         schema
     };
-
     connection.execute_batch(&schema).unwrap();
 
     blog::load("blog/", &connection).expect("problem parsing blog posts");
 
-    let handler = routes::handler(config, projects);
+    let handler = routes::handler(config, projects, pool);
 
     info!("initialization complete");
 

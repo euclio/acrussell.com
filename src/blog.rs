@@ -14,7 +14,6 @@ use serde::{self, Deserialize};
 use serde_yaml;
 
 use markdown::{self, Html, Markdown};
-use persistence;
 
 /// The length of a blog post preview.
 const SUMMARY_LENGTH: usize = 200;
@@ -115,8 +114,10 @@ pub fn load<P>(directory: P, connection: &Connection) -> Result<(), PostParseErr
 }
 
 /// Retrieves a blog post from the database given the date it was posted and its title.
-pub fn get_post(date: &NaiveDate, title: &str) -> Result<Post, rusqlite::Error> {
-    let connection = persistence::get_db_connection();
+pub fn get_post(connection: &rusqlite::Connection,
+                date: &NaiveDate,
+                title: &str)
+                -> Result<Post, rusqlite::Error> {
     connection.query_row(r#"SELECT title, date, html
                             FROM posts
                             WHERE REPLACE(LOWER(title), " ", "-") = $1
