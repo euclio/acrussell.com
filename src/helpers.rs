@@ -11,16 +11,26 @@ const DEFAULT_SEPARATOR: &'static str = ", ";
 /// - array: The array to join.
 ///
 /// # Example
-/// Context:
-/// `[1, 2, 3]`
 ///
-/// Template:
 /// ```
-/// {{join this}}
-/// ```
+/// extern crate handlebars;
+/// extern crate website;
 ///
-/// Result:
-/// `"1, 2, 3"`
+/// use handlebars::{Handlebars, Template};
+///
+/// # fn main() {
+/// let template = Template::compile("{{ join this }}").unwrap();
+/// let context = vec![1, 2, 3];
+///
+/// // Register the template and helper.
+/// let mut handlebars = Handlebars::new();
+/// handlebars.register_helper("join", Box::new(website::helpers::join));
+/// handlebars.register_template("template", template);
+///
+/// let result = handlebars.render("template", &context).unwrap();
+/// assert_eq!(result, "1, 2, 3");
+/// # }
+/// ```
 pub fn join(_: &Context,
             h: &Helper,
             _: &Handlebars,
@@ -39,7 +49,7 @@ pub fn join(_: &Context,
         .map(|value| {
             match *value {
                 Value::String(ref string) => string.to_owned(),
-                _ => panic!("unexpected value"),
+                _ => value.to_string(),
             }
         })
         .collect::<Vec<_>>();
