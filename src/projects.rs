@@ -12,7 +12,7 @@ use hyper::Client;
 use serde_yaml;
 use url::Url;
 
-use config::ConfigError;
+use errors::*;
 use markdown::{self, Html, Markdown};
 
 /// Encapsulates a project that I have worked on.
@@ -26,10 +26,11 @@ pub struct Project {
 }
 
 /// Returns a list of projects parsed from a file.
-pub fn load<P>(projects_path: P) -> Result<Vec<Project>, ConfigError>
+pub fn load<P>(projects_path: P) -> Result<Vec<Project>>
     where P: AsRef<Path>
 {
-    let mut projects_file = try!(File::open(projects_path));
+    let mut projects_file = try!(File::open(projects_path)
+        .chain_err(|| "could not open project file"));
     let client = Client::new();
     let github = Github::new(concat!("acrussell.com", "/", env!("CARGO_PKG_VERSION")),
                              &client,
@@ -80,7 +81,7 @@ struct ParsedProject {
     description: Markdown,
 }
 
-fn parse_projects<R>(reader: &mut R) -> Result<Vec<ParsedProject>, ConfigError>
+fn parse_projects<R>(reader: &mut R) -> Result<Vec<ParsedProject>>
     where R: Read
 {
     Ok(try!(serde_yaml::from_reader(reader)))

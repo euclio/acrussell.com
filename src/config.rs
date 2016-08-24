@@ -5,48 +5,12 @@
 
 use std::fs::File;
 use std::io::prelude::*;
-use std::io;
 use std::path::Path;
 
-use hubcaps;
 use url::Url;
 use serde_yaml;
 
-quick_error!{
-    /// Encapsulates errors that might occur while parsing configuration.
-    #[derive(Debug)]
-    pub enum ConfigError {
-        /// There was a problem reading the file.
-        Io(err: io::Error) {
-            from()
-            description("io error")
-            display("I/O error: {}", err)
-            cause(err)
-        }
-
-        /// There was a syntax error in the YAML.
-        YamlSyntax(err: serde_yaml::Error) {
-            from()
-            description("YAML syntax error")
-            display("YAML syntax error: {}", err)
-            cause(err)
-        }
-
-        /// The configuration file was formatted incorrectly.
-        Format(err: &'static str) {
-            from()
-            description("the configuration file was formatted incorrectly")
-            display("Error parsing configuration: {}", err)
-        }
-
-        /// There was an error using the GitHub API.
-        GitHub(err: hubcaps::Error) {
-            from()
-            description("there was a problem using the GitHub API")
-            display("GitHub API error: {}", err)
-        }
-    }
-}
+use errors::*;
 
 /// Configuration values for the website.
 #[derive(Debug, PartialEq, Deserialize)]
@@ -55,7 +19,7 @@ pub struct Config {
     pub resume_link: Url,
 }
 
-fn parse_config<R>(reader: R) -> Result<Config, ConfigError>
+fn parse_config<R>(reader: R) -> Result<Config>
     where R: Read
 {
     let config = try!(serde_yaml::from_reader(reader));
@@ -63,11 +27,12 @@ fn parse_config<R>(reader: R) -> Result<Config, ConfigError>
 }
 
 /// Load the website configuration from a path.
-pub fn load<P>(config_path: P) -> Result<Config, ConfigError>
+pub fn load<P>(config_path: P) -> Result<Config>
     where P: AsRef<Path>
 {
-    info!("loading configuration from {:?}", config_path.as_ref());
-    let config_file = try!(File::open(config_path));
+    let path = config_path.as_ref().to_str().unwrap();
+    info!("loading configuration from {}", path);
+    let config_file = try!(File::open(&config_path).chain_err(|| "error opening config file"));
     parse_config(config_file)
 }
 

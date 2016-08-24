@@ -9,6 +9,10 @@
 
 #![warn(missing_docs)]
 
+#![recursion_limit = "1024"]
+
+#[macro_use]
+extern crate error_chain;
 #[macro_use]
 extern crate maplit;
 #[macro_use]
@@ -19,8 +23,6 @@ extern crate lazy_static;
 extern crate regex;
 #[macro_use]
 extern crate router;
-#[macro_use]
-extern crate quick_error;
 
 extern crate ammonia;
 extern crate chrono;
@@ -51,9 +53,11 @@ pub mod persistence;
 pub mod projects;
 pub mod routes;
 
+mod errors;
+
 use std::env;
-use std::fs::File;
 use std::error::Error;
+use std::fs::File;
 use std::io::prelude::*;
 use std::net::ToSocketAddrs;
 

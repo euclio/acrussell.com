@@ -1,18 +1,17 @@
 //! Static blog generation.
 
-use std::error::Error;
 use std::fs::{self, File};
 use std::ops::Deref;
 use std::path::Path;
-use std::io;
 use std::io::prelude::*;
 
 use ammonia::Ammonia;
-use chrono::{self, NaiveDateTime, NaiveDate, Datelike};
+use chrono::{NaiveDateTime, NaiveDate, Datelike};
 use rusqlite::{self, Connection};
 use serde::{self, Deserialize};
 use serde_yaml;
 
+use errors::{self, ChainErr, ErrorKind};
 use markdown::{self, Html, Markdown};
 
 /// The length of a blog post preview.
@@ -23,37 +22,6 @@ const ON_DISK_FORMAT: &'static str = "%l:%M%P %m/%d/%y";
 
 /// The date format suitable for displaying on the website.
 const HUMAN_READABLE_FORMAT: &'static str = "%B %e, %Y";
-
-quick_error! {
-    /// Encapsulates errors that might occur while parsing a blog post.
-    #[derive(Debug)]
-    pub enum PostParseError {
-        /// There was a problem reading the file.
-        Io(err: io::Error) {
-            from()
-            description("io error")
-            display("I/O error: {}", err)
-            cause(err)
-        }
-
-        /// There was a syntax error in the metadata.
-        MetadataSyntax(err: String) {
-            from()
-            from(err: serde_yaml::Error) -> (err.to_string())
-            from(err: chrono::ParseError) -> (err.to_string())
-            description("yaml parsing error")
-            display("Error parsing metadata: {}", err)
-        }
-
-        /// Something went wrong with the database.
-        Database(err: rusqlite::Error) {
-            from()
-            description("problem with the database")
-            display("Error with the database: {}", err)
-            cause(err)
-        }
-    }
-}
 
 /// A struct representing a blog post.
 #[derive(Debug, Clone, Serialize)]
@@ -88,7 +56,7 @@ pub struct Summary {
 
 /// Retrieves blog post content and metadata by parsing all markdown files in a given directory,
 /// then persists the posts into the database.
-pub fn load<P>(directory: P, connection: &Connection) -> Result<(), PostParseError>
+pub fn load<P>(directory: P, connection: &Connection) -> errors::Result<()>
     where P: AsRef<Path>
 {
     let posts = parse_posts(&directory).unwrap();
@@ -117,39 +85,44 @@ pub fn load<P>(directory: P, connection: &Connection) -> Result<(), PostParseErr
 pub fn get_post(connection: &rusqlite::Connection,
                 date: &NaiveDate,
                 title: &str)
-                -> Result<Post, rusqlite::Error> {
+                -> errors::Result<Post> {
     connection.query_row(r#"SELECT title, date, html
                             FROM posts
                             WHERE REPLACE(LOWER(title), " ", "-") = $1
                               AND DATE(date) = $2"#,
-                         &[&title, date],
-                         |row| {
-        Post {
-            title: row.get(0),
-            date: row.get(1),
-            html: Html::new(row.get(2)),
-        }
-    })
+                   &[&title, date],
+                   |row| {
+            Post {
+                title: row.get(0),
+                date: row.get(1),
+                html: Html::new(row.get(2)),
+            }
+        })
+        .map_err(Into::into)
 }
 
 /// Retrieves blog post summaries from the database.
-pub fn get_summaries(connection: &Connection) -> Result<Vec<Summary>, rusqlite::Error> {
-    let mut stmt = connection.prepare(r"SELECT title, date, summary, url
+pub fn get_summaries(connection: &Connection) -> errors::Result<Vec<Summary>> {
+    let mut stmt = try!(connection.prepare(r"SELECT title, date, summary, url
                                    FROM posts
-                                   ORDER BY date DESC")
-        .unwrap();
+                                   ORDER BY date DESC"));
 
-    let summaries = stmt.query_map(&[], |row| {
-            Summary {
-                title: row.get(0),
-                date: row.get(1),
-                summary: row.get(2),
-                url: row.get(3),
-            }
-        })
-        .unwrap();
+    let rows = try!(stmt.query_map(&[], |row| {
+        Summary {
+            title: row.get(0),
+            date: row.get(1),
+            summary: row.get(2),
+            url: row.get(3),
+        }
+    }));
 
-    summaries.collect()
+    let mut summaries = vec![];
+
+    for row in rows {
+        summaries.push(try!(row));
+    }
+
+    Ok(summaries)
 }
 
 #[derive(Debug)]
@@ -187,12 +160,12 @@ struct Metadata {
 }
 
 
-fn parse_post<R>(reader: &mut R) -> Result<ParsedPost, PostParseError>
+fn parse_post<R>(reader: &mut R) -> errors::Result<ParsedPost>
     where R: Read
 {
     let post = {
         let mut post = String::new();
-        try!(reader.read_to_string(&mut post));
+        try!(reader.read_to_string(&mut post).chain_err(|| "could not read contents of post"));
         post
     };
 
@@ -222,17 +195,19 @@ fn create_summary(html: &Html, url: &str) -> Html {
     Html::new(summary)
 }
 
-fn parse_posts<P>(directory: P) -> Result<Vec<ParsedPost>, PostParseError>
+fn parse_posts<P>(directory: P) -> errors::Result<Vec<ParsedPost>>
     where P: AsRef<Path>
 {
-    try!(fs::read_dir(directory))
-        .into_iter()
-        .map(|entry| {
-            let entry = try!(entry);
-            let mut file = try!(File::open(entry.path()));
-            parse_post(&mut file).map_err(|e| {
-                From::from(format!("problem parsing {:?}: {}", entry.path(), e.description()))
-            })
+    let entries = try!(fs::read_dir(directory).chain_err(|| "could not read blog posts directory"))
+        .into_iter();
+
+    entries.map(|entry| {
+            let entry = entry.unwrap();
+            let mut file = try!(File::open(entry.path())
+                .chain_err(|| "error opening directory entry"));
+            let post = try!(parse_post(&mut file)
+                .chain_err(|| ErrorKind::PostParse(entry.path().to_owned())));
+            Ok(post)
         })
         .collect()
 }
