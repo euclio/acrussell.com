@@ -12,7 +12,9 @@ a {
     color: $linkcolorhover;
   }
 
-  &.external:after {
+  &:not(.no_external)[href^="//"]::after,
+  &:not(.no_external)[href^="http://"]::after,
+  &:not(.no_external)[href^="https://"]::after {
     content: ' \f08e';
     font-family: 'FontAwesome';
   }
