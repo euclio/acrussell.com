@@ -101,7 +101,7 @@ is working up the courage to dive into the codebase and submit the patch.
 
 If you're curious, the patch that I submitted may be found [here][patch].
 
-[Vim]: http://vim.org
+[Vim]: http://www.vim.org
 [fish]: http://fishshell.com
 [bash pitfalls]: http://mywiki.wooledge.org/BashPitfalls
 [patch]: https://groups.google.com/forum/#!topic/vim_dev/bNfWJaM6DuY
