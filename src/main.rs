@@ -33,7 +33,11 @@ Options:
 ", arg_port: Option<u16>, flag_db_uri: Option<String>);
 
 fn main() {
-    LogBuilder::new().filter(None, LogLevelFilter::Info).init().unwrap();
+    LogBuilder::new()
+        .filter(None, LogLevelFilter::Info)
+        .filter(Some("html5ever"), LogLevelFilter::Error)
+        .init()
+        .unwrap();
 
     let args: Args = Args::docopt().decode().unwrap_or_else(|e| e.exit());
 
