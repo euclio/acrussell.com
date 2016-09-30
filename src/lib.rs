@@ -1,11 +1,10 @@
 //! My personal website.
 
 #![feature(associated_consts)]
-#![feature(custom_derive)]
 #![feature(plugin)]
+#![feature(rustc_macro)]
 
 #![plugin(dotenv_macros)]
-#![plugin(serde_macros)]
 
 #![warn(missing_docs)]
 
@@ -23,6 +22,8 @@ extern crate lazy_static;
 extern crate regex;
 #[macro_use]
 extern crate router;
+#[macro_use]
+extern crate serde_derive;
 
 extern crate ammonia;
 extern crate chrono;
