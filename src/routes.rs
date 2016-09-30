@@ -9,8 +9,10 @@ use mount::Mount;
 use hbs::{self, DirectorySource, HandlebarsEngine, Template};
 use iron::prelude::*;
 use iron::{status, AfterMiddleware, Handler};
+use params::{Params, Value};
 use persistent::{self, Read};
 use router::{Router, NoRoute};
+use serde_json;
 use staticfile::Static;
 
 use blog;
@@ -69,9 +71,25 @@ fn blog_post(req: &mut Request) -> IronResult<Response> {
 fn blog(req: &mut Request) -> IronResult<Response> {
     let connection = req.get::<Read<DatabaseConnectionPool>>().unwrap().get().unwrap();
 
-    let data = btreemap!{
-        "posts" => blog::get_summaries(&connection).unwrap(),
+    let query = match req.get_ref::<Params>().unwrap().find(&["q"]) {
+        Some(&Value::String(ref query)) if !query.is_empty() => Some(query.to_owned()),
+        _ => None,
     };
+
+    let summaries = if let Some(ref query) = query {
+        blog::find_summaries(&connection, query)
+    } else {
+        blog::get_summaries(&connection)
+    };
+
+    let mut data = btreemap!{
+        "posts" => serde_json::to_value(itry!(summaries)),
+    };
+
+    if let Some(ref query) = query {
+        data.insert("query", serde_json::to_value(query));
+    }
+
     Ok(Response::with((status::Ok, Template::new("blog", data))))
 }
 

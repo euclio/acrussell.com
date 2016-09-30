@@ -21,6 +21,10 @@
       <h1>Blog</h1>
     </header>
     <p itemprop="description">Welcome to my blog.</p>
+    <form action="/blog" method="GET">
+      <input type="search" name="q" value="{{ query }}">
+      <input type="submit" value="Search">
+    </form>
   </div>
 </div>
 <div class="wide-column">

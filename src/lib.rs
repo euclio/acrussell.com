@@ -13,11 +13,13 @@
 #[macro_use]
 extern crate error_chain;
 #[macro_use]
-extern crate maplit;
+extern crate iron;
 #[macro_use]
 extern crate log;
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate maplit;
 #[macro_use]
 extern crate regex;
 #[macro_use]
@@ -33,8 +35,8 @@ extern crate handlebars_iron as hbs;
 extern crate hoedown;
 extern crate hubcaps;
 extern crate hyper;
-extern crate iron;
 extern crate mount;
+extern crate params;
 extern crate persistent;
 extern crate r2d2;
 extern crate r2d2_sqlite;

@@ -59,26 +59,68 @@ pub struct Summary {
 pub fn load<P>(directory: P, connection: &Connection) -> errors::Result<()>
     where P: AsRef<Path>
 {
-    let posts = parse_posts(&directory).unwrap();
+    let posts = try!(parse_posts(&directory));
     info!("parsed {} blog posts in {:?}",
           posts.len(),
           directory.as_ref());
 
+    try!(connection.execute(r"CREATE VIRTUAL TABLE post_content USING fts4(content, title)",
+                            &[]));
+
+    let mut stmt = try!(connection.prepare(r"INSERT INTO posts (title, date, html, summary, url)
+                                         VALUES ($1, $2, $3, $4, $5)"));
 
     for post in posts {
         let html = markdown::render_html(&post.content);
         let summary = create_summary(&html, &post.url());
-        connection.execute(r"INSERT INTO posts (title, date, html, summary, url)
-                             VALUES ($1, $2, $3, $4, $5)",
-                     &[&post.metadata.title,
-                       &post.metadata.date,
-                       &html.deref(),
-                       &summary.deref(),
-                       &post.url().to_string()])
-            .unwrap();
+        let docid = try!(stmt.insert(&[&post.metadata.title,
+                                       &post.metadata.date,
+                                       &html.deref(),
+                                       &summary.deref(),
+                                       &post.url().to_string()]));
+        try!(connection.execute(r"INSERT INTO post_content (docid, title, content)
+                                  VALUES ($1, $2, $3)",
+                                &[&docid, &post.metadata.title, &post.content.deref()]));
     }
 
+    info!("optimizing blog post content index");
+    try!(connection.execute("INSERT INTO post_content(post_content) VALUES ('optimize')",
+                            &[]));
+
     Ok(())
+}
+
+/// Searches post contents and titles with a text query.
+///
+/// Returns summaries of the posts that contain the query.
+pub fn find_summaries(connection: &rusqlite::Connection,
+                      query: &str)
+                      -> errors::Result<Vec<Summary>> {
+    let mut stmt = try!(connection.prepare(r"
+        SELECT title, date, summary, url
+        FROM posts
+        WHERE rowid IN (
+            SELECT docid
+            FROM post_content
+            WHERE post_content MATCH ?
+        )"));
+
+    let rows = try!(stmt.query_map(&[&query], |row| {
+        Summary {
+            title: row.get(0),
+            date: row.get(1),
+            summary: row.get(2),
+            url: row.get(3),
+        }
+    }));
+
+    let mut summaries = vec![];
+
+    for row in rows {
+        summaries.push(try!(row));
+    }
+
+    Ok(summaries)
 }
 
 /// Retrieves a blog post from the database given the date it was posted and its title.
