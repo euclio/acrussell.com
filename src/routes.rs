@@ -102,15 +102,15 @@ fn index(req: &mut Request) -> IronResult<Response> {
 /// Returns the router for the server.
 fn get_router() -> Router {
     router!(
-        get "/" => index,
-        get "/about" => about,
-        get "/blog" => blog,
-        get "/blog/:year/:month/:day/:title" => blog_post,
-        get "/projects" => projects,
-        get "/resume" => resume,
+        index:      get "/" => index,
+        about:      get "/about" => about,
+        blog:       get "/blog" => blog,
+        blog_post:  get "/blog/:year/:month/:day/:title" => blog_post,
+        projects:   get "/projects" => projects,
+        resume:     get "/resume" => resume,
 
-        get "/favicon.ico" => Static::new(Path::new("static/images")),
-        get "/robots.txt" => Static::new(Path::new("static")),
+        favicon:    get "/favicon.ico" => Static::new(Path::new("static/images")),
+        robots_txt: get "/robots.txt" => Static::new(Path::new("static")),
     )
 }
 
