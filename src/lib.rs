@@ -2,7 +2,7 @@
 
 #![feature(associated_consts)]
 #![feature(plugin)]
-#![feature(rustc_macro)]
+#![feature(proc_macro)]
 
 #![plugin(dotenv_macros)]
 
