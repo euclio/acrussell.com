@@ -12,7 +12,7 @@ dependencies = [
  "handlebars 0.22.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "handlebars-iron 0.19.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "hoedown 5.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "hubcaps 0.2.3",
+ "hubcaps 0.2.3 (git+https://github.com/euclio/hubcaps)",
  "hyper 0.9.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron-test 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -452,6 +452,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "hubcaps"
 version = "0.2.3"
+source = "git+https://github.com/euclio/hubcaps#97cc5068fb1d351d2d7bb3668ba711e5bf341682"
 dependencies = [
  "hyper 0.9.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1543,6 +1544,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum hpack 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "3d2da7d3a34cf6406d9d700111b8eafafe9a251de41ae71d8052748259343b58"
 "checksum html5ever 0.5.4 (registry+https://github.com/rust-lang/crates.io-index)" = "fd04d31858b8fd8ac9d55570da8c822bc6defd2c1ac18a47cb70fc280f42b432"
 "checksum httparse 1.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "a6e7a63e511f9edffbab707141fbb8707d1a3098615fb2adbd5769cdfcc9b17d"
+"checksum hubcaps 0.2.3 (git+https://github.com/euclio/hubcaps)" = "<none>"
 "checksum hyper 0.9.18 (registry+https://github.com/rust-lang/crates.io-index)" = "1b9bf64f730d6ee4b0528a5f0a316363da9d8104318731509d4ccc86248f82b3"
 "checksum idna 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "1053236e00ce4f668aeca4a769a09b3bf5a682d802abd6f3cb39374f6b162c11"
 "checksum inotify 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "e8458c07bdbdaf309c80e2c3304d14c3db64e7465d4f07cf589ccb83fd0ff31a"
