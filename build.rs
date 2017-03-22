@@ -1,10 +1,11 @@
+use std::env;
 use std::fs;
 use std::io::ErrorKind;
 use std::path::PathBuf;
 use std::process::Command;
 
 fn main() {
-    let out_dir = PathBuf::from(env!("OUT_DIR"));
+    let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
     // Copy static assets to target directory.
     let copy_status = Command::new("cp")
