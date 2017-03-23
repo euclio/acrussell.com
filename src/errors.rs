@@ -6,9 +6,9 @@ use serde_yaml;
 
 error_chain! {
     foreign_links {
-        hubcaps::Error, GitHub;
-        rusqlite::Error, Sqlite;
-        serde_yaml::Error, Yaml;
+        GitHub(hubcaps::Error);
+        Sqlite(rusqlite::Error);
+        Yaml(serde_yaml::Error);
     }
 
     errors {

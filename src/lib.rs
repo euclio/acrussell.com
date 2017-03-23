@@ -30,6 +30,7 @@ extern crate handlebars_iron as hbs;
 extern crate hoedown;
 extern crate hubcaps;
 extern crate hyper;
+extern crate hyper_native_tls;
 extern crate mount;
 extern crate params;
 extern crate persistent;

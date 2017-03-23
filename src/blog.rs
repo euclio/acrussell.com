@@ -11,7 +11,7 @@ use rusqlite::{self, Connection};
 use serde::{self, Deserialize};
 use serde_yaml;
 
-use errors::{self, ChainErr, ErrorKind};
+use errors::{self, ResultExt, ErrorKind};
 use markdown::{self, Html, Markdown};
 
 /// The length of a blog post preview.

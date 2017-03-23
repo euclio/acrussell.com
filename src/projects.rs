@@ -9,6 +9,8 @@ use std::path::Path;
 use hubcaps::repositories::Repository;
 use hubcaps::{Credentials, Github};
 use hyper::Client;
+use hyper::net::HttpsConnector;
+use hyper_native_tls::NativeTlsClient;
 use serde_yaml;
 use url::Url;
 
@@ -32,9 +34,9 @@ pub fn load<P>(projects_path: P) -> Result<Vec<Project>>
 {
     let mut projects_file = try!(File::open(projects_path)
         .chain_err(|| "could not open project file"));
-    let client = Client::new();
     let github = Github::new(concat!("acrussell.com", "/", env!("CARGO_PKG_VERSION")),
-                             &client,
+                             Client::with_connector(
+                                 HttpsConnector::new(NativeTlsClient::new().unwrap())),
                              Credentials::Token(String::from(dotenv!("GITHUB_TOKEN"))));
     parse_projects(&mut projects_file)
         .expect("problem parsing projects file")
