@@ -222,7 +222,15 @@ mod tests {
     use config::Config;
     use persistence;
 
-    fn create_handler() -> Box<Handler> {
+    struct Server {
+        pub handler: Box<Handler>,
+        pub database: NamedTempFile,
+    }
+
+    /// Creates a handler for the website.
+    ///
+    /// Returns a pair containing the handler, and a tempfile containing a test sqlite database.
+    fn create_server() -> Server {
         let tempfile = NamedTempFile::new().unwrap();
 
         // Populate the database.
@@ -241,93 +249,108 @@ mod tests {
 
         connection.execute_batch(&schema).unwrap();
 
-        super::handler(Config { resume_link: Url::parse("http://google.com").unwrap() },
-                       vec![],
-                       pool)
+        let handler =
+            super::handler(Config { resume_link: Url::parse("http://google.com").unwrap() },
+                           vec![],
+                           pool);
+        Server {
+            handler,
+            database: tempfile,
+        }
     }
 
     #[test]
     fn index() {
-        let handler = create_handler();
-        let response = request::get("http://localhost:3000/", Headers::new(), &handler).unwrap();
+        let server = create_server();
+        let response = request::get("http://localhost:3000/", Headers::new(), &server.handler)
+            .unwrap();
         assert!(response.status.unwrap().is_success());
     }
 
     #[test]
     fn blog() {
-        let handler = create_handler();
-        let response = request::get("http://localhost:3000/blog", Headers::new(), &handler)
-            .unwrap();
+        let server = create_server();
+        let response = request::get("http://localhost:3000/blog",
+                                    Headers::new(),
+                                    &server.handler)
+                .unwrap();
         assert!(response.status.unwrap().is_success());
     }
 
     #[test]
     fn about() {
-        let handler = create_handler();
-        let response = request::get("http://localhost:3000/about", Headers::new(), &handler)
-            .unwrap();
+        let server = create_server();
+        let response = request::get("http://localhost:3000/about",
+                                    Headers::new(),
+                                    &server.handler)
+                .unwrap();
         assert!(response.status.unwrap().is_success());
     }
 
     #[test]
     fn projects() {
-        let handler = create_handler();
-        let response = request::get("http://localhost:3000/projects", Headers::new(), &handler)
-            .unwrap();
+        let server = create_server();
+        let response = request::get("http://localhost:3000/projects",
+                                    Headers::new(),
+                                    &server.handler)
+                .unwrap();
         assert!(response.status.unwrap().is_success());
     }
 
     #[test]
     fn resume() {
-        let handler = create_handler();
-        let response = request::get("http://localhost:3000/resume", Headers::new(), &handler)
-            .unwrap();
+        let server = create_server();
+        let response = request::get("http://localhost:3000/resume",
+                                    Headers::new(),
+                                    &server.handler)
+                .unwrap();
         assert!(response.status.unwrap().is_success());
     }
 
     #[test]
     fn post_dates() {
-        let handler = create_handler();
-
+        let server = create_server();
         let response = request::get("http://localhost:3000/blog/2016/13/31/invalid-date",
                                     Headers::new(),
-                                    &handler)
-            .unwrap();
+                                    &server.handler)
+                .unwrap();
         assert!(response.status.unwrap().is_client_error());
     }
 
     #[test]
     fn static_files() {
-        let handler = create_handler();
+        let server = create_server();
         let response = request::get("http://localhost:3000/favicon.ico",
                                     Headers::new(),
-                                    &handler)
-            .unwrap();
+                                    &server.handler)
+                .unwrap();
         assert!(response.status.unwrap().is_success());
 
-        let response = request::get("http://localhost:3000/robots.txt", Headers::new(), &handler)
-            .unwrap();
+        let response = request::get("http://localhost:3000/robots.txt",
+                                    Headers::new(),
+                                    &server.handler)
+                .unwrap();
         assert!(response.status.unwrap().is_success());
     }
 
     #[test]
     fn not_found() {
-        let handler = create_handler();
+        let server = create_server();
         let response = request::get("http://localhost:3000/this/path/does/not/exist",
                                     Headers::new(),
-                                    &handler)
-            .unwrap();
+                                    &server.handler)
+                .unwrap();
         let body = response::extract_body_to_string(response);
         assert!(body.contains("Page Not Found"));
     }
 
     #[test]
     fn css() {
-        let handler = create_handler();
+        let server = create_server();
         let response = request::get("http://localhost:3000/static/css/styles.css",
                                     Headers::new(),
-                                    &handler)
-            .unwrap();
+                                    &server.handler)
+                .unwrap();
         assert!(response.status.unwrap().is_success());
     }
 }

@@ -19,13 +19,12 @@ const DEFAULT_SEPARATOR: &'static str = ", ";
 /// use handlebars::{Handlebars, Template};
 ///
 /// # fn main() {
-/// let template = Template::compile("{{ join this }}").unwrap();
 /// let context = vec![1, 2, 3];
 ///
 /// // Register the template and helper.
 /// let mut handlebars = Handlebars::new();
 /// handlebars.register_helper("join", Box::new(website::helpers::join));
-/// handlebars.register_template("template", template);
+/// handlebars.register_template_string("template", "{{ join this }}").unwrap();
 ///
 /// let result = handlebars.render("template", &context).unwrap();
 /// assert_eq!(result, "1, 2, 3");
