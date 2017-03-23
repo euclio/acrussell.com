@@ -30,27 +30,25 @@ const DEFAULT_SEPARATOR: &'static str = ", ";
 /// assert_eq!(result, "1, 2, 3");
 /// # }
 /// ```
-pub fn join(h: &Helper,
-            _: &Handlebars,
-            rc: &mut RenderContext)
-            -> Result<(), RenderError> {
+pub fn join(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
     let array = try!(h.param(0)
         .map(|p| p.value())
         .ok_or_else(|| RenderError::new("Missing parameter for `join`")));
 
-    let separator =
-        h.param(1).map(|p| p.value()).and_then(|sep| sep.as_str()).unwrap_or(DEFAULT_SEPARATOR);
+    let separator = h.param(1)
+        .map(|p| p.value())
+        .and_then(|sep| sep.as_str())
+        .unwrap_or(DEFAULT_SEPARATOR);
 
-    let strings = try!(array.as_array()
+    let strings =
+        try!(array.as_array()
             .ok_or_else(|| RenderError::new("Parameter for `join` must be an array.")))
-        .iter()
-        .map(|value| {
-            match *value {
-                Value::String(ref string) => string.to_owned(),
-                _ => value.to_string(),
-            }
-        })
-        .collect::<Vec<_>>();
+                .iter()
+                .map(|value| match *value {
+                         Value::String(ref string) => string.to_owned(),
+                         _ => value.to_string(),
+                     })
+                .collect::<Vec<_>>();
     try!(rc.writer.write(strings.join(separator).as_bytes()));
     Ok(())
 }

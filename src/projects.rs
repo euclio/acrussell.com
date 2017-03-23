@@ -35,8 +35,8 @@ pub fn load<P>(projects_path: P) -> Result<Vec<Project>>
     let mut projects_file = try!(File::open(projects_path)
         .chain_err(|| "could not open project file"));
     let github = Github::new(concat!("acrussell.com", "/", env!("CARGO_PKG_VERSION")),
-                             Client::with_connector(
-                                 HttpsConnector::new(NativeTlsClient::new().unwrap())),
+                             Client::with_connector(HttpsConnector::new(NativeTlsClient::new()
+                                                                            .unwrap())),
                              Credentials::Token(String::from(dotenv!("GITHUB_TOKEN"))));
     parse_projects(&mut projects_file)
         .expect("problem parsing projects file")
@@ -67,12 +67,12 @@ pub fn load<P>(projects_path: P) -> Result<Vec<Project>>
             };
 
             Ok(Project {
-                name: name.to_owned(),
-                owner: owner.to_owned(),
-                description: description,
-                languages: languages,
-                url: url,
-            })
+                   name: name.to_owned(),
+                   owner: owner.to_owned(),
+                   description: description,
+                   languages: languages,
+                   url: url,
+               })
         })
         .collect()
 }

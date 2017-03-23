@@ -40,7 +40,11 @@ fn projects(req: &mut Request) -> IronResult<Response> {
 }
 
 fn blog_post(req: &mut Request) -> IronResult<Response> {
-    let connection = req.extensions.get::<Read<DatabaseConnectionPool>>().unwrap().get().unwrap();
+    let connection = req.extensions
+        .get::<Read<DatabaseConnectionPool>>()
+        .unwrap()
+        .get()
+        .unwrap();
     let params = req.extensions.get::<Router>().unwrap();
 
     let year = params.find("year").and_then(|y| y.parse().ok());
@@ -69,7 +73,10 @@ fn blog_post(req: &mut Request) -> IronResult<Response> {
 }
 
 fn blog(req: &mut Request) -> IronResult<Response> {
-    let connection = req.get::<Read<DatabaseConnectionPool>>().unwrap().get().unwrap();
+    let connection = req.get::<Read<DatabaseConnectionPool>>()
+        .unwrap()
+        .get()
+        .unwrap();
 
     let query = match req.get_ref::<Params>().unwrap().find(&["q"]) {
         Some(&Value::String(ref query)) if !query.is_empty() => Some(query.to_owned()),
@@ -98,7 +105,13 @@ fn about(_: &mut Request) -> IronResult<Response> {
     let image_urls = fs::read_dir(images)
         .unwrap()
         .into_iter()
-        .map(|path| path.unwrap().path().to_str().unwrap().to_owned())
+        .map(|path| {
+            path.unwrap()
+                .path()
+                .to_str()
+                .unwrap()
+                .to_owned()
+        })
         .collect::<Vec<_>>();
 
     let data = json!({
@@ -108,7 +121,11 @@ fn about(_: &mut Request) -> IronResult<Response> {
 }
 
 fn index(req: &mut Request) -> IronResult<Response> {
-    let connection = req.extensions.get::<Read<DatabaseConnectionPool>>().unwrap().get().unwrap();
+    let connection = req.extensions
+        .get::<Read<DatabaseConnectionPool>>()
+        .unwrap()
+        .get()
+        .unwrap();
     let posts = blog::get_summaries(&connection);
 
     let data = json!({

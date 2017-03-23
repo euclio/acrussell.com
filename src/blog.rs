@@ -132,8 +132,8 @@ pub fn get_post(connection: &rusqlite::Connection,
                             FROM posts
                             WHERE REPLACE(LOWER(title), " ", "-") = $1
                               AND DATE(date) = $2"#,
-                   &[&title, date],
-                   |row| {
+                         &[&title, date],
+                         |row| {
             Post {
                 title: row.get(0),
                 date: row.get(1),
@@ -188,7 +188,10 @@ impl ParsedPost {
     }
 
     fn escaped_title(&self) -> String {
-        self.metadata.title.to_lowercase().replace(" ", "-")
+        self.metadata
+            .title
+            .to_lowercase()
+            .replace(" ", "-")
     }
 }
 
@@ -220,16 +223,19 @@ fn parse_post<R>(reader: &mut R) -> errors::Result<ParsedPost>
     let metadata: Metadata = try!(serde_yaml::from_str(&contents[0]));
 
     Ok(ParsedPost {
-        metadata: metadata,
-        content: Markdown::new(contents[1].to_owned()),
-    })
+           metadata: metadata,
+           content: Markdown::new(contents[1].to_owned()),
+       })
 }
 
 fn create_summary(html: &Html, url: &str) -> Html {
     let ammonia = Ammonia { url_relative: true, ..Default::default() };
 
     let summary_link = format!(r#"… <a href="{}">Continue&rarr;</a>"#, url);
-    let summary = html.chars().take(SUMMARY_LENGTH).chain(summary_link.chars()).collect::<String>();
+    let summary = html.chars()
+        .take(SUMMARY_LENGTH)
+        .chain(summary_link.chars())
+        .collect::<String>();
 
     // Sanitize the summary so that any unclosed tags are closed again.
     let summary = ammonia.clean(&summary);
