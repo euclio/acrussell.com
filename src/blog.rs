@@ -257,7 +257,7 @@ fn parse_posts<P>(directory: P) -> errors::Result<Vec<ParsedPost>>
 trait DateSerializeWith {
     const FORMAT: &'static str;
 
-    fn serialize_with<S>(date: &NaiveDateTime, serializer: &mut S) -> Result<(), S::Error>
+    fn serialize_with<S>(date: &NaiveDateTime, serializer: S) -> Result<S::Ok, S::Error>
         where S: serde::Serializer
     {
         serializer.serialize_str(&date.format(Self::FORMAT).to_string())
@@ -267,7 +267,7 @@ trait DateSerializeWith {
 trait DateDeserializeWith {
     const FORMAT: &'static str;
 
-    fn deserialize_with<D>(deserializer: &mut D) -> Result<NaiveDateTime, D::Error>
+    fn deserialize_with<D>(deserializer: D) -> Result<NaiveDateTime, D::Error>
         where D: serde::Deserializer
     {
         let string = try!(String::deserialize(deserializer));

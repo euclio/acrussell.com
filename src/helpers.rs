@@ -1,6 +1,6 @@
 //! Helpers for handlebars templates.
 
-use handlebars::{Handlebars, RenderError, RenderContext, Helper, Context};
+use handlebars::{Handlebars, RenderError, RenderContext, Helper};
 use serde_json::Value;
 
 const DEFAULT_SEPARATOR: &'static str = ", ";
@@ -31,8 +31,7 @@ const DEFAULT_SEPARATOR: &'static str = ", ";
 /// assert_eq!(result, "1, 2, 3");
 /// # }
 /// ```
-pub fn join(_: &Context,
-            h: &Helper,
+pub fn join(h: &Helper,
             _: &Handlebars,
             rc: &mut RenderContext)
             -> Result<(), RenderError> {
@@ -60,15 +59,12 @@ pub fn join(_: &Context,
 #[cfg(test)]
 mod tests {
     use handlebars::Handlebars;
-    use handlebars::Template;
 
     #[test]
     fn join() {
-        let template = Template::compile("{{join this}}").unwrap();
-
         let mut handlebars = Handlebars::new();
         handlebars.register_helper("join", Box::new(super::join));
-        handlebars.register_template("template", template);
+        handlebars.register_template_string("template", "{{join this}}").unwrap();
 
         let result =
             handlebars.render("template",

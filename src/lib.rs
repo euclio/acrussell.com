@@ -2,7 +2,6 @@
 
 #![feature(associated_consts)]
 #![feature(plugin)]
-#![feature(proc_macro)]
 
 #![plugin(dotenv_macros)]
 
@@ -17,15 +16,11 @@ extern crate iron;
 #[macro_use]
 extern crate log;
 #[macro_use]
-extern crate lazy_static;
-#[macro_use]
-extern crate maplit;
-#[macro_use]
-extern crate regex;
-#[macro_use]
 extern crate router;
 #[macro_use]
 extern crate serde_derive;
+#[macro_use]
+extern crate serde_json;
 
 extern crate ammonia;
 extern crate chrono;
@@ -42,7 +37,6 @@ extern crate r2d2;
 extern crate r2d2_sqlite;
 extern crate rusqlite;
 extern crate serde;
-extern crate serde_json;
 extern crate staticfile;
 extern crate toml;
 extern crate url;
@@ -57,6 +51,7 @@ pub mod projects;
 pub mod routes;
 
 mod errors;
+mod serialize_url;
 
 use std::env;
 use std::error::Error;

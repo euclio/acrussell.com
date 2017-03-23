@@ -16,6 +16,7 @@ use errors::*;
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Config {
     /// A link to a PDF copy of my Resume.
+    #[serde(with = "super::serialize_url")]
     pub resume_link: Url,
 }
 

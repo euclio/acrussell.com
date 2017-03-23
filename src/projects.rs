@@ -6,8 +6,8 @@ use std::io::prelude::*;
 use std::ops::Deref;
 use std::path::Path;
 
-use hubcaps::{Credentials, Github};
 use hubcaps::repositories::Repository;
+use hubcaps::{Credentials, Github};
 use hyper::Client;
 use serde_yaml;
 use url::Url;
@@ -22,6 +22,7 @@ pub struct Project {
     owner: String,
     languages: Vec<String>,
     description: Html,
+    #[serde(with = "super::serialize_url")]
     url: Url,
 }
 

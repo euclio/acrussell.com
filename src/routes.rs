@@ -25,17 +25,17 @@ use persistence::{DatabaseConnectionPool, ConnectionPool, Config, Projects};
 const NUM_SUMMARIES: usize = 3;
 
 fn resume(req: &mut Request) -> IronResult<Response> {
-    let data = btreemap!{
-        "resume_link" => req.get::<Read<Config>>().unwrap().resume_link.to_owned(),
-    };
+    let data = json!({
+        "resume_link": req.get::<Read<Config>>().unwrap().resume_link.to_string(),
+    });
     Ok(Response::with((status::Ok, Template::new("resume", data))))
 }
 
 fn projects(req: &mut Request) -> IronResult<Response> {
     let projects = req.get::<Read<Projects>>().unwrap();
-    let data = btreemap!{
-        "projects" => projects,
-    };
+    let data = json!({
+        "projects": projects,
+    });
     Ok(Response::with((status::Ok, Template::new("projects", data))))
 }
 
@@ -82,12 +82,12 @@ fn blog(req: &mut Request) -> IronResult<Response> {
         blog::get_summaries(&connection)
     };
 
-    let mut data = btreemap!{
-        "posts" => serde_json::to_value(itry!(summaries)),
-    };
+    let mut data = json!({
+        "posts": itry!(summaries)
+    });
 
-    if let Some(ref query) = query {
-        data.insert("query", serde_json::to_value(query));
+    if let Some(query) = query.and_then(|query| serde_json::to_value(query).ok()) {
+        *data.get_mut("query").unwrap() = query;
     }
 
     Ok(Response::with((status::Ok, Template::new("blog", data))))
@@ -101,9 +101,9 @@ fn about(_: &mut Request) -> IronResult<Response> {
         .map(|path| path.unwrap().path().to_str().unwrap().to_owned())
         .collect::<Vec<_>>();
 
-    let data = btreemap! {
-        "image_urls" => image_urls,
-    };
+    let data = json!({
+        "image_urls": image_urls
+    });
     Ok(Response::with((status::Ok, Template::new("about", data))))
 }
 
@@ -111,9 +111,9 @@ fn index(req: &mut Request) -> IronResult<Response> {
     let connection = req.extensions.get::<Read<DatabaseConnectionPool>>().unwrap().get().unwrap();
     let posts = blog::get_summaries(&connection);
 
-    let data = btreemap!{
-        "posts" => posts.unwrap().into_iter().take(NUM_SUMMARIES).collect::<Vec<_>>(),
-    };
+    let data = json!({
+        "posts": posts.unwrap().into_iter().take(NUM_SUMMARIES).collect::<Vec<_>>()
+    });
     Ok(Response::with((status::Ok, Template::new("index", data))))
 }
 
