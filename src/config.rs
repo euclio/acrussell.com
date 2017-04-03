@@ -7,8 +7,9 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 
-use url::Url;
 use serde_yaml;
+use url::Url;
+use url_serde;
 
 use errors::*;
 
@@ -16,7 +17,7 @@ use errors::*;
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Config {
     /// A link to a PDF copy of my Resume.
-    #[serde(with = "super::serialize_url")]
+    #[serde(with = "url_serde")]
     pub resume_link: Url,
 }
 

@@ -38,10 +38,11 @@ extern crate r2d2;
 extern crate r2d2_sqlite;
 extern crate rusqlite;
 extern crate serde;
+extern crate serde_yaml;
 extern crate staticfile;
 extern crate toml;
 extern crate url;
-extern crate serde_yaml;
+extern crate url_serde;
 
 pub mod blog;
 pub mod config;
@@ -52,7 +53,6 @@ pub mod projects;
 pub mod routes;
 
 mod errors;
-mod serialize_url;
 
 use std::env;
 use std::error::Error;
@@ -88,10 +88,10 @@ pub fn listen<A>(addr: A, database_uri: &str)
 
     info!("initialization complete");
 
-    let listening =
-        Iron::new(handler).http(addr).unwrap_or_else(|e| {
-                                                         panic!("Error: {:?}", e.description());
-                                                     });
+    let listening = Iron::new(handler).http(addr).unwrap_or_else(|e| {
+                                                                     panic!("Error: {:?}",
+                                                                            e.description());
+                                                                 });
 
     info!("listening on {}", listening.socket);
 }

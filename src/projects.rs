@@ -13,6 +13,7 @@ use hyper::net::HttpsConnector;
 use hyper_native_tls::NativeTlsClient;
 use serde_yaml;
 use url::Url;
+use url_serde;
 
 use errors::*;
 use markdown::{self, Html, Markdown};
@@ -24,7 +25,7 @@ pub struct Project {
     owner: String,
     languages: Vec<String>,
     description: Html,
-    #[serde(with = "super::serialize_url")]
+    #[serde(with = "url_serde")]
     url: Url,
 }
 
