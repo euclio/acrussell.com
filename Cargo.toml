@@ -9,9 +9,9 @@ doc = false
 name = "main"
 
 [dependencies]
-ammonia = "0.2"
+ammonia = "0.3"
 clap = "2"
-dotenv = "0.9"
+dotenv = "0.10"
 dotenv_macros = "0.10"
 env_logger = "0.4"
 error-chain = "0.10"
@@ -24,6 +24,7 @@ mount = "0.3"
 params = "0.6"
 persistent = "0.3"
 r2d2 = "0.7"
+r2d2_sqlite = "0.1"
 router = "0.5"
 serde = "0.9"
 serde_json = "0.9"
@@ -52,13 +53,9 @@ version = "0.23"
 git = "https://github.com/euclio/hubcaps"
 branch = "repo"
 
-[dependencies.r2d2_sqlite]
-git = "https://github.com/liveresume/r2d2-sqlite"
-branch = "patch-1"
-
 [dependencies.rusqlite]
 features = ["chrono"]
-version = "0.10"
+version = "0.11"
 
 [dev-dependencies]
 iron-test = "0.5"
