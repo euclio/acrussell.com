@@ -1,20 +1,24 @@
-use std::path::PathBuf;
+use std::path::{PathBuf, Path};
 
 use hubcaps;
 use rusqlite;
 use serde_yaml;
 
-error_chain! {
-    foreign_links {
-        GitHub(hubcaps::Error);
-        Sqlite(rusqlite::Error);
-        Yaml(serde_yaml::Error);
-    }
+#[derive(Debug, error_chain)]
+pub enum ErrorKind {
+    Msg(String),
 
-    errors {
-        PostParse(path: PathBuf) {
-            description("could not parse blog post")
-            display("could not parse blog post: {}", path.to_str().unwrap())
-        }
-    }
+    #[error_chain(foreign)]
+    GitHub(hubcaps::Error),
+
+    #[error_chain(foreign)]
+    Sqlite(rusqlite::Error),
+
+    #[error_chain(foreign)]
+    Yaml(serde_yaml::Error),
+
+    #[error_chain(custom)]
+    #[error_chain(description = r#"|_| "could not parse blog post""#)]
+    #[error_chain(display = r#"|p: &Path| write!(f, "could not parse blog post: {}", p.display())"#)]
+    PostParse(PathBuf),
 }

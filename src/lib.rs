@@ -9,7 +9,6 @@
 
 #![recursion_limit = "1024"]
 
-#[macro_use]
 extern crate error_chain;
 #[macro_use]
 extern crate iron;
@@ -43,6 +42,10 @@ extern crate staticfile;
 extern crate toml;
 extern crate url;
 extern crate url_serde;
+
+// This must be after the error_chain import to avoid an error message.
+#[macro_use]
+extern crate derive_error_chain;
 
 pub mod blog;
 pub mod config;
