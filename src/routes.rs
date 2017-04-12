@@ -3,6 +3,7 @@
 use std::error::Error;
 use std::fs;
 use std::path::Path;
+use std::sync::Arc;
 
 use chrono::NaiveDate;
 use mount::Mount;
@@ -14,6 +15,9 @@ use persistent::{self, Read};
 use router::{Router, NoRoute};
 use serde_json;
 use staticfile::Static;
+
+#[cfg(feature = "watch")]
+use hbs::Watchable;
 
 use blog;
 use config;
@@ -149,9 +153,17 @@ fn get_router() -> Router {
     )
 }
 
+#[cfg(feature = "watch")]
+fn watch_templates(hbse: Arc<HandlebarsEngine>, path: &str) {
+    hbse.watch(path);
+}
+
+#[cfg(not(feature = "watch"))]
+fn watch_templates(_hbse: Arc<HandlebarsEngine>, _path: &str) {}
+
 fn initialize_templates(folder: &str,
                         extension: &str)
-                        -> Result<HandlebarsEngine, hbs::SourceError> {
+                        -> Result<Arc<HandlebarsEngine>, hbs::SourceError> {
     let mut hbse = HandlebarsEngine::new();
     hbse.add(Box::new(DirectorySource::new(folder, extension)));
     try!(hbse.reload());
@@ -160,6 +172,10 @@ fn initialize_templates(folder: &str,
         let mut reg = hbse.registry.write().unwrap();
         reg.register_helper("join", Box::new(helpers::join));
     }
+
+    let hbse = Arc::new(hbse);
+
+    watch_templates(hbse.clone(), "./templates");
 
     Ok(hbse)
 }
