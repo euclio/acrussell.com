@@ -5,6 +5,8 @@ extern crate env_logger;
 extern crate log;
 extern crate website;
 
+use std::env;
+
 use clap::{App, Arg};
 use env_logger::LogBuilder;
 use log::LogLevelFilter;
@@ -18,11 +20,15 @@ My personal website.
 ";
 
 fn main() {
-    LogBuilder::new()
-        .filter(None, LogLevelFilter::Info)
-        .filter(Some("html5ever"), LogLevelFilter::Error)
-        .init()
-        .unwrap();
+    if env::var("RUST_LOG").is_err() {
+        LogBuilder::new()
+            .filter(None, LogLevelFilter::Info)
+            .filter(Some("html5ever"), LogLevelFilter::Error)
+            .init()
+            .unwrap();
+    } else {
+        env_logger::init().unwrap();
+    }
 
     let matches = App::new(crate_name!())
         .version(crate_version!())
