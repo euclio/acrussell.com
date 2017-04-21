@@ -3,27 +3,18 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>acrussell.com | {{# block title }}{{/block}}</title>
+    <title>acrussell.com | {{> title}}</title>
     <link href="//fonts.googleapis.com/css?family=PT+Sans|Roboto|Inconsolata|VT323" rel="stylesheet" type="text/css">
     <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
     <link href="/static/css/styles.css" rel="stylesheet">
-    {{#block styles}}
-    {{/block}}
+    {{> styles}}
   </head>
   <body>
-    {{#block navigation }}
-    {{/block}}
-    {{# block header }}
-    {{> header }}
-    {{/block}}
+    {{> header}}
     <div class="main">
-      {{# block layout }}
-      {{/block}}
+      {{> layout}}
     </div>
-    {{# block footer }}
-    {{> footer }}
-    {{/block}}
-    {{#block scripts}}
-    {{/block}}
+    {{> footer}}
+    {{> scripts}}
   </body>
 </html>

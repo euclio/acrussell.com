@@ -1,20 +1,22 @@
-{{#partial title}}Blog{{/partial}}
+{{#> base}}
 
-{{#partial styles}}
+{{#*inline "title"}}Blog{{/inline}}
+
+{{#*inline "styles"}}
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/styles/atelier-plateau.dark.min.css">
-{{/partial}}
+{{/inline}}
 
-{{#partial scripts}}
+{{#*inline "scripts"}}
 <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/highlight.min.js"></script>
 <!-- Languages to highlight that are not included in the default highlight.js package.
      TODO: Add fish when supported -->
 <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/languages/scala.min.js"></script>
 <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/languages/vim.min.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
-{{/partial}}
+{{/inline}}
 
-{{#partial layout}}
-{{#block content}}
+{{#*inline "layout"}}
+{{#> content}}
 <div class="column">
   <div class="text">
     <header>
@@ -30,7 +32,7 @@
 <div class="wide-column">
   {{> summaries}}
 </div>
-{{/block}}
-{{/partial}}
+{{/content}}
+{{/inline}}
 
-{{> base}}
+{{/base}}

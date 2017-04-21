@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use chrono::NaiveDate;
 use mount::Mount;
-use hbs::{self, DirectorySource, HandlebarsEngine, Template};
+use handlebars_iron::{self, DirectorySource, HandlebarsEngine, Template};
 use iron::prelude::*;
 use iron::{status, AfterMiddleware, Handler};
 use params::{Params, Value};
@@ -17,7 +17,7 @@ use serde_json;
 use staticfile::Static;
 
 #[cfg(feature = "watch")]
-use hbs::Watchable;
+use handlebars_iron::Watchable;
 
 use blog;
 use config;
@@ -163,17 +163,15 @@ fn watch_templates(_hbse: Arc<HandlebarsEngine>, _path: &str) {}
 
 fn initialize_templates(folder: &str,
                         extension: &str)
-                        -> Result<Arc<HandlebarsEngine>, hbs::SourceError> {
-    let mut hbse = HandlebarsEngine::new();
-    hbse.add(Box::new(DirectorySource::new(folder, extension)));
-    try!(hbse.reload());
+                        -> Result<Arc<HandlebarsEngine>, handlebars_iron::SourceError> {
+    let hbse = {
+        let mut hbse = HandlebarsEngine::new();
+        hbse.add(Box::new(DirectorySource::new(folder, extension)));
+        hbse.handlebars_mut().register_helper("join", Box::new(helpers::join));
+        try!(hbse.reload());
 
-    {
-        let mut reg = hbse.registry.write().unwrap();
-        reg.register_helper("join", Box::new(helpers::join));
-    }
-
-    let hbse = Arc::new(hbse);
+        Arc::new(hbse)
+    };
 
     watch_templates(hbse.clone(), "./templates");
 

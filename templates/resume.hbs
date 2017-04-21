@@ -1,10 +1,12 @@
-{{#partial title}}Resume{{/partial}}
+{{#> base}}
 
-{{#partial layout}}
+{{#*inline "title"}}Resume{{/inline}}
+
+{{#*inline "layout"}}
 <div class="pdf-viewer">
   <iframe class="resume" src="https://docs.google.com/gview?url={{ resume_link }}&embedded=true" frameborder="0"></iframe>
   <small class="warning">Document viewer not showing? Try the direct link <a href="{{ resume_link }}">here</a>.</small>
 </div>
-{{/partial}}
+{{/inline}}
 
-{{> base}}
+{{/base}}

@@ -1,4 +1,6 @@
-{{#partial content}}
+{{#> blog}}
+
+{{#*inline "content"}}
 <article itemscope="blogPost" class="blog-post">
   <header>
     <h1 itemprop="headline">{{ title }}</h1>
@@ -12,6 +14,6 @@
     </address>
   </footer>
 </div>
-{{/partial}}
+{{/inline}}
 
-{{> blog}}
+{{/blog}}

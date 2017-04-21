@@ -1,6 +1,8 @@
-{{#partial title}}Page Not Found{{/partial}}
+{{#> base}}
 
-{{#partial layout}}
+{{#*inline "title"}}Page Not Found{{/inline}}
+
+{{#*inline "layout"}}
 <div class="column">
   <div class="text">
     <h2>Uh oh!</h2>
@@ -13,6 +15,6 @@
     <img width="200px" src="/static/images/photos/notfound.png">
   </div>
 </div>
-{{/partial}}
+{{/inline}}
 
-{{> base}}
+{{/base}}

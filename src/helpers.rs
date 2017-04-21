@@ -13,9 +13,9 @@ const DEFAULT_SEPARATOR: &'static str = ", ";
 /// # Example
 ///
 /// ```
-/// extern crate handlebars;
-/// extern crate website;
-///
+/// # extern crate handlebars_iron;
+/// # extern crate website;
+/// # use handlebars_iron::handlebars;
 /// use handlebars::{Handlebars, Template};
 ///
 /// # fn main() {

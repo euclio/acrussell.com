@@ -24,8 +24,7 @@ extern crate serde_json;
 extern crate ammonia;
 extern crate chrono;
 extern crate dotenv;
-extern crate handlebars;
-extern crate handlebars_iron as hbs;
+extern crate handlebars_iron;
 extern crate hoedown;
 extern crate hubcaps;
 extern crate hyper;
@@ -63,6 +62,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::net::ToSocketAddrs;
 
+use handlebars_iron::handlebars;
 use iron::prelude::*;
 
 /// Starts the server listening on the provided socket address.

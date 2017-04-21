@@ -40,15 +40,10 @@ url_serde = "0.1"
 features = ["serde"]
 version = "0.3"
 
-[dependencies.handlebars]
+[dependencies.handlebars-iron]
+version = "0.23"
 default_features = false
 features = ["serde_type"]
-version = "0.25"
-
-[dependencies.handlebars-iron]
-default_features = false
-features = ["serde_type", "partial_legacy"]
-version = "0.23"
 
 [dependencies.hubcaps]
 git = "https://github.com/euclio/hubcaps"

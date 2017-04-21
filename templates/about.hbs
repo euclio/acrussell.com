@@ -1,6 +1,8 @@
-{{#partial title}}About Me{{/partial}}
+{{#> base}}
 
-{{#partial layout}}
+{{#*inline "title"}}About Me{{/inline}}
+
+{{#*inline "layout"}}
 <div class="column">
   <div class="text">
     <header>
@@ -31,6 +33,6 @@
     <p>I'm a Linux enthusiast, and have used <a href="https://archlinux.org">Arch Linux</a> as my daily driver for years. Vim is my editor of choice.</p>
   </div>
 </div>
-{{/partial}}
+{{/inline}}
 
-{{> base}}
+{{/base}}

@@ -10,8 +10,7 @@ dependencies = [
  "dotenv_macros 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "error-chain 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "handlebars 0.25.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "handlebars-iron 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "handlebars-iron 0.23.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "hoedown 6.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "hubcaps 0.3.1 (git+https://github.com/euclio/hubcaps?branch=repo)",
  "hyper 0.10.7 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -432,7 +431,7 @@ dependencies = [
 
 [[package]]
 name = "handlebars"
-version = "0.25.2"
+version = "0.25.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "lazy_static 0.2.6 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -445,10 +444,10 @@ dependencies = [
 
 [[package]]
 name = "handlebars-iron"
-version = "0.23.0"
+version = "0.23.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
- "handlebars 0.25.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "handlebars 0.25.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "notify 3.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1631,8 +1630,8 @@ dependencies = [
 "checksum futf 0.1.3 (registry+https://github.com/rust-lang/crates.io-index)" = "51f93f3de6ba1794dcd5810b3546d004600a59a98266487c8407bc4b24e398f3"
 "checksum gcc 0.3.45 (registry+https://github.com/rust-lang/crates.io-index)" = "40899336fb50db0c78710f53e87afc54d8c7266fb76262fecc78ca1a7f09deae"
 "checksum gdi32-sys 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "0912515a8ff24ba900422ecda800b52f4016a56251922d397c576bf92c690518"
-"checksum handlebars 0.25.2 (registry+https://github.com/rust-lang/crates.io-index)" = "663e1728d8037fb0d4e13bcd1b1909fb5d913690a9929eb385922df157c2ff8f"
-"checksum handlebars-iron 0.23.0 (registry+https://github.com/rust-lang/crates.io-index)" = "cac4d8e5b20ea9251c970cb38bab80f3b22c934dce9883e82bc0d90f94239cb7"
+"checksum handlebars 0.25.3 (registry+https://github.com/rust-lang/crates.io-index)" = "15bdf598fc3c2de40c6b340213028301c0d225eea55a2294e6cc148074e557a1"
+"checksum handlebars-iron 0.23.1 (registry+https://github.com/rust-lang/crates.io-index)" = "1f86cf6ff931aa78e61415ad40c48a9af101b9a888eeed6ecf4f48dc52e80b76"
 "checksum hoedown 6.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e5bde173f287441e7c95cf9f32b7b68f6e5fc1bbed35085be68216cf6cc955d5"
 "checksum html5ever 0.13.1 (registry+https://github.com/rust-lang/crates.io-index)" = "d60508177ec4e5774a112efcf4d4d5f123cb00a43476fa5940b7da568371a165"
 "checksum html5ever-atoms 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "c626dc6733babf7110d3a5078b1529e9d0eaaacf6c488ef6a7437b7d515844bb"
