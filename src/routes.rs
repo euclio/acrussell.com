@@ -38,7 +38,7 @@ fn resume(req: &mut Request) -> IronResult<Response> {
 fn projects(req: &mut Request) -> IronResult<Response> {
     let projects = req.get::<Read<Projects>>().unwrap();
     let data = json!({
-        "projects": projects,
+        "projects": *projects,
     });
     Ok(Response::with((status::Ok, Template::new("projects", data))))
 }

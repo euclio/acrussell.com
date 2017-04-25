@@ -3,7 +3,7 @@ title: Blog is Up and Running!
 date: "8:24pm 04/13/12"
 categories:
   - news
-tags:
+tags: []
 
 I am excited to announce that acrussell.com now has its own blog! I am running
 WordPress on my site. This means that my posts will be archived and searchable,

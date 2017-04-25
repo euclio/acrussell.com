@@ -28,9 +28,9 @@ impl Deref for Markdown {
 }
 
 
-impl serde::Deserialize for Markdown {
+impl<'de> serde::Deserialize<'de> for Markdown {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: serde::Deserializer
+        where D: serde::Deserializer<'de>
     {
         let string = try!(String::deserialize(deserializer));
         Ok(Markdown(string))

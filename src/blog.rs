@@ -273,8 +273,8 @@ trait DateSerializeWith {
 trait DateDeserializeWith {
     const FORMAT: &'static str;
 
-    fn deserialize_with<D>(deserializer: D) -> Result<NaiveDateTime, D::Error>
-        where D: serde::Deserializer
+    fn deserialize_with<'de, D>(deserializer: D) -> Result<NaiveDateTime, D::Error>
+        where D: serde::Deserializer<'de>
     {
         let string = try!(String::deserialize(deserializer));
         NaiveDateTime::parse_from_str(&string, Self::FORMAT).or_else(|_| {

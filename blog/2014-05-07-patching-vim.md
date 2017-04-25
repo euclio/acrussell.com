@@ -4,7 +4,7 @@ date: "8:39pm 05/09/14"
 categories:
   - programming
   - open source
-tags:
+tags: []
 
 As those familiar with me probably know, I'm a huge fan of [Vim], an open-source
 text editor that has been around since 1991. I use the editor almost every day,
