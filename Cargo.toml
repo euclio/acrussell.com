@@ -18,6 +18,7 @@ env_logger = "0.4"
 error-chain = "0.10"
 hoedown = "6"
 handlebars-iron = "0.24"
+hubcaps = "0.3"
 hyper = "0.10"
 hyper-native-tls = "0.2"
 iron = "0.5"
@@ -40,10 +41,6 @@ url_serde = "0.2"
 [dependencies.chrono]
 features = ["serde"]
 version = "0.3"
-
-[dependencies.hubcaps]
-git = "https://github.com/euclio/hubcaps"
-branch = "repo"
 
 [dependencies.rusqlite]
 features = ["chrono"]
