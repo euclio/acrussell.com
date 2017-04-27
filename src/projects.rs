@@ -44,7 +44,7 @@ pub fn load<P>(projects_path: P) -> Result<Vec<Project>>
         .iter()
         .map(|parsed_project| {
             let repo = {
-                let components = parsed_project.repo.split("/").collect::<Vec<_>>();
+                let components = parsed_project.repo.split('/').collect::<Vec<_>>();
                 try!(Repository::new(&github, components[0], components[1]).get())
             };
 

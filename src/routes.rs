@@ -58,14 +58,14 @@ fn blog_post(req: &mut Request) -> IronResult<Response> {
         .get::<Router>()
         .unwrap()
         .find("title")
-        .ok_or(IronError::new(NoRoute, status::NotFound)));
+        .ok_or_else(|| IronError::new(NoRoute, status::NotFound)));
 
     let date = match (year, month, day) {
         (Some(year), Some(month), Some(day)) => NaiveDate::from_ymd_opt(year, month, day),
         _ => None,
     };
 
-    let date = try!(date.ok_or(IronError::new(NoRoute, status::NotFound)));
+    let date = try!(date.ok_or_else(|| IronError::new(NoRoute, status::NotFound)));
 
     match blog::get_post(&connection, &date, title) {
         Ok(ref post) => Ok(Response::with((status::Ok, Template::new("blog_post", post)))),
@@ -227,7 +227,7 @@ struct ErrorHandler;
 
 impl AfterMiddleware for ErrorHandler {
     fn catch(&self, _: &mut Request, err: IronError) -> IronResult<Response> {
-        if let Some(_) = err.error.downcast::<NoRoute>() {
+        if err.error.downcast::<NoRoute>().is_some() {
             Ok(Response::with((status::NotFound, Template::new("not_found", ()))))
         } else {
             Err(err)

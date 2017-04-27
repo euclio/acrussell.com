@@ -220,7 +220,7 @@ fn parse_post<R>(reader: &mut R) -> errors::Result<ParsedPost>
     // markdown as separate YAML documents.
     let contents = post.splitn(2, "\n\n").collect::<Vec<_>>();
 
-    let metadata: Metadata = try!(serde_yaml::from_str(&contents[0]));
+    let metadata: Metadata = try!(serde_yaml::from_str(contents[0]));
 
     Ok(ParsedPost {
            metadata: metadata,

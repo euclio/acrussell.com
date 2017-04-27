@@ -49,7 +49,7 @@ pub fn join(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), Re
                          _ => value.to_string(),
                      })
                 .collect::<Vec<_>>();
-    try!(rc.writer.write(strings.join(separator).as_bytes()));
+    try!(rc.writer.write_all(strings.join(separator).as_bytes()));
     Ok(())
 }
 
