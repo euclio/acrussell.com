@@ -48,8 +48,12 @@ fn main() {
             "))
         .get_matches();
 
-    let port =
-        matches.value_of("port").and_then(|port| port.parse::<u16>().ok()).unwrap_or(DEFAULT_PORT);
-    let db_uri = matches.value_of("db_uri").unwrap_or_else(|| DEFAULT_DATABASE_URI);
+    let port = matches
+        .value_of("port")
+        .and_then(|port| port.parse::<u16>().ok())
+        .unwrap_or(DEFAULT_PORT);
+    let db_uri = matches
+        .value_of("db_uri")
+        .unwrap_or_else(|| DEFAULT_DATABASE_URI);
     website::listen(("localhost", port), db_uri);
 }

@@ -33,8 +33,8 @@ pub struct Project {
 pub fn load<P>(projects_path: P) -> Result<Vec<Project>>
     where P: AsRef<Path>
 {
-    let mut projects_file = try!(File::open(projects_path)
-        .chain_err(|| "could not open project file"));
+    let mut projects_file = File::open(projects_path)
+        .chain_err(|| "could not open project file")?;
     let github = Github::new(concat!("acrussell.com", "/", env!("CARGO_PKG_VERSION")),
                              Client::with_connector(HttpsConnector::new(NativeTlsClient::new()
                                                                             .unwrap())),
@@ -45,7 +45,8 @@ pub fn load<P>(projects_path: P) -> Result<Vec<Project>>
         .map(|parsed_project| {
             let repo = {
                 let components = parsed_project.repo.split('/').collect::<Vec<_>>();
-                try!(Repository::new(&github, components[0], components[1]).get())
+                Repository::new(&github, components[0], components[1])
+                    .get()?
             };
 
             let name = &parsed_project.name;
@@ -53,7 +54,7 @@ pub fn load<P>(projects_path: P) -> Result<Vec<Project>>
             let url = Url::parse(&repo.html_url).unwrap();
 
             // Sort languages by the amount of bytes in the repository.
-            let languages = try!(repo.languages(&github))
+            let languages = repo.languages(&github)?
                 .into_iter()
                 .map(|(k, v)| (v, k))
                 .collect::<BTreeMap<_, _>>()
@@ -88,7 +89,7 @@ struct ParsedProject {
 fn parse_projects<R>(reader: &mut R) -> Result<Vec<ParsedProject>>
     where R: Read
 {
-    Ok(try!(serde_yaml::from_reader(reader)))
+    Ok(serde_yaml::from_reader(reader)?)
 }
 
 #[cfg(test)]

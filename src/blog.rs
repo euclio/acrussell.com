@@ -59,33 +59,36 @@ pub struct Summary {
 pub fn load<P>(directory: P, connection: &Connection) -> errors::Result<()>
     where P: AsRef<Path>
 {
-    let posts = try!(parse_posts(&directory));
+    let posts = parse_posts(&directory)?;
     info!("parsed {} blog posts in {:?}",
           posts.len(),
           directory.as_ref());
 
-    try!(connection.execute(r"CREATE VIRTUAL TABLE post_content USING fts4(content, title)",
-                            &[]));
+    connection
+        .execute(r"CREATE VIRTUAL TABLE post_content USING fts4(content, title)",
+                 &[])?;
 
-    let mut stmt = try!(connection.prepare(r"INSERT INTO posts (title, date, html, summary, url)
-                                         VALUES ($1, $2, $3, $4, $5)"));
+    let mut stmt = connection
+        .prepare(r"INSERT INTO posts (title, date, html, summary, url)
+                   VALUES ($1, $2, $3, $4, $5)")?;
 
     for post in posts {
         let html = markdown::render_html(&post.content);
         let summary = create_summary(&html, &post.url());
-        let docid = try!(stmt.insert(&[&post.metadata.title,
-                                       &post.metadata.date,
-                                       &html.deref(),
-                                       &summary.deref(),
-                                       &post.url().to_string()]));
-        try!(connection.execute(r"INSERT INTO post_content (docid, title, content)
-                                  VALUES ($1, $2, $3)",
-                                &[&docid, &post.metadata.title, &post.content.deref()]));
+        let docid = stmt.insert(&[&post.metadata.title,
+                                  &post.metadata.date,
+                                  &html.deref(),
+                                  &summary.deref(),
+                                  &post.url().to_string()])?;
+        connection
+            .execute(r"INSERT INTO post_content (docid, title, content) VALUES ($1, $2, $3)",
+                     &[&docid, &post.metadata.title, &post.content.deref()])?;
     }
 
     info!("optimizing blog post content index");
-    try!(connection.execute("INSERT INTO post_content(post_content) VALUES ('optimize')",
-                            &[]));
+    connection
+        .execute("INSERT INTO post_content(post_content) VALUES ('optimize')",
+                 &[])?;
 
     Ok(())
 }
@@ -96,28 +99,29 @@ pub fn load<P>(directory: P, connection: &Connection) -> errors::Result<()>
 pub fn find_summaries(connection: &rusqlite::Connection,
                       query: &str)
                       -> errors::Result<Vec<Summary>> {
-    let mut stmt = try!(connection.prepare(r"
+    let mut stmt = connection
+        .prepare(r"
         SELECT title, date, summary, url
         FROM posts
         WHERE rowid IN (
             SELECT docid
             FROM post_content
             WHERE post_content MATCH ?
-        )"));
+        )")?;
 
-    let rows = try!(stmt.query_map(&[&query], |row| {
-        Summary {
-            title: row.get(0),
-            date: row.get(1),
-            summary: row.get(2),
-            url: row.get(3),
-        }
-    }));
+    let rows = stmt.query_map(&[&query], |row| {
+            Summary {
+                title: row.get(0),
+                date: row.get(1),
+                summary: row.get(2),
+                url: row.get(3),
+            }
+        })?;
 
     let mut summaries = vec![];
 
     for row in rows {
-        summaries.push(try!(row));
+        summaries.push(row?);
     }
 
     Ok(summaries)
@@ -128,40 +132,42 @@ pub fn get_post(connection: &rusqlite::Connection,
                 date: &NaiveDate,
                 title: &str)
                 -> errors::Result<Post> {
-    connection.query_row(r#"SELECT title, date, html
-                            FROM posts
-                            WHERE REPLACE(LOWER(title), " ", "-") = $1
-                              AND DATE(date) = $2"#,
-                         &[&title, date],
-                         |row| {
-            Post {
-                title: row.get(0),
-                date: row.get(1),
-                html: Html::new(row.get(2)),
-            }
-        })
+    connection
+        .query_row(r#"SELECT title, date, html
+                      FROM posts
+                      WHERE REPLACE(LOWER(title), " ", "-") = $1
+                          AND DATE(date) = $2"#,
+                   &[&title, date],
+                   |row| {
+                       Post {
+                           title: row.get(0),
+                           date: row.get(1),
+                           html: Html::new(row.get(2)),
+                       }
+                   })
         .map_err(Into::into)
 }
 
 /// Retrieves blog post summaries from the database.
 pub fn get_summaries(connection: &Connection) -> errors::Result<Vec<Summary>> {
-    let mut stmt = try!(connection.prepare(r"SELECT title, date, summary, url
-                                   FROM posts
-                                   ORDER BY date DESC"));
+    let mut stmt = connection
+        .prepare(r"SELECT title, date, summary, url
+                   FROM posts
+                   ORDER BY date DESC")?;
 
-    let rows = try!(stmt.query_map(&[], |row| {
-        Summary {
-            title: row.get(0),
-            date: row.get(1),
-            summary: row.get(2),
-            url: row.get(3),
-        }
-    }));
+    let rows = stmt.query_map(&[], |row| {
+            Summary {
+                title: row.get(0),
+                date: row.get(1),
+                summary: row.get(2),
+                url: row.get(3),
+            }
+        })?;
 
     let mut summaries = vec![];
 
     for row in rows {
-        summaries.push(try!(row));
+        summaries.push(row?);
     }
 
     Ok(summaries)
@@ -188,10 +194,7 @@ impl ParsedPost {
     }
 
     fn escaped_title(&self) -> String {
-        self.metadata
-            .title
-            .to_lowercase()
-            .replace(" ", "-")
+        self.metadata.title.to_lowercase().replace(" ", "-")
     }
 }
 
@@ -210,7 +213,9 @@ fn parse_post<R>(reader: &mut R) -> errors::Result<ParsedPost>
 {
     let post = {
         let mut post = String::new();
-        try!(reader.read_to_string(&mut post).chain_err(|| "could not read contents of post"));
+        reader
+            .read_to_string(&mut post)
+            .chain_err(|| "could not read contents of post")?;
         post
     };
 
@@ -220,7 +225,7 @@ fn parse_post<R>(reader: &mut R) -> errors::Result<ParsedPost>
     // markdown as separate YAML documents.
     let contents = post.splitn(2, "\n\n").collect::<Vec<_>>();
 
-    let metadata: Metadata = try!(serde_yaml::from_str(contents[0]));
+    let metadata = serde_yaml::from_str(contents[0])?;
 
     Ok(ParsedPost {
            metadata: metadata,
@@ -229,7 +234,10 @@ fn parse_post<R>(reader: &mut R) -> errors::Result<ParsedPost>
 }
 
 fn create_summary(html: &Html, url: &str) -> Html {
-    let ammonia = Ammonia { url_relative: true, ..Default::default() };
+    let ammonia = Ammonia {
+        url_relative: true,
+        ..Default::default()
+    };
 
     let summary_link = format!(r#"… <a href="{}">Continue&rarr;</a>"#, url);
     let summary = html.chars()
@@ -246,17 +254,19 @@ fn create_summary(html: &Html, url: &str) -> Html {
 fn parse_posts<P>(directory: P) -> errors::Result<Vec<ParsedPost>>
     where P: AsRef<Path>
 {
-    let entries = try!(fs::read_dir(directory).chain_err(|| "could not read blog posts directory"))
+    let entries = fs::read_dir(directory)
+        .chain_err(|| "could not read blog posts directory")?
         .into_iter();
 
-    entries.map(|entry| {
-            let entry = entry.unwrap();
-            let mut file = try!(File::open(entry.path())
-                .chain_err(|| "error opening directory entry"));
-            let post = try!(parse_post(&mut file)
-                .chain_err(|| ErrorKind::PostParse(entry.path().to_owned())));
-            Ok(post)
-        })
+    entries
+        .map(|entry| {
+                 let entry = entry.unwrap();
+                 let mut file = File::open(entry.path())
+                     .chain_err(|| "error opening directory entry")?;
+                 let post = parse_post(&mut file)
+                     .chain_err(|| ErrorKind::PostParse(entry.path().to_owned()))?;
+                 Ok(post)
+             })
         .collect()
 }
 
@@ -276,7 +286,7 @@ trait DateDeserializeWith {
     fn deserialize_with<'de, D>(deserializer: D) -> Result<NaiveDateTime, D::Error>
         where D: serde::Deserializer<'de>
     {
-        let string = try!(String::deserialize(deserializer));
+        let string = String::deserialize(deserializer)?;
         NaiveDateTime::parse_from_str(&string, Self::FORMAT).or_else(|_| {
             let msg = format!("invalid date format: expected '{}'", Self::FORMAT);
             Err(serde::de::Error::custom(msg.as_str()))

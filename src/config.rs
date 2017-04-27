@@ -24,7 +24,7 @@ pub struct Config {
 fn parse_config<R>(reader: R) -> Result<Config>
     where R: Read
 {
-    let config = try!(serde_yaml::from_reader(reader));
+    let config = serde_yaml::from_reader(reader)?;
     Ok(config)
 }
 
@@ -34,7 +34,8 @@ pub fn load<P>(config_path: P) -> Result<Config>
 {
     let path = config_path.as_ref().to_str().unwrap();
     info!("loading configuration from {}", path);
-    let config_file = try!(File::open(&config_path).chain_err(|| "error opening config file"));
+    let config_file = File::open(&config_path)
+        .chain_err(|| "error opening config file")?;
     parse_config(config_file)
 }
 

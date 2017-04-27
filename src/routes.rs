@@ -54,18 +54,18 @@ fn blog_post(req: &mut Request) -> IronResult<Response> {
     let year = params.find("year").and_then(|y| y.parse().ok());
     let month = params.find("month").and_then(|m| m.parse().ok());
     let day = params.find("day").and_then(|d| d.parse().ok());
-    let title = try!(req.extensions
+    let title = req.extensions
         .get::<Router>()
         .unwrap()
         .find("title")
-        .ok_or_else(|| IronError::new(NoRoute, status::NotFound)));
+        .ok_or_else(|| IronError::new(NoRoute, status::NotFound))?;
 
     let date = match (year, month, day) {
         (Some(year), Some(month), Some(day)) => NaiveDate::from_ymd_opt(year, month, day),
         _ => None,
     };
 
-    let date = try!(date.ok_or_else(|| IronError::new(NoRoute, status::NotFound)));
+    let date = date.ok_or_else(|| IronError::new(NoRoute, status::NotFound))?;
 
     match blog::get_post(&connection, &date, title) {
         Ok(ref post) => Ok(Response::with((status::Ok, Template::new("blog_post", post)))),
@@ -109,13 +109,7 @@ fn about(_: &mut Request) -> IronResult<Response> {
     let image_urls = fs::read_dir(images)
         .unwrap()
         .into_iter()
-        .map(|path| {
-            path.unwrap()
-                .path()
-                .to_str()
-                .unwrap()
-                .to_owned()
-        })
+        .map(|path| path.unwrap().path().to_str().unwrap().to_owned())
         .collect::<Vec<_>>();
 
     let data = json!({
@@ -167,8 +161,9 @@ fn initialize_templates(folder: &str,
     let hbse = {
         let mut hbse = HandlebarsEngine::new();
         hbse.add(Box::new(DirectorySource::new(folder, extension)));
-        hbse.handlebars_mut().register_helper("join", Box::new(helpers::join));
-        try!(hbse.reload());
+        hbse.handlebars_mut()
+            .register_helper("join", Box::new(helpers::join));
+        hbse.reload()?;
 
         Arc::new(hbse)
     };

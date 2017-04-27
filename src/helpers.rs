@@ -31,25 +31,25 @@ const DEFAULT_SEPARATOR: &'static str = ", ";
 /// # }
 /// ```
 pub fn join(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
-    let array = try!(h.param(0)
+    let array = h.param(0)
         .map(|p| p.value())
-        .ok_or_else(|| RenderError::new("Missing parameter for `join`")));
+        .ok_or_else(|| RenderError::new("Missing parameter for `join`"))?;
 
     let separator = h.param(1)
         .map(|p| p.value())
         .and_then(|sep| sep.as_str())
         .unwrap_or(DEFAULT_SEPARATOR);
 
-    let strings =
-        try!(array.as_array()
-            .ok_or_else(|| RenderError::new("Parameter for `join` must be an array.")))
-                .iter()
-                .map(|value| match *value {
-                         Value::String(ref string) => string.to_owned(),
-                         _ => value.to_string(),
-                     })
-                .collect::<Vec<_>>();
-    try!(rc.writer.write_all(strings.join(separator).as_bytes()));
+    let strings = array
+        .as_array()
+        .ok_or_else(|| RenderError::new("Parameter for `join` must be an array."))?
+        .iter()
+        .map(|value| match *value {
+                 Value::String(ref string) => string.to_owned(),
+                 _ => value.to_string(),
+             })
+        .collect::<Vec<_>>();
+    rc.writer.write_all(strings.join(separator).as_bytes())?;
     Ok(())
 }
 
@@ -61,7 +61,9 @@ mod tests {
     fn join() {
         let mut handlebars = Handlebars::new();
         handlebars.register_helper("join", Box::new(super::join));
-        handlebars.register_template_string("template", "{{join this}}").unwrap();
+        handlebars
+            .register_template_string("template", "{{join this}}")
+            .unwrap();
 
         let result =
             handlebars.render("template",
