@@ -56,7 +56,7 @@ pub struct Summary {
 
 /// Retrieves blog post content and metadata by parsing all markdown files in a given directory,
 /// then persists the posts into the database.
-pub fn load<P>(directory: P, connection: &Connection) -> errors::Result<()>
+pub fn load<P>(directory: P, conn: &Connection) -> errors::Result<()>
     where P: AsRef<Path>
 {
     let posts = parse_posts(&directory)?;
@@ -64,13 +64,13 @@ pub fn load<P>(directory: P, connection: &Connection) -> errors::Result<()>
           posts.len(),
           directory.as_ref());
 
-    connection
-        .execute(r"CREATE VIRTUAL TABLE post_content USING fts4(content, title)",
+    conn.execute(r#"CREATE VIRTUAL TABLE post_content USING fts4(content, title)"#,
                  &[])?;
 
-    let mut stmt = connection
-        .prepare(r"INSERT INTO posts (title, date, html, summary, url)
-                   VALUES ($1, $2, $3, $4, $5)")?;
+    let mut stmt = conn.prepare(r#"
+        INSERT INTO posts (title, date, html, summary, url)
+        VALUES ($1, $2, $3, $4, $5)
+    "#)?;
 
     for post in posts {
         let html = markdown::render_html(&post.content);
@@ -80,14 +80,15 @@ pub fn load<P>(directory: P, connection: &Connection) -> errors::Result<()>
                                   &html.deref(),
                                   &summary.deref(),
                                   &post.url().to_string()])?;
-        connection
-            .execute(r"INSERT INTO post_content (docid, title, content) VALUES ($1, $2, $3)",
-                     &[&docid, &post.metadata.title, &post.content.deref()])?;
+        let mut stmt = conn.prepare(r#"
+            INSERT INTO post_content (docid, title, content)
+            VALUES ($1, $2, $3)
+        "#)?;
+        stmt.execute(&[&docid, &post.metadata.title, &post.content.deref()])?;
     }
 
     info!("optimizing blog post content index");
-    connection
-        .execute("INSERT INTO post_content(post_content) VALUES ('optimize')",
+    conn.execute(r#"INSERT INTO post_content(post_content) VALUES ('optimize')"#,
                  &[])?;
 
     Ok(())
@@ -96,18 +97,16 @@ pub fn load<P>(directory: P, connection: &Connection) -> errors::Result<()>
 /// Searches post contents and titles with a text query.
 ///
 /// Returns summaries of the posts that contain the query.
-pub fn find_summaries(connection: &rusqlite::Connection,
-                      query: &str)
-                      -> errors::Result<Vec<Summary>> {
-    let mut stmt = connection
-        .prepare(r"
+pub fn find_summaries(conn: &rusqlite::Connection, query: &str) -> errors::Result<Vec<Summary>> {
+    let mut stmt = conn.prepare(r#"
         SELECT title, date, summary, url
         FROM posts
         WHERE rowid IN (
             SELECT docid
             FROM post_content
             WHERE post_content MATCH ?
-        )")?;
+        )
+    "#)?;
 
     let rows = stmt.query_map(&[&query], |row| {
             Summary {
@@ -128,32 +127,34 @@ pub fn find_summaries(connection: &rusqlite::Connection,
 }
 
 /// Retrieves a blog post from the database given the date it was posted and its title.
-pub fn get_post(connection: &rusqlite::Connection,
+pub fn get_post(conn: &rusqlite::Connection,
                 date: &NaiveDate,
                 title: &str)
                 -> errors::Result<Post> {
-    connection
-        .query_row(r#"SELECT title, date, html
-                      FROM posts
-                      WHERE REPLACE(LOWER(title), " ", "-") = $1
-                          AND DATE(date) = $2"#,
-                   &[&title, date],
-                   |row| {
-                       Post {
-                           title: row.get(0),
-                           date: row.get(1),
-                           html: Html::new(row.get(2)),
-                       }
-                   })
+    let mut stmt = conn.prepare(r#"
+        SELECT title, date, html
+        FROM posts
+        WHERE REPLACE(LOWER(title), " ", "-") = $1
+            AND DATE(date) = $2
+    "#)?;
+
+    stmt.query_row(&[&title, date], |row| {
+            Post {
+                title: row.get(0),
+                date: row.get(1),
+                html: Html::new(row.get(2)),
+            }
+        })
         .map_err(Into::into)
 }
 
 /// Retrieves blog post summaries from the database.
-pub fn get_summaries(connection: &Connection) -> errors::Result<Vec<Summary>> {
-    let mut stmt = connection
-        .prepare(r"SELECT title, date, summary, url
-                   FROM posts
-                   ORDER BY date DESC")?;
+pub fn get_summaries(conn: &Connection) -> errors::Result<Vec<Summary>> {
+    let mut stmt = conn.prepare(r#"
+        SELECT title, date, summary, url
+        FROM posts
+        ORDER BY date DESC
+    "#)?;
 
     let rows = stmt.query_map(&[], |row| {
             Summary {
