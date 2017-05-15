@@ -6,11 +6,15 @@ extern crate log;
 extern crate website;
 
 use std::env;
+use std::io::prelude::*;
+use std::io;
+use std::process;
 
 use clap::{App, Arg};
 use env_logger::LogBuilder;
 use log::LogLevelFilter;
 
+use website::errors::*;
 use website::persistence::DEFAULT_DATABASE_URI;
 
 const DEFAULT_PORT: u16 = 9000;
@@ -55,5 +59,27 @@ fn main() {
     let db_uri = matches
         .value_of("db_uri")
         .unwrap_or_else(|| DEFAULT_DATABASE_URI);
-    website::listen(("localhost", port), db_uri);
+
+    if let Err(ref e) = run(port, db_uri) {
+        let stderr = &mut io::stderr();
+        let errmsg = "error writing to stderr";
+
+        writeln!(stderr, "error: {}", e).expect(errmsg);
+
+        for e in e.iter().skip(1) {
+            writeln!(stderr, "caused by: {}", e).expect(errmsg);
+        }
+
+        if let Some(backtrace) = e.backtrace() {
+            writeln!(stderr, "backtrace: {:?}", backtrace).expect(errmsg);
+        }
+
+        process::exit(1);
+    }
+}
+
+fn run(port: u16, db_uri: &str) -> Result<()> {
+    let _ = website::listen(("localhost", port), db_uri)
+        .chain_err(|| "could not start server")?;
+    Ok(())
 }

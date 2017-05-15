@@ -40,7 +40,7 @@ pub fn load<P>(projects_path: P) -> Result<Vec<Project>>
                                                                             .unwrap())),
                              Credentials::Token(String::from(dotenv!("GITHUB_TOKEN"))));
     parse_projects(&mut projects_file)
-        .expect("problem parsing projects file")
+        .chain_err(|| "problem parsing projects file")?
         .iter()
         .map(|parsed_project| {
             let repo = {
@@ -51,7 +51,7 @@ pub fn load<P>(projects_path: P) -> Result<Vec<Project>>
 
             let name = &parsed_project.name;
             let owner = repo.owner.login.clone();
-            let url = Url::parse(&repo.html_url).unwrap();
+            let url = Url::parse(&repo.html_url)?;
 
             // Sort languages by the amount of bytes in the repository.
             let languages = repo.languages(&github)?

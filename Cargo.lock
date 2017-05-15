@@ -10,7 +10,7 @@ dependencies = [
  "dotenv_macros 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "error-chain 0.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "handlebars-iron 0.24.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "handlebars-iron 0.24.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "hoedown 6.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "hubcaps 0.3.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.10.9 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -445,7 +445,7 @@ dependencies = [
 
 [[package]]
 name = "handlebars-iron"
-version = "0.24.0"
+version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "handlebars 0.26.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1678,7 +1678,7 @@ dependencies = [
 "checksum gcc 0.3.45 (registry+https://github.com/rust-lang/crates.io-index)" = "40899336fb50db0c78710f53e87afc54d8c7266fb76262fecc78ca1a7f09deae"
 "checksum gdi32-sys 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "0912515a8ff24ba900422ecda800b52f4016a56251922d397c576bf92c690518"
 "checksum handlebars 0.26.1 (registry+https://github.com/rust-lang/crates.io-index)" = "34fcd8bd91b80abc2d7aacd3867f6d6ded7d1ff8a4b88b55e42d4ce523ec10cd"
-"checksum handlebars-iron 0.24.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e1a33d8e3b65681c16133e23f5e3152f957f25d2f347c834056354b797092399"
+"checksum handlebars-iron 0.24.1 (registry+https://github.com/rust-lang/crates.io-index)" = "b2625ebcf649448bce7d8f895c8355a696ae62a3fb351fbc817312f48d9a6fa8"
 "checksum hoedown 6.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "e5bde173f287441e7c95cf9f32b7b68f6e5fc1bbed35085be68216cf6cc955d5"
 "checksum html5ever 0.13.1 (registry+https://github.com/rust-lang/crates.io-index)" = "d60508177ec4e5774a112efcf4d4d5f123cb00a43476fa5940b7da568371a165"
 "checksum html5ever-atoms 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "c626dc6733babf7110d3a5078b1529e9d0eaaacf6c488ef6a7437b7d515844bb"

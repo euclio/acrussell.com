@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use chrono::NaiveDate;
 use mount::Mount;
-use handlebars_iron::{self, DirectorySource, HandlebarsEngine, Template};
+use handlebars_iron::{DirectorySource, HandlebarsEngine, Template};
 use iron::prelude::*;
 use iron::{status, AfterMiddleware, Handler};
 use params::{Params, Value};
@@ -21,9 +21,10 @@ use handlebars_iron::Watchable;
 
 use blog;
 use config;
+use errors::*;
 use helpers;
-use projects::Project;
 use persistence::{DatabaseConnectionPool, ConnectionPool, Config, Projects};
+use projects::Project;
 
 /// The number of blog post summaries that should be displayed.
 const NUM_SUMMARIES: usize = 3;
@@ -51,29 +52,18 @@ fn blog_post(req: &mut Request) -> IronResult<Response> {
         .unwrap();
     let params = req.extensions.get::<Router>().unwrap();
 
-    let year = params.find("year").and_then(|y| y.parse().ok());
-    let month = params.find("month").and_then(|m| m.parse().ok());
-    let day = params.find("day").and_then(|d| d.parse().ok());
-    let title = req.extensions
+    let year = iexpect!(params.find("year").and_then(|y| y.parse().ok()));
+    let month = iexpect!(params.find("month").and_then(|m| m.parse().ok()));
+    let day = iexpect!(params.find("day").and_then(|d| d.parse().ok()));
+    let title = iexpect!(req.extensions
         .get::<Router>()
         .unwrap()
-        .find("title")
-        .ok_or_else(|| IronError::new(NoRoute, status::NotFound))?;
+        .find("title"));
 
-    let date = match (year, month, day) {
-        (Some(year), Some(month), Some(day)) => NaiveDate::from_ymd_opt(year, month, day),
-        _ => None,
-    };
+    let date = iexpect!(NaiveDate::from_ymd_opt(year, month, day));
+    let post = itry!(blog::get_post(&connection, &date, title), status::NotFound);
 
-    let date = date.ok_or_else(|| IronError::new(NoRoute, status::NotFound))?;
-
-    match blog::get_post(&connection, &date, title) {
-        Ok(ref post) => Ok(Response::with((status::Ok, Template::new("blog_post", post)))),
-        Err(err) => {
-            error!("Error retrieving blog post: {}", err);
-            Err(IronError::new(NoRoute, status::NotFound))
-        }
-    }
+    Ok(Response::with((status::Ok, Template::new("blog_post", post))))
 }
 
 fn blog(req: &mut Request) -> IronResult<Response> {
@@ -106,10 +96,10 @@ fn blog(req: &mut Request) -> IronResult<Response> {
 
 fn about(_: &mut Request) -> IronResult<Response> {
     let images = Path::new("static/images/slideshow");
-    let image_urls = fs::read_dir(images)
-        .unwrap()
+    let image_urls = itry!(fs::read_dir(images))
         .into_iter()
-        .map(|path| path.unwrap().path().to_str().unwrap().to_owned())
+        .filter_map(|entry| entry.ok())
+        .map(|path| path.path())
         .collect::<Vec<_>>();
 
     let data = json!({
@@ -124,10 +114,10 @@ fn index(req: &mut Request) -> IronResult<Response> {
         .unwrap()
         .get()
         .unwrap();
-    let posts = blog::get_summaries(&connection);
+    let posts = itry!(blog::get_summaries(&connection));
 
     let data = json!({
-        "posts": posts.unwrap().into_iter().take(NUM_SUMMARIES).collect::<Vec<_>>()
+        "posts": posts.into_iter().take(NUM_SUMMARIES).collect::<Vec<_>>()
     });
     Ok(Response::with((status::Ok, Template::new("index", data))))
 }
@@ -155,15 +145,14 @@ fn watch_templates(hbse: Arc<HandlebarsEngine>, path: &str) {
 #[cfg(not(feature = "watch"))]
 fn watch_templates(_hbse: Arc<HandlebarsEngine>, _path: &str) {}
 
-fn initialize_templates(folder: &str,
-                        extension: &str)
-                        -> Result<Arc<HandlebarsEngine>, handlebars_iron::SourceError> {
+fn initialize_templates(folder: &str, extension: &str) -> Result<Arc<HandlebarsEngine>> {
     let hbse = {
         let mut hbse = HandlebarsEngine::new();
         hbse.add(Box::new(DirectorySource::new(folder, extension)));
         hbse.handlebars_mut()
             .register_helper("join", Box::new(helpers::join));
-        hbse.reload()?;
+        hbse.reload()
+            .chain_err(|| "could not reload templates")?;
 
         Arc::new(hbse)
     };
@@ -194,7 +183,7 @@ fn mount(chain: Chain) -> Mount {
 pub fn handler(config: config::Config,
                projects: Vec<Project>,
                connection_pool: ConnectionPool)
-               -> Box<Handler> {
+               -> Result<Box<Handler>> {
     let mut chain = Chain::new(get_router());
 
     chain.link_before(persistent::Read::<Config>::one(config));
@@ -202,11 +191,11 @@ pub fn handler(config: config::Config,
     chain.link_before(persistent::Read::<DatabaseConnectionPool>::one(connection_pool));
 
     chain.link_after(ErrorHandler);
-    chain.link_after(initialize_templates("./templates/", ".hbs").unwrap());
+    chain.link_after(initialize_templates("./templates/", ".hbs")?);
     chain.link_after(ErrorReporter);
 
     let mount = mount(chain);
-    Box::new(mount)
+    Ok(Box::new(mount))
 }
 
 struct ErrorReporter;
@@ -264,7 +253,7 @@ mod tests {
         // FIXME: This should be handled by a server object, to avoid duplication between code and
         // tests.
         let uri = format!("file:{}", tempfile.path().to_str().unwrap());
-        let pool = persistence::get_connection_pool(&uri);
+        let pool = persistence::get_connection_pool(&uri).unwrap();
         let connection = pool.get().unwrap();
         let schema = {
             let mut schema_file = File::open("schema.sql").unwrap();
@@ -278,7 +267,8 @@ mod tests {
         let handler =
             super::handler(Config { resume_link: Url::parse("http://google.com").unwrap() },
                            vec![],
-                           pool);
+                           pool)
+                    .unwrap();
         Server {
             handler,
             database: tempfile,
