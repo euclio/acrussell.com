@@ -35,6 +35,19 @@ pub struct Post {
 
     /// The post rendered as HTML.
     pub html: Html,
+
+    /// The next post chronologically.
+    pub next_post: Option<PostLink>,
+
+    /// The previous post chronologically.
+    pub prev_post: Option<PostLink>,
+}
+
+/// Information needed to construct a link to a post.
+#[derive(Debug, Clone, Serialize)]
+pub struct PostLink {
+    pub title: String,
+    pub url: String,
 }
 
 /// A brief summary of a blog post.
@@ -138,14 +151,59 @@ pub fn get_post(conn: &rusqlite::Connection,
             AND DATE(date) = $2
     "#)?;
 
-    stmt.query_row(&[&title, date], |row| {
+    let mut post = stmt.query_row(&[&title, date], |row| {
             Post {
                 title: row.get(0),
                 date: row.get(1),
                 html: Html::new(row.get(2)),
+                next_post: None,
+                prev_post: None,
             }
-        })
-        .map_err(Into::into)
+        })?;
+
+    let mut stmt = conn.prepare(r#"
+        SELECT title, url
+        FROM posts
+        WHERE DATE(date) > ?
+        ORDER BY date ASC
+        LIMIT 1
+    "#)?;
+
+    let next_post = stmt.query_row(&[&post.date.date()], |row| {
+        PostLink {
+            title: row.get(0),
+            url: row.get(1),
+        }
+    });
+
+    post.next_post = match next_post {
+        Ok(post) => Some(post),
+        Err(rusqlite::Error::QueryReturnedNoRows) => None,
+        Err(e) => return Err(e.into()),
+    };
+
+    let mut stmt = conn.prepare(r#"
+        SELECT title, url
+        FROM posts
+        WHERE DATE(date) < ?
+        ORDER BY date DESC
+        LIMIT 1
+    "#)?;
+
+    let prev_post = stmt.query_row(&[&post.date.date()], |row| {
+        PostLink {
+            title: row.get(0),
+            url: row.get(1),
+        }
+    });
+
+    post.prev_post = match prev_post {
+        Ok(post) => Some(post),
+        Err(rusqlite::Error::QueryReturnedNoRows) => None,
+        Err(e) => return Err(e.into()),
+    };
+
+    Ok(post)
 }
 
 /// Retrieves blog post summaries from the database.

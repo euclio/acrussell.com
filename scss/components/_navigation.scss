@@ -1,0 +1,19 @@
+%navigation {
+  display: flex;
+  flex-flow: row wrap;
+  font-family: $navfontfamily;
+  margin: 0;
+  width: 100%;
+
+  ul {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    padding: 0;
+    width: 100%;
+  }
+
+  li {
+    white-space: nowrap;
+  }
+}

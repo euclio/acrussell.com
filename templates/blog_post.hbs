@@ -4,14 +4,26 @@
 <article itemscope="blogPost" class="blog-post">
   <header>
     <h1 itemprop="headline">{{ title }}</h1>
-    <time itemprop="datePublished">{{ date }}</time>
+    <div class="authorship">
+      <time itemprop="datePublished">{{ date }}</time>
+      <address>
+        by <span itemprop="author">Andy Russell</span>
+      </address>
+    </div>
   </header>
   <div class="post" itemprop="text">{{{ html }}}</div>
   <footer>
-    <nav><a href="/blog">&larr;Back to blog</a></nav>
-    <address>
-      by <span itemprop="author">Andy Russell</span>
-    </address>
+    <nav>
+      <ul>
+        {{#if prev_post }}
+        <li><a href="{{ prev_post.url }}">&laquo; Previous: {{ prev_post.title }}</a></li>
+        {{/if}}
+        <li><a href="/blog">Back to blog &larrhk;</a></li>
+        {{#if next_post }}
+        <li><a href="{{ next_post.url }}">Next: {{ next_post.title }} &raquo;</a></li>
+        {{/if}}
+      </ul>
+    </nav>
   </footer>
 </div>
 {{/inline}}

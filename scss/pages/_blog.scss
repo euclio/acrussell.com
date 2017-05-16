@@ -16,6 +16,10 @@
       flex: 0 1 auto;
       font-family: $altfontfamily;
     }
+
+    .authorship {
+      text-align: right;
+    }
   }
 
   pre {
@@ -23,18 +27,30 @@
   }
 
   footer {
-    align-items: flex-start;
     border-top: 1px solid $white;
     color: $bodycolor;
-    display: flex;
-    flex-direction: row;
     font: 1em $altfontfamily;
-    justify-content: space-between;
     margin: 1em 0 0;
-    padding-top: 1em;
 
     nav {
-      font-family: $navfontfamily;
+      @extend %navigation;
+
+      ul {
+        justify-content: space-between;
+        margin-bottom: 0;
+      }
+
+      li {
+        flex: 1 1;
+
+        &:first-child {
+          text-align: left;
+        }
+
+        &:last-child {
+          text-align: right;
+        }
+      }
     }
   }
 }
