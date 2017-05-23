@@ -55,8 +55,10 @@ impl Deref for ConnectionPool {
 /// This function panics when a connection pool cannot be established.
 pub fn get_connection_pool(database_uri: &str) -> Result<ConnectionPool> {
     let config = r2d2::Config::default();
-    let manager = SqliteConnectionManager::new_with_flags(database_uri,
-                                                          SQLITE_OPEN_URI | SQLITE_OPEN_READ_WRITE);
+    let manager = SqliteConnectionManager::new_with_flags(
+        database_uri,
+        SQLITE_OPEN_URI | SQLITE_OPEN_READ_WRITE,
+    );
     let pool = Pool::new(config, manager)
         .chain_err(|| "error initializing database")?;
     Ok(ConnectionPool(pool))

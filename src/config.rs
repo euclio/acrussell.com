@@ -22,7 +22,8 @@ pub struct Config {
 }
 
 fn parse_config<R>(reader: R) -> Result<Config>
-    where R: Read
+where
+    R: Read,
 {
     let config = serde_yaml::from_reader(reader)?;
     Ok(config)
@@ -30,7 +31,8 @@ fn parse_config<R>(reader: R) -> Result<Config>
 
 /// Load the website configuration from a path.
 pub fn load<P>(config_path: P) -> Result<Config>
-    where P: AsRef<Path>
+where
+    P: AsRef<Path>,
 {
     let path = config_path.as_ref().to_str().unwrap();
     info!("loading configuration from {}", path);
@@ -47,12 +49,16 @@ mod tests {
 
     #[test]
     fn load_config() {
-        let test_config = String::from(r#"
+        let test_config = String::from(
+            r#"
 ---
 resume_link: http://google.com
-"#);
+"#,
+        );
         let expected_config = Config { resume_link: Url::parse("http://google.com").unwrap() };
-        assert_eq!(expected_config,
-                   super::parse_config(test_config.as_bytes()).unwrap());
+        assert_eq!(
+            expected_config,
+            super::parse_config(test_config.as_bytes()).unwrap()
+        );
     }
 }

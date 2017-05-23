@@ -23,9 +23,9 @@ fn main() {
         .arg(scss_out.to_str().unwrap())
         .status()
         .unwrap_or_else(|e| match e.kind() {
-                            ErrorKind::NotFound => panic!("sass not installed"),
-                            _ => panic!(e),
-                        });
+            ErrorKind::NotFound => panic!("sass not installed"),
+            _ => panic!(e),
+        });
     assert!(sass_status.success(), "there was a problem compiling scss");
 
     // Apply PostCSS
@@ -37,9 +37,11 @@ fn main() {
         .args(&["-d", output.to_str().unwrap()])
         .status()
         .unwrap_or_else(|e| match e.kind() {
-                            ErrorKind::NotFound => panic!("postcss not installed"),
-                            _ => panic!(e),
-                        });
-    assert!(postcss_status.success(),
-            "there was a problem postprocessing css");
+            ErrorKind::NotFound => panic!("postcss not installed"),
+            _ => panic!(e),
+        });
+    assert!(
+        postcss_status.success(),
+        "there was a problem postprocessing css"
+    );
 }

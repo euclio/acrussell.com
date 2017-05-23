@@ -68,7 +68,8 @@ use errors::*;
 
 /// Starts the server listening on the provided socket address.
 pub fn listen<A>(addr: A, database_uri: &str) -> Result<Listening>
-    where A: ToSocketAddrs
+where
+    A: ToSocketAddrs,
 {
     let config_path = env::var("WEBSITE_CONFIG").unwrap_or_else(|_| String::from("config.yaml"));
     let config = config::load(config_path)
@@ -78,8 +79,7 @@ pub fn listen<A>(addr: A, database_uri: &str) -> Result<Listening>
 
     // Insert blog posts into the database.
     let pool = persistence::get_connection_pool(database_uri)?;
-    let connection = pool.get()
-        .chain_err(|| "database connection timed out")?;
+    let connection = pool.get().chain_err(|| "database connection timed out")?;
 
     let schema = {
         let mut schema_file = File::open("schema.sql")?;

@@ -30,7 +30,8 @@ impl Deref for Markdown {
 
 impl<'de> serde::Deserialize<'de> for Markdown {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-        where D: serde::Deserializer<'de>
+    where
+        D: serde::Deserializer<'de>,
     {
         let string = String::deserialize(deserializer)?;
         Ok(Markdown(string))
@@ -58,7 +59,8 @@ impl Deref for Html {
 
 impl serde::Serialize for Html {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-        where S: serde::Serializer
+    where
+        S: serde::Serializer,
     {
         serializer.serialize_str(self.deref())
     }
@@ -66,7 +68,8 @@ impl serde::Serialize for Html {
 
 /// Renders a markdown string into unescaped HTML.
 pub fn render_html(markdown: &str) -> Html {
-    let markdown = hoedown::Markdown::new(markdown).extensions(AUTOLINK | FENCED_CODE | TABLES);
+    let markdown = hoedown::Markdown::new(markdown)
+        .extensions(AUTOLINK | FENCED_CODE | TABLES);
 
     let mut html = hoedown::Html::new(html::Flags::empty(), 0);
     Html(html.render(&markdown).to_str().unwrap().to_owned())

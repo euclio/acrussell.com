@@ -42,12 +42,14 @@ pub fn join(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), Re
 
     let strings = array
         .as_array()
-        .ok_or_else(|| RenderError::new("Parameter for `join` must be an array."))?
+        .ok_or_else(|| {
+            RenderError::new("Parameter for `join` must be an array.")
+        })?
         .iter()
         .map(|value| match *value {
-                 Value::String(ref string) => string.to_owned(),
-                 _ => value.to_string(),
-             })
+            Value::String(ref string) => string.to_owned(),
+            _ => value.to_string(),
+        })
         .collect::<Vec<_>>();
     rc.writer.write_all(strings.join(separator).as_bytes())?;
     Ok(())
@@ -65,9 +67,10 @@ mod tests {
             .register_template_string("template", "{{join this}}")
             .unwrap();
 
-        let result =
-            handlebars.render("template",
-                              &vec!["one".to_owned(), "two".to_owned(), "three".to_owned()]);
+        let result = handlebars.render(
+            "template",
+            &vec!["one".to_owned(), "two".to_owned(), "three".to_owned()],
+        );
         assert_eq!(result.unwrap(), "one, two, three");
     }
 }

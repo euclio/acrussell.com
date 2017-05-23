@@ -31,14 +31,16 @@ pub struct Project {
 
 /// Returns a list of projects parsed from a file.
 pub fn load<P>(projects_path: P) -> Result<Vec<Project>>
-    where P: AsRef<Path>
+where
+    P: AsRef<Path>,
 {
     let mut projects_file = File::open(projects_path)
         .chain_err(|| "could not open project file")?;
-    let github = Github::new(concat!("acrussell.com", "/", env!("CARGO_PKG_VERSION")),
-                             Client::with_connector(HttpsConnector::new(NativeTlsClient::new()
-                                                                            .unwrap())),
-                             Credentials::Token(String::from(dotenv!("GITHUB_TOKEN"))));
+    let github = Github::new(
+        concat!("acrussell.com", "/", env!("CARGO_PKG_VERSION")),
+        Client::with_connector(HttpsConnector::new(NativeTlsClient::new().unwrap())),
+        Credentials::Token(String::from(dotenv!("GITHUB_TOKEN"))),
+    );
     parse_projects(&mut projects_file)
         .chain_err(|| "problem parsing projects file")?
         .iter()
@@ -69,12 +71,12 @@ pub fn load<P>(projects_path: P) -> Result<Vec<Project>>
             };
 
             Ok(Project {
-                   name: name.to_owned(),
-                   owner: owner.to_owned(),
-                   description: description,
-                   languages: languages,
-                   url: url,
-               })
+                name: name.to_owned(),
+                owner: owner.to_owned(),
+                description: description,
+                languages: languages,
+                url: url,
+            })
         })
         .collect()
 }
@@ -87,7 +89,8 @@ struct ParsedProject {
 }
 
 fn parse_projects<R>(reader: &mut R) -> Result<Vec<ParsedProject>>
-    where R: Read
+where
+    R: Read,
 {
     Ok(serde_yaml::from_reader(reader)?)
 }

@@ -41,7 +41,9 @@ fn projects(req: &mut Request) -> IronResult<Response> {
     let data = json!({
         "projects": *projects,
     });
-    Ok(Response::with((status::Ok, Template::new("projects", data))))
+    Ok(Response::with(
+        (status::Ok, Template::new("projects", data)),
+    ))
 }
 
 fn blog_post(req: &mut Request) -> IronResult<Response> {
@@ -63,7 +65,9 @@ fn blog_post(req: &mut Request) -> IronResult<Response> {
     let date = iexpect!(NaiveDate::from_ymd_opt(year, month, day));
     let post = itry!(blog::get_post(&connection, &date, title), status::NotFound);
 
-    Ok(Response::with((status::Ok, Template::new("blog_post", post))))
+    Ok(Response::with(
+        (status::Ok, Template::new("blog_post", post)),
+    ))
 }
 
 fn blog(req: &mut Request) -> IronResult<Response> {
@@ -151,8 +155,7 @@ fn initialize_templates(folder: &str, extension: &str) -> Result<Arc<HandlebarsE
         hbse.add(Box::new(DirectorySource::new(folder, extension)));
         hbse.handlebars_mut()
             .register_helper("join", Box::new(helpers::join));
-        hbse.reload()
-            .chain_err(|| "could not reload templates")?;
+        hbse.reload().chain_err(|| "could not reload templates")?;
 
         Arc::new(hbse)
     };
@@ -166,8 +169,10 @@ fn initialize_templates(folder: &str, extension: &str) -> Result<Arc<HandlebarsE
 fn mount(chain: Chain) -> Mount {
     let mut mount = Mount::new();
     mount.mount("/", chain);
-    mount.mount("/static",
-                Static::new(Path::new(env!("OUT_DIR")).join("static")));
+    mount.mount(
+        "/static",
+        Static::new(Path::new(env!("OUT_DIR")).join("static")),
+    );
     mount
 }
 
@@ -180,15 +185,18 @@ fn mount(chain: Chain) -> Mount {
 ///   - Rendering handlebars templates
 ///   - Error reporting
 ///   - Error handling
-pub fn handler(config: config::Config,
-               projects: Vec<Project>,
-               connection_pool: ConnectionPool)
-               -> Result<Box<Handler>> {
+pub fn handler(
+    config: config::Config,
+    projects: Vec<Project>,
+    connection_pool: ConnectionPool,
+) -> Result<Box<Handler>> {
     let mut chain = Chain::new(get_router());
 
     chain.link_before(persistent::Read::<Config>::one(config));
     chain.link_before(persistent::Read::<Projects>::one(projects));
-    chain.link_before(persistent::Read::<DatabaseConnectionPool>::one(connection_pool));
+    chain.link_before(persistent::Read::<DatabaseConnectionPool>::one(
+        connection_pool,
+    ));
 
     chain.link_after(ErrorHandler);
     chain.link_after(initialize_templates("./templates/", ".hbs")?);
@@ -212,7 +220,9 @@ struct ErrorHandler;
 impl AfterMiddleware for ErrorHandler {
     fn catch(&self, _: &mut Request, err: IronError) -> IronResult<Response> {
         if err.error.downcast::<NoRoute>().is_some() {
-            Ok(Response::with((status::NotFound, Template::new("not_found", ()))))
+            Ok(Response::with(
+                (status::NotFound, Template::new("not_found", ())),
+            ))
         } else {
             Err(err)
         }
@@ -264,11 +274,11 @@ mod tests {
 
         connection.execute_batch(&schema).unwrap();
 
-        let handler =
-            super::handler(Config { resume_link: Url::parse("http://google.com").unwrap() },
-                           vec![],
-                           pool)
-                    .unwrap();
+        let handler = super::handler(
+            Config { resume_link: Url::parse("http://google.com").unwrap() },
+            vec![],
+            pool,
+        ).unwrap();
         Server {
             handler,
             database: tempfile,
@@ -286,76 +296,84 @@ mod tests {
     #[test]
     fn blog() {
         let server = create_server();
-        let response = request::get("http://localhost:3000/blog",
-                                    Headers::new(),
-                                    &server.handler)
-                .unwrap();
+        let response = request::get(
+            "http://localhost:3000/blog",
+            Headers::new(),
+            &server.handler,
+        ).unwrap();
         assert!(response.status.unwrap().is_success());
     }
 
     #[test]
     fn about() {
         let server = create_server();
-        let response = request::get("http://localhost:3000/about",
-                                    Headers::new(),
-                                    &server.handler)
-                .unwrap();
+        let response = request::get(
+            "http://localhost:3000/about",
+            Headers::new(),
+            &server.handler,
+        ).unwrap();
         assert!(response.status.unwrap().is_success());
     }
 
     #[test]
     fn projects() {
         let server = create_server();
-        let response = request::get("http://localhost:3000/projects",
-                                    Headers::new(),
-                                    &server.handler)
-                .unwrap();
+        let response = request::get(
+            "http://localhost:3000/projects",
+            Headers::new(),
+            &server.handler,
+        ).unwrap();
         assert!(response.status.unwrap().is_success());
     }
 
     #[test]
     fn resume() {
         let server = create_server();
-        let response = request::get("http://localhost:3000/resume",
-                                    Headers::new(),
-                                    &server.handler)
-                .unwrap();
+        let response = request::get(
+            "http://localhost:3000/resume",
+            Headers::new(),
+            &server.handler,
+        ).unwrap();
         assert!(response.status.unwrap().is_success());
     }
 
     #[test]
     fn post_dates() {
         let server = create_server();
-        let response = request::get("http://localhost:3000/blog/2016/13/31/invalid-date",
-                                    Headers::new(),
-                                    &server.handler)
-                .unwrap();
+        let response = request::get(
+            "http://localhost:3000/blog/2016/13/31/invalid-date",
+            Headers::new(),
+            &server.handler,
+        ).unwrap();
         assert!(response.status.unwrap().is_client_error());
     }
 
     #[test]
     fn static_files() {
         let server = create_server();
-        let response = request::get("http://localhost:3000/favicon.ico",
-                                    Headers::new(),
-                                    &server.handler)
-                .unwrap();
+        let response = request::get(
+            "http://localhost:3000/favicon.ico",
+            Headers::new(),
+            &server.handler,
+        ).unwrap();
         assert!(response.status.unwrap().is_success());
 
-        let response = request::get("http://localhost:3000/robots.txt",
-                                    Headers::new(),
-                                    &server.handler)
-                .unwrap();
+        let response = request::get(
+            "http://localhost:3000/robots.txt",
+            Headers::new(),
+            &server.handler,
+        ).unwrap();
         assert!(response.status.unwrap().is_success());
     }
 
     #[test]
     fn not_found() {
         let server = create_server();
-        let response = request::get("http://localhost:3000/this/path/does/not/exist",
-                                    Headers::new(),
-                                    &server.handler)
-                .unwrap();
+        let response = request::get(
+            "http://localhost:3000/this/path/does/not/exist",
+            Headers::new(),
+            &server.handler,
+        ).unwrap();
         let body = response::extract_body_to_string(response);
         assert!(body.contains("Page Not Found"));
     }
@@ -363,10 +381,11 @@ mod tests {
     #[test]
     fn css() {
         let server = create_server();
-        let response = request::get("http://localhost:3000/static/css/styles.css",
-                                    Headers::new(),
-                                    &server.handler)
-                .unwrap();
+        let response = request::get(
+            "http://localhost:3000/static/css/styles.css",
+            Headers::new(),
+            &server.handler,
+        ).unwrap();
         assert!(response.status.unwrap().is_success());
     }
 }
