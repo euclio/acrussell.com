@@ -10,6 +10,8 @@
 #![recursion_limit = "1024"]
 
 #[macro_use]
+extern crate error_chain;
+#[macro_use]
 extern crate iron;
 #[macro_use]
 extern crate log;
@@ -23,7 +25,6 @@ extern crate serde_json;
 extern crate ammonia;
 extern crate chrono;
 extern crate dotenv;
-extern crate error_chain;
 extern crate handlebars_iron;
 extern crate hoedown;
 extern crate hubcaps;

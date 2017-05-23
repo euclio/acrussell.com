@@ -46,7 +46,10 @@ pub struct Post {
 /// Information needed to construct a link to a post.
 #[derive(Debug, Clone, Serialize)]
 pub struct PostLink {
+    /// The title of the linked post.
     pub title: String,
+
+    /// The URL linking to the post.
     pub url: String,
 }
 
@@ -104,13 +107,13 @@ where
                 &post.url().to_string(),
             ],
         )?;
-        let mut stmt = conn.prepare(
+        conn.execute(
             r#"
                 INSERT INTO post_content (docid, title, content)
                 VALUES ($1, $2, $3)
             "#,
+            &[&docid, &post.metadata.title, &post.content.deref()],
         )?;
-        stmt.execute(&[&docid, &post.metadata.title, &post.content.deref()])?;
     }
 
     info!("optimizing blog post content index");
@@ -162,26 +165,26 @@ pub fn get_post(
     date: &NaiveDate,
     title: &str,
 ) -> errors::Result<Post> {
-    let mut stmt = conn.prepare(
+    let mut post = conn.query_row(
         r#"
             SELECT title, date, html
             FROM posts
             WHERE REPLACE(LOWER(title), " ", "-") = $1
                 AND DATE(date) = $2
         "#,
+        &[&title, date],
+        |row| {
+            Post {
+                title: row.get(0),
+                date: row.get(1),
+                html: Html::new(row.get(2)),
+                next_post: None,
+                prev_post: None,
+            }
+        },
     )?;
 
-    let mut post = stmt.query_row(&[&title, date], |row| {
-        Post {
-            title: row.get(0),
-            date: row.get(1),
-            html: Html::new(row.get(2)),
-            next_post: None,
-            prev_post: None,
-        }
-    })?;
-
-    let mut stmt = conn.prepare(
+    let next_post = conn.query_row(
         r#"
             SELECT title, url
             FROM posts
@@ -189,22 +192,22 @@ pub fn get_post(
             ORDER BY date ASC
             LIMIT 1
         "#,
-    )?;
-
-    let next_post = stmt.query_row(&[&post.date.date()], |row| {
-        PostLink {
-            title: row.get(0),
-            url: row.get(1),
-        }
-    });
+        &[&post.date.date()],
+        |row| {
+            PostLink {
+                title: row.get(0),
+                url: row.get(1),
+            }
+        },
+    );
 
     post.next_post = match next_post {
         Ok(post) => Some(post),
         Err(rusqlite::Error::QueryReturnedNoRows) => None,
-        Err(e) => return Err(e.into()),
+        Err(e) => bail!(e),
     };
 
-    let mut stmt = conn.prepare(
+    let prev_post = conn.query_row(
         r#"
             SELECT title, url
             FROM posts
@@ -212,19 +215,19 @@ pub fn get_post(
             ORDER BY date DESC
             LIMIT 1
         "#,
-    )?;
-
-    let prev_post = stmt.query_row(&[&post.date.date()], |row| {
-        PostLink {
-            title: row.get(0),
-            url: row.get(1),
-        }
-    });
+        &[&post.date.date()],
+        |row| {
+            PostLink {
+                title: row.get(0),
+                url: row.get(1),
+            }
+        },
+    );
 
     post.prev_post = match prev_post {
         Ok(post) => Some(post),
         Err(rusqlite::Error::QueryReturnedNoRows) => None,
-        Err(e) => return Err(e.into()),
+        Err(e) => bail!(e),
     };
 
     Ok(post)
