@@ -153,8 +153,10 @@ fn initialize_templates(folder: &str, extension: &str) -> Result<Arc<HandlebarsE
     let hbse = {
         let mut hbse = HandlebarsEngine::new();
         hbse.add(Box::new(DirectorySource::new(folder, extension)));
-        hbse.handlebars_mut()
-            .register_helper("join", Box::new(helpers::join));
+        hbse.handlebars_mut().register_helper(
+            "join",
+            Box::new(helpers::join),
+        );
         hbse.reload().chain_err(|| "could not reload templates")?;
 
         Arc::new(hbse)

@@ -68,8 +68,7 @@ impl serde::Serialize for Html {
 
 /// Renders a markdown string into unescaped HTML.
 pub fn render_html(markdown: &str) -> Html {
-    let markdown = hoedown::Markdown::new(markdown)
-        .extensions(AUTOLINK | FENCED_CODE | TABLES);
+    let markdown = hoedown::Markdown::new(markdown).extensions(AUTOLINK | FENCED_CODE | TABLES);
 
     let mut html = hoedown::Html::new(html::Flags::empty(), 0);
     Html(html.render(&markdown).to_str().unwrap().to_owned())

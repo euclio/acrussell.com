@@ -34,8 +34,9 @@ pub fn load<P>(projects_path: P) -> Result<Vec<Project>>
 where
     P: AsRef<Path>,
 {
-    let mut projects_file = File::open(projects_path)
-        .chain_err(|| "could not open project file")?;
+    let mut projects_file = File::open(projects_path).chain_err(
+        || "could not open project file",
+    )?;
     let github = Github::new(
         concat!("acrussell.com", "/", env!("CARGO_PKG_VERSION")),
         Client::with_connector(HttpsConnector::new(NativeTlsClient::new().unwrap())),
@@ -47,8 +48,7 @@ where
         .map(|parsed_project| {
             let repo = {
                 let components = parsed_project.repo.split('/').collect::<Vec<_>>();
-                Repository::new(&github, components[0], components[1])
-                    .get()?
+                Repository::new(&github, components[0], components[1]).get()?
             };
 
             let name = &parsed_project.name;

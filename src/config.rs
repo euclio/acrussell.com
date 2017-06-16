@@ -36,8 +36,9 @@ where
 {
     let path = config_path.as_ref().to_str().unwrap();
     info!("loading configuration from {}", path);
-    let config_file = File::open(&config_path)
-        .chain_err(|| "error opening config file")?;
+    let config_file = File::open(&config_path).chain_err(
+        || "error opening config file",
+    )?;
     parse_config(config_file)
 }
 

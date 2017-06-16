@@ -59,7 +59,8 @@ pub fn get_connection_pool(database_uri: &str) -> Result<ConnectionPool> {
         database_uri,
         SQLITE_OPEN_URI | SQLITE_OPEN_READ_WRITE,
     );
-    let pool = Pool::new(config, manager)
-        .chain_err(|| "error initializing database")?;
+    let pool = Pool::new(config, manager).chain_err(
+        || "error initializing database",
+    )?;
     Ok(ConnectionPool(pool))
 }

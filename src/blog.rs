@@ -30,7 +30,7 @@ pub struct Post {
     pub title: String,
 
     /// The time that the post was written.
-    #[serde(serialize_with="HumanReadable::serialize_with")]
+    #[serde(serialize_with = "HumanReadable::serialize_with")]
     pub date: NaiveDateTime,
 
     /// The post rendered as HTML.
@@ -60,7 +60,7 @@ pub struct Summary {
     pub title: String,
 
     /// The date the post was written.
-    #[serde(serialize_with="HumanReadable::serialize_with")]
+    #[serde(serialize_with = "HumanReadable::serialize_with")]
     pub date: NaiveDateTime,
 
     /// A short preview of the post.
@@ -291,7 +291,7 @@ impl ParsedPost {
 #[derive(Debug, Deserialize)]
 struct Metadata {
     title: String,
-    #[serde(deserialize_with="OnDisk::deserialize_with")]
+    #[serde(deserialize_with = "OnDisk::deserialize_with")]
     date: NaiveDateTime,
     categories: Vec<String>,
     tags: Vec<String>,
@@ -304,9 +304,9 @@ where
 {
     let post = {
         let mut post = String::new();
-        reader
-            .read_to_string(&mut post)
-            .chain_err(|| "could not read contents of post")?;
+        reader.read_to_string(&mut post).chain_err(
+            || "could not read contents of post",
+        )?;
         post
     };
 
@@ -353,10 +353,12 @@ where
     entries
         .map(|entry| {
             let entry = entry.unwrap();
-            let mut file = File::open(entry.path())
-                .chain_err(|| "error opening directory entry")?;
-            let post = parse_post(&mut file)
-                .chain_err(|| ErrorKind::PostParse(entry.path().to_owned()))?;
+            let mut file = File::open(entry.path()).chain_err(
+                || "error opening directory entry",
+            )?;
+            let post = parse_post(&mut file).chain_err(|| {
+                ErrorKind::PostParse(entry.path().to_owned())
+            })?;
             Ok(post)
         })
         .collect()
@@ -381,11 +383,10 @@ trait DateDeserializeWith {
         D: serde::Deserializer<'de>,
     {
         let string = String::deserialize(deserializer)?;
-        NaiveDateTime::parse_from_str(&string, Self::FORMAT)
-            .or_else(|_| {
-                let msg = format!("invalid date format: expected '{}'", Self::FORMAT);
-                Err(serde::de::Error::custom(msg.as_str()))
-            })
+        NaiveDateTime::parse_from_str(&string, Self::FORMAT).or_else(|_| {
+            let msg = format!("invalid date format: expected '{}'", Self::FORMAT);
+            Err(serde::de::Error::custom(msg.as_str()))
+        })
     }
 }
 
