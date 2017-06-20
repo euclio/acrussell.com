@@ -46,6 +46,9 @@ version = "0.3"
 features = ["chrono"]
 version = "0.11"
 
+[build-dependencies]
+error-chain = "0.10"
+
 [dev-dependencies]
 iron-test = "0.5"
 tempfile = "2.0.0"
