@@ -33,11 +33,11 @@ fn run() -> Result<()> {
     }
 
     let scss_out = out_dir.join("styles.css");
-    let status = Command::new("sass")
+    let status = Command::new("sassc")
         .args(&["scss/main.scss", scss_out.to_str().unwrap()])
         .stderr(Stdio::inherit())
         .status()
-        .chain_err(|| "failed to run `sass`")?;
+        .chain_err(|| "failed to run `sassc`")?;
     if !status.success() {
         bail!("SCSS compilation failed");
     }
