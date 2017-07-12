@@ -1,6 +1,6 @@
-#[macro_use]
-extern crate clap;
+#![feature(use_extern_macros)]
 
+extern crate clap;
 extern crate env_logger;
 extern crate log;
 extern crate website;
@@ -10,7 +10,7 @@ use std::io::prelude::*;
 use std::io;
 use std::process;
 
-use clap::{App, Arg};
+use clap::{App, Arg, crate_name, crate_version};
 use env_logger::LogBuilder;
 use log::LogLevelFilter;
 

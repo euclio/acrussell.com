@@ -3,6 +3,7 @@
 use std::io;
 use std::path::{PathBuf, Path};
 
+use derive_error_chain::error_chain;
 use hubcaps;
 use hyper;
 use rusqlite;

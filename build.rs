@@ -1,15 +1,18 @@
-#![recursion_limit = "1024"]
+#![feature(use_extern_macros)]
+
+extern crate error_chain;
 
 use std::env;
 use std::fs;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
-#[macro_use]
-extern crate error_chain;
+use error_chain::{bail, quick_main};
 
 mod errors {
     use std::io;
+
+    use error_chain::*;
 
     error_chain! {
         foreign_links {

@@ -7,6 +7,8 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 
+use log::{log, info};
+use serde_derive::Deserialize;
 use serde_yaml;
 use url::Url;
 use url_serde;

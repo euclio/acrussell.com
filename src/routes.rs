@@ -6,14 +6,16 @@ use std::path::Path;
 use std::sync::Arc;
 
 use chrono::NaiveDate;
-use mount::Mount;
 use handlebars_iron::{DirectorySource, HandlebarsEngine, Template};
 use iron::prelude::*;
-use iron::{status, AfterMiddleware, Handler};
+use iron::status;
+use iron::{AfterMiddleware, Handler, itry, iexpect};
+use log::{log, error};
+use mount::Mount;
 use params::{Params, Value};
 use persistent::{self, Read};
-use router::{Router, NoRoute};
-use serde_json;
+use router::{Router, NoRoute, router};
+use serde_json::{self, json, json_internal};
 use staticfile::Static;
 
 #[cfg(feature = "watch")]

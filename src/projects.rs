@@ -11,6 +11,7 @@ use hubcaps::{Credentials, Github};
 use hyper::Client;
 use hyper::net::HttpsConnector;
 use hyper_native_tls::NativeTlsClient;
+use serde_derive::{Deserialize, Serialize};
 use serde_yaml;
 use url::Url;
 use url_serde;

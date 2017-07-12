@@ -1,51 +1,39 @@
 //! My personal website.
 
-#![feature(associated_consts)]
 #![feature(plugin)]
+#![feature(use_extern_macros)]
 
 #![plugin(dotenv_macros)]
 
 #![warn(missing_docs)]
 
-#![recursion_limit = "1024"]
-
-#[macro_use]
-extern crate error_chain;
-#[macro_use]
-extern crate iron;
-#[macro_use]
-extern crate log;
-#[macro_use]
-extern crate router;
-#[macro_use]
-extern crate serde_derive;
-#[macro_use]
-extern crate serde_json;
-
 extern crate ammonia;
 extern crate chrono;
+extern crate derive_error_chain;
 extern crate dotenv;
+extern crate error_chain;
 extern crate handlebars_iron;
 extern crate hoedown;
 extern crate hubcaps;
 extern crate hyper;
 extern crate hyper_native_tls;
+extern crate iron;
+extern crate log;
 extern crate mount;
 extern crate params;
 extern crate persistent;
 extern crate r2d2;
 extern crate r2d2_sqlite;
+extern crate router;
 extern crate rusqlite;
 extern crate serde;
+extern crate serde_derive;
+extern crate serde_json;
 extern crate serde_yaml;
 extern crate staticfile;
 extern crate toml;
 extern crate url;
 extern crate url_serde;
-
-// This must be after the error_chain import to avoid an error message.
-#[macro_use]
-extern crate derive_error_chain;
 
 pub mod blog;
 pub mod config;
@@ -64,6 +52,7 @@ use std::net::ToSocketAddrs;
 use handlebars_iron::handlebars;
 use iron::prelude::*;
 use iron::Listening;
+use log::{log, info};
 
 use errors::*;
 
