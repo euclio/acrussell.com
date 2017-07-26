@@ -1,0 +1,30 @@
+sudo: false
+language: rust
+
+addons:
+  apt:
+    packages:
+      - nodejs
+      - git
+      - build-essential
+
+rust:
+  - nightly
+
+cache:
+  cargo: true
+  directories:
+    - node_modules
+
+before_script:
+  - |
+    npm install -g postcss-cli autoprefixer
+    git clone https://github.com/sass/libsass.git ~/libsass && cd ~/libsass && git checkout tags/3.1.0
+    git clone https://github.com/sass/sassc.git ~/sassc && cd ~/sassc && git checkout tags/3.1.0 && SASS_LIBSASS_PATH=../libsass make
+    mkdir -p ~/bin
+    ln -s ~/sassc/bin/sassc ~/bin/
+    cd $TRAVIS_BUILD_DIR
+
+env:
+  global:
+    secure: tQJ6akuYAdfqREPQiL2L8b5dJaqwAS5RvlFoyCJMvynj9ZhkKxcYJ4SxZn5pcI2FKQ0BIQPLZXs9+suK/SA/mPGwV9adMUZfJsUftIxArO6PPAHUXWxDrNvR4xZLkYyOVn53McqPhkbMtiMhS8tldbRVluQ/fNjbcmNXMg8RNXPF/IE9WYiKmUilqWyDua8khnlOkoOgXwQZaKGuunKHTg1ZdvvExtBRSy/sicC/+YdModNarzcKO8msrcjQcuLNeNDVVxrcLgI8tdtjKd2gUJQKlNKFGpArjaIog4h4TZvZbV3wwn09VX9Wd4pb+3A3qdCnbyhkxBx64K5YCIXAn6+4QmHBIerEikhLhZehn9w0xnv7R1U3i4BhnPoQrbwGxx+0lYcN4y61i6oAebYATSaEJ1OYQJ+01cJ5UDE8GAnKvDs6zngCzy4u6loaFEsYoT+jYNe78gbSAh5slO8pPJFRst8ZgGDemsDii3iuFh+UBxb1DtjugMfGp/GeDaDwqPqTGHKgBNKT6NeNENCt5Lv16pGkAb0iLiPsDA1U748nMncAWIAjPwd5Ga1nvUCmbssv8A/Nca4XnkbOYmM5pKxp9Hpx+NWPVM/880Nd5SFk264SqNVE1Xr/lBK0+UQsBwMRB/aPt5eKClJF7APt5e1rH52iBRTXQSr96xB+mQA=
