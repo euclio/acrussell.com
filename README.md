@@ -1,4 +1,4 @@
-# acrussell.com
+# acrussell.com [![Build Status](https://travis-ci.org/euclio/acrussell.com.svg?branch=master)](https://travis-ci.org/euclio/acrussell.com)
 
 This is the complete code for my personal website [acrussell.com]. The
 site is built on a Rust/Iron backend.
