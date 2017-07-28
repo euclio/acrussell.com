@@ -49,8 +49,8 @@ fn run() -> Result<()> {
     fs::create_dir_all(&css_out)?;
     let status = Command::new("postcss")
         .args(&["--use", "autoprefixer"])
-        .arg(scss_out.to_str().unwrap())
         .args(&["-d", css_out.to_str().unwrap()])
+        .arg(scss_out.to_str().unwrap())
         .status()
         .chain_err(|| "failed to run `postcss`")?;
     if !status.success() {
