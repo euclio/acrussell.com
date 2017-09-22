@@ -5,7 +5,7 @@ use std::ops::Deref;
 use std::path::Path;
 use std::io::prelude::*;
 
-use ammonia::Ammonia;
+use ammonia::{self, Ammonia};
 use chrono::{NaiveDateTime, NaiveDate, Datelike};
 use error_chain::bail;
 use log::{log, info};
@@ -329,7 +329,7 @@ where
 
 fn create_summary(html: &Html, url: &str) -> Html {
     let ammonia = Ammonia {
-        url_relative: true,
+        url_relative: ammonia::UrlRelative::PassThrough,
         ..Default::default()
     };
 

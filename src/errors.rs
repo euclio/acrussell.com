@@ -3,7 +3,7 @@
 use std::io;
 use std::path::{PathBuf, Path};
 
-use derive_error_chain::error_chain;
+use derive_error_chain::ErrorChain;
 use hubcaps;
 use hyper;
 use rusqlite;
@@ -11,7 +11,7 @@ use serde_yaml;
 use url;
 
 /// Possible Error variants of the website.
-#[derive(Debug, error_chain)]
+#[derive(Debug, ErrorChain)]
 pub enum ErrorKind {
     /// A convenient wrapper around a string message.
     Msg(String),

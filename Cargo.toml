@@ -10,15 +10,15 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
-ammonia = "0.3"
+ammonia = "0.7"
 clap = "2"
 dotenv = "0.10"
 dotenv_macros = "0.10"
-derive-error-chain = "0.10"
+derive-error-chain = "0.11"
 env_logger = "0.4"
-error-chain = "0.10"
+error-chain = "0.11"
 hoedown = "6"
-handlebars-iron = "0.24"
+handlebars-iron = "0.25"
 hubcaps = "0.3"
 hyper = "0.10"
 hyper-native-tls = "0.2"
@@ -45,10 +45,10 @@ version = "0.3"
 
 [dependencies.rusqlite]
 features = ["chrono"]
-version = "0.11"
+version = "0.12"
 
 [build-dependencies]
-error-chain = "0.10"
+error-chain = "0.11"
 
 [dev-dependencies]
 iron-test = "0.5"
