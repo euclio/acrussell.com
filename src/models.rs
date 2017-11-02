@@ -1,7 +1,7 @@
 use chrono::NaiveDateTime;
 use serde_derive::Serialize;
 
-use schema::posts;
+use schema::{posts, post_content};
 
 use blog::human_readable_format;
 
@@ -39,6 +39,15 @@ pub struct Post {
     pub html: String,
     pub date: NaiveDateTime,
     pub url: String,
+}
+
+/// Used for full-text-search queries.
+#[derive(Debug, Queryable, Insertable)]
+#[table_name = "post_content"]
+pub struct PostContent {
+    pub docid: i32,
+    pub title: String,
+    pub content: String,
 }
 
 /// A brief summary of a blog post.

@@ -6,23 +6,34 @@ use std::io::prelude::*;
 
 use ammonia::{self, Ammonia};
 use chrono::{NaiveDateTime, NaiveDate, Datelike};
-use diesel::expression::{dsl, sql};
+use diesel::expression::{dsl, sql, AsExpression};
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
 use diesel::types::Bool;
-use diesel::{Connection, ExecuteDsl};
-use diesel;
-use error_chain::bail;
+use diesel::{self, ExecuteDsl};
 use log::{log, info};
 use serde_derive::{Deserialize, Serialize};
 use serde_yaml;
 
 use errors::{self, ResultExt, ErrorKind};
 use markdown::{self, Html, Markdown};
-use models::{Summary, NewPost, PostLink};
+use models::{Summary, NewPost, PostLink, PostContent};
 
 /// The length of a blog post preview.
 const SUMMARY_LENGTH: usize = 200;
+
+/// Diesel doesn't support FTS4 `MATCH` out of the box for SQLite, so we implement it ourselves.
+#[allow(missing_docs)]
+diesel_infix_operator!(Matches, " MATCH ");
+
+fn fts_match<T, U>(left: T, right: U) -> Matches<T, U::Expression>
+where
+    T: Expression,
+    U: AsExpression<T::SqlType>,
+{
+    Matches::new(left, right.as_expression())
+}
+
 
 /// A struct representing a blog post.
 #[derive(Debug, Serialize)]
@@ -50,49 +61,50 @@ pub fn load<P>(directory: P, conn: &SqliteConnection) -> errors::Result<()>
 where
     P: AsRef<Path>,
 {
-    use schema::posts;
+    use schema::posts::dsl::*;
+    use schema::post_content;
 
-    let posts = parse_posts(&directory)?;
+    let parsed_posts = parse_posts(&directory)?;
     info!(
         "parsed {} blog posts in {:?}",
-        posts.len(),
+        parsed_posts.len(),
         directory.as_ref()
     );
 
-    // sql::<Bool>(
-    //     r#"CREATE VIRTUAL TABLE post_content USING fts4(content, title)"#,
-    // ).execute(conn)
-    //     .expect("could not create text search table");
+    sql::<Bool>(
+        r#"CREATE VIRTUAL TABLE post_content USING fts4(content, title)"#,
+    ).execute(conn)?;
 
-    let new_posts = posts
+    let new_posts = parsed_posts
         .iter()
         .map(|post| {
-            let html = markdown::render_html(&post.content);
-            let summary = create_summary(&html, &post.url());
+            let post_html = markdown::render_html(&post.content);
+            let post_summary = create_summary(&post_html, &post.url());
 
             NewPost {
                 title: &post.metadata.title,
                 date: post.metadata.date,
-                html: html.to_string(),
-                summary: summary.to_string(),
+                html: post_html.to_string(),
+                summary: post_summary.to_string(),
                 url: post.url().to_string(),
                 slug: post.slug(),
             }
         })
         .collect::<Vec<_>>();
 
-    diesel::insert(&new_posts).into(posts::table).execute(conn)?;
+    diesel::insert(&new_posts).into(posts).execute(conn)?;
 
-    // sql::<Bool>(
-    //     r#"INSERT INTO post_content SELECT title, content FROM posts"#,
-    // ).execute(conn)
-    //     .expect("could not populate text search table");
+    // TODO: We should actually load the content here, not the HTML.
+    let new_post_content = posts.select((id, title, html)).load::<PostContent>(conn)?;
 
-    // info!("optimizing blog post content index");
-    // sql::<Bool>(
-    //     r#"INSERT INTO post_content(post_content) VALUES ('optimize')"#,
-    // ).execute(conn)
-    //     .expect("could not optimize text search table");
+    diesel::insert(&new_post_content)
+        .into(post_content::table)
+        .execute(conn)?;
+
+    info!("optimizing blog post content index");
+    sql::<Bool>(
+        r#"INSERT INTO post_content(post_content) VALUES ('optimize')"#,
+    ).execute(conn)?;
 
     Ok(())
 }
@@ -101,36 +113,22 @@ where
 ///
 /// Returns summaries of the posts that contain the query.
 pub fn find_summaries(conn: &SqliteConnection, query: &str) -> errors::Result<Vec<Summary>> {
-    unimplemented!();
+    use schema::post_content;
+    use schema::post_content::dsl as content_dsl;
+    use schema::posts::dsl::*;
 
-    // let mut stmt = conn.prepare(
-    //     r#"
-    //         SELECT title, date, summary, url
-    //         FROM posts
-    //         WHERE rowid IN (
-    //             SELECT docid
-    //             FROM post_content
-    //             WHERE post_content MATCH ?
-    //         )
-    //     "#,
-    // )?;
+    let matching_ids = post_content::table.select(content_dsl::docid).filter(
+        fts_match(
+            content_dsl::content,
+            query,
+        ),
+    );
+    let summaries = posts
+        .select((title, date, summary, url))
+        .filter(id.eq_any(matching_ids))
+        .load::<Summary>(conn)?;
 
-    // let rows = stmt.query_map(&[&query], |row| {
-    //     Summary {
-    //         title: row.get(0),
-    //         date: row.get(1),
-    //         summary: row.get(2),
-    //         url: row.get(3),
-    //     }
-    // })?;
-
-    // let mut summaries = vec![];
-
-    // for row in rows {
-    //     summaries.push(row?);
-    // }
-
-    // Ok(summaries)
+    Ok(summaries)
 }
 
 /// Retrieves a blog post from the database given the date it was posted and its title.

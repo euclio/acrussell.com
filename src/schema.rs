@@ -4,6 +4,7 @@ table! {
         title -> VarChar,
         date -> Timestamp,
         html -> VarChar,
+        content -> VarChar,
         summary -> VarChar,
         url -> VarChar,
         slug -> VarChar,
