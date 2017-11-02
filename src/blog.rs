@@ -62,7 +62,6 @@ where
     P: AsRef<Path>,
 {
     use schema::posts::dsl::*;
-    use schema::post_content;
 
     let parsed_posts = parse_posts(&directory)?;
     info!(
@@ -70,10 +69,6 @@ where
         parsed_posts.len(),
         directory.as_ref()
     );
-
-    sql::<Bool>(
-        r#"CREATE VIRTUAL TABLE post_content USING fts4(content, title)"#,
-    ).execute(conn)?;
 
     let new_posts = parsed_posts
         .iter()
@@ -93,6 +88,20 @@ where
         .collect::<Vec<_>>();
 
     diesel::insert(&new_posts).into(posts).execute(conn)?;
+
+    create_fts_index(conn)?;
+
+    Ok(())
+}
+
+/// Creates the full text search index for the blog posts.
+pub fn create_fts_index(conn: &SqliteConnection) -> errors::Result<()> {
+    use schema::posts::dsl::*;
+    use schema::post_content;
+
+    sql::<Bool>(
+        r#"CREATE VIRTUAL TABLE post_content USING fts4(content, title)"#,
+    ).execute(conn)?;
 
     // TODO: We should actually load the content here, not the HTML.
     let new_post_content = posts.select((id, title, html)).load::<PostContent>(conn)?;

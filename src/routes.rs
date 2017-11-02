@@ -284,6 +284,7 @@ mod tests {
         };
 
         connection.batch_execute(&schema).unwrap();
+        ::blog::create_fts_index(&connection).unwrap();
 
         let handler = super::handler(
             Config { resume_link: Url::parse("http://google.com").unwrap() },
@@ -309,6 +310,17 @@ mod tests {
         let server = create_server();
         let response = request::get(
             "http://localhost:3000/blog",
+            Headers::new(),
+            &server.handler,
+        ).unwrap();
+        assert!(response.status.unwrap().is_success());
+    }
+
+    #[test]
+    fn blog_search() {
+        let server = create_server();
+        let response = request::get(
+            "http://localhost:3000/blog?q=nonsensequerythatwillreturnnovalues",
             Headers::new(),
             &server.handler,
         ).unwrap();
