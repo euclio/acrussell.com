@@ -45,11 +45,11 @@ fn main() {
                 .long("db-uri")
                 .value_name("URI")
                 .help(
-                    "A sqlite databse URI to use for the website's backing store. By default, \
+                    "A sqlite databse file to use for the website's backing store. By default, \
                     this is a shared, in-memory database. It may be helpful to use a file for \
                     debugging purposes. \
 
-                    Please note that any existing data in the database pointed at by this URI \
+                    Please note that any existing data in the database pointed at by this file \
                     will be dropped upon server initialization.
             ",
                 ),

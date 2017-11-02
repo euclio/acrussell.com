@@ -11,14 +11,17 @@ doc = false
 
 [dependencies]
 ammonia = "0.7"
+chrono = { version = "0.4", features = ["serde"] }
 clap = "2"
+derive-error-chain = "0.11"
+diesel = { version = "0.16", features = ["sqlite", "chrono"] }
+diesel_codegen = { version = "0.16", features = ["sqlite"] }
 dotenv = "0.10"
 dotenv_macros = "0.10"
-derive-error-chain = "0.11"
 env_logger = "0.4"
 error-chain = "0.11"
-hoedown = "6"
 handlebars-iron = "0.25"
+hoedown = "6"
 hubcaps = "0.3"
 hyper = "0.10"
 hyper-native-tls = "0.2"
@@ -28,24 +31,16 @@ mount = "0.3"
 params = "0.6"
 persistent = "0.3"
 r2d2 = "0.7"
-r2d2_sqlite = "0.2"
+r2d2-diesel = "0.16"
 router = "0.5"
 serde = "1"
-serde_json = "1"
 serde_derive = "1"
+serde_json = "1"
 serde_yaml = "0.7"
 staticfile = "0.4"
 toml = "0.4"
 url = "1.1"
 url_serde = "0.2"
-
-[dependencies.chrono]
-features = ["serde"]
-version = "0.3"
-
-[dependencies.rusqlite]
-features = ["chrono"]
-version = "0.12"
 
 [build-dependencies]
 error-chain = "0.11"

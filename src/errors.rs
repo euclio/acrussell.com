@@ -3,10 +3,10 @@
 use std::io;
 use std::path::{PathBuf, Path};
 
+use diesel;
 use derive_error_chain::ErrorChain;
 use hubcaps;
 use hyper;
-use rusqlite;
 use serde_yaml;
 use url;
 
@@ -30,7 +30,7 @@ pub enum ErrorKind {
 
     /// Error communicating with the database.
     #[error_chain(foreign)]
-    Sqlite(rusqlite::Error),
+    Sql(diesel::result::Error),
 
     /// Error parsing a URL from a string.
     #[error_chain(foreign)]

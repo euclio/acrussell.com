@@ -7,6 +7,11 @@
 
 #![warn(missing_docs)]
 
+#[macro_use]
+extern crate diesel;
+#[macro_use]
+extern crate diesel_codegen;
+
 extern crate ammonia;
 extern crate chrono;
 extern crate derive_error_chain;
@@ -23,9 +28,8 @@ extern crate mount;
 extern crate params;
 extern crate persistent;
 extern crate r2d2;
-extern crate r2d2_sqlite;
+extern crate r2d2_diesel;
 extern crate router;
-extern crate rusqlite;
 extern crate serde;
 extern crate serde_derive;
 extern crate serde_json;
@@ -44,14 +48,18 @@ pub mod persistence;
 pub mod projects;
 pub mod routes;
 
+mod models;
+mod schema;
+
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
 use std::net::ToSocketAddrs;
 
+use diesel::connection::SimpleConnection;
 use handlebars_iron::handlebars;
-use iron::prelude::*;
 use iron::Listening;
+use iron::prelude::*;
 use log::{log, info};
 
 use errors::*;
@@ -79,7 +87,7 @@ where
         schema_file.read_to_string(&mut schema)?;
         schema
     };
-    connection.execute_batch(&schema)?;
+    connection.batch_execute(&schema).unwrap();
 
     blog::load("blog/", &connection).chain_err(
         || "problem parsing blog posts",
