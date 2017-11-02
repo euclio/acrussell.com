@@ -274,8 +274,7 @@ mod tests {
         //
         // FIXME: This should be handled by a server object, to avoid duplication between code and
         // tests.
-        let uri = format!("file:{}", tempfile.path().to_str().unwrap());
-        let pool = persistence::get_connection_pool(&uri).unwrap();
+        let pool = persistence::get_connection_pool(tempfile.path().to_str().unwrap()).unwrap();
         let connection = pool.get().unwrap();
         let schema = {
             let mut schema_file = File::open("schema.sql").unwrap();
