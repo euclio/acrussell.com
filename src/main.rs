@@ -15,7 +15,7 @@ use env_logger::LogBuilder;
 use log::LogLevelFilter;
 
 use website::errors::*;
-use website::persistence::DEFAULT_DATABASE_URI;
+use website::persistence::DEFAULT_DATABASE_FILE;
 
 const DEFAULT_PORT: u16 = 9000;
 
@@ -41,15 +41,15 @@ fn main() {
             "The port that the server should listen for connections on.",
         ))
         .arg(
-            Arg::with_name("db_uri")
-                .long("db-uri")
-                .value_name("URI")
+            Arg::with_name("db_file")
+                .long("db-file")
+                .value_name("FILE")
                 .help(
-                    "A sqlite databse URI to use for the website's backing store. By default, \
+                    "A sqlite databse file to use for the website's backing store. By default, \
                     this is a shared, in-memory database. It may be helpful to use a file for \
                     debugging purposes. \
 
-                    Please note that any existing data in the database pointed at by this URI \
+                    Please note that any existing data in the database pointed at by this file \
                     will be dropped upon server initialization.
             ",
                 ),
@@ -60,11 +60,11 @@ fn main() {
         .value_of("port")
         .and_then(|port| port.parse::<u16>().ok())
         .unwrap_or(DEFAULT_PORT);
-    let db_uri = matches.value_of("db_uri").unwrap_or_else(
-        || DEFAULT_DATABASE_URI,
+    let db_file = matches.value_of("db_file").unwrap_or_else(
+        || DEFAULT_DATABASE_FILE,
     );
 
-    if let Err(ref e) = run(port, db_uri) {
+    if let Err(ref e) = run(port, db_file) {
         let stderr = &mut io::stderr();
         let errmsg = "error writing to stderr";
 
