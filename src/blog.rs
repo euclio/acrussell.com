@@ -1,39 +1,37 @@
 //! Static blog generation.
 
 use std::fs::{self, File};
-use std::ops::Deref;
 use std::path::Path;
 use std::io::prelude::*;
 
 use ammonia::{self, Ammonia};
 use chrono::{NaiveDateTime, NaiveDate, Datelike};
+use diesel::expression::{dsl, sql};
+use diesel::prelude::*;
+use diesel::sqlite::SqliteConnection;
+use diesel::types::Bool;
+use diesel::{Connection, ExecuteDsl};
+use diesel;
 use error_chain::bail;
 use log::{log, info};
-use rusqlite::{self, Connection};
-use serde::{self, Deserialize};
 use serde_derive::{Deserialize, Serialize};
 use serde_yaml;
 
 use errors::{self, ResultExt, ErrorKind};
 use markdown::{self, Html, Markdown};
+use models::{Summary, NewPost, PostLink};
 
 /// The length of a blog post preview.
 const SUMMARY_LENGTH: usize = 200;
 
-/// The date format used in the blog posts' markdown files.
-const ON_DISK_FORMAT: &'static str = "%l:%M%P %m/%d/%y";
-
-/// The date format suitable for displaying on the website.
-const HUMAN_READABLE_FORMAT: &'static str = "%B %e, %Y";
-
 /// A struct representing a blog post.
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Serialize)]
 pub struct Post {
     /// The title of the post.
     pub title: String,
 
     /// The time that the post was written.
-    #[serde(serialize_with = "HumanReadable::serialize_with")]
+    #[serde(with = "human_readable_format")]
     pub date: NaiveDateTime,
 
     /// The post rendered as HTML.
@@ -46,39 +44,14 @@ pub struct Post {
     pub prev_post: Option<PostLink>,
 }
 
-/// Information needed to construct a link to a post.
-#[derive(Debug, Clone, Serialize)]
-pub struct PostLink {
-    /// The title of the linked post.
-    pub title: String,
-
-    /// The URL linking to the post.
-    pub url: String,
-}
-
-/// A brief summary of a blog post.
-#[derive(Serialize, Debug)]
-pub struct Summary {
-    /// The title of the post.
-    pub title: String,
-
-    /// The date the post was written.
-    #[serde(serialize_with = "HumanReadable::serialize_with")]
-    pub date: NaiveDateTime,
-
-    /// A short preview of the post.
-    pub summary: String,
-
-    /// A URL to reach the full post.
-    pub url: String,
-}
-
 /// Retrieves blog post content and metadata by parsing all markdown files in a given directory,
 /// then persists the posts into the database.
-pub fn load<P>(directory: P, conn: &Connection) -> errors::Result<()>
+pub fn load<P>(directory: P, conn: &SqliteConnection) -> errors::Result<()>
 where
     P: AsRef<Path>,
 {
+    use schema::posts;
+
     let posts = parse_posts(&directory)?;
     info!(
         "parsed {} blog posts in {:?}",
@@ -86,44 +59,40 @@ where
         directory.as_ref()
     );
 
-    conn.execute(
-        r#"CREATE VIRTUAL TABLE post_content USING fts4(content, title)"#,
-        &[],
-    )?;
+    // sql::<Bool>(
+    //     r#"CREATE VIRTUAL TABLE post_content USING fts4(content, title)"#,
+    // ).execute(conn)
+    //     .expect("could not create text search table");
 
-    let mut stmt = conn.prepare(
-        r#"
-            INSERT INTO posts (title, date, html, summary, url)
-            VALUES ($1, $2, $3, $4, $5)
-        "#,
-    )?;
+    let new_posts = posts
+        .iter()
+        .map(|post| {
+            let html = markdown::render_html(&post.content);
+            let summary = create_summary(&html, &post.url());
 
-    for post in posts {
-        let html = markdown::render_html(&post.content);
-        let summary = create_summary(&html, &post.url());
-        let docid = stmt.insert(
-            &[
-                &post.metadata.title,
-                &post.metadata.date,
-                &html.deref(),
-                &summary.deref(),
-                &post.url().to_string(),
-            ],
-        )?;
-        conn.execute(
-            r#"
-                INSERT INTO post_content (docid, title, content)
-                VALUES ($1, $2, $3)
-            "#,
-            &[&docid, &post.metadata.title, &post.content.deref()],
-        )?;
-    }
+            NewPost {
+                title: &post.metadata.title,
+                date: post.metadata.date,
+                html: html.to_string(),
+                summary: summary.to_string(),
+                url: post.url().to_string(),
+                slug: post.slug(),
+            }
+        })
+        .collect::<Vec<_>>();
 
-    info!("optimizing blog post content index");
-    conn.execute(
-        r#"INSERT INTO post_content(post_content) VALUES ('optimize')"#,
-        &[],
-    )?;
+    diesel::insert(&new_posts).into(posts::table).execute(conn)?;
+
+    // sql::<Bool>(
+    //     r#"INSERT INTO post_content SELECT title, content FROM posts"#,
+    // ).execute(conn)
+    //     .expect("could not populate text search table");
+
+    // info!("optimizing blog post content index");
+    // sql::<Bool>(
+    //     r#"INSERT INTO post_content(post_content) VALUES ('optimize')"#,
+    // ).execute(conn)
+    //     .expect("could not optimize text search table");
 
     Ok(())
 }
@@ -131,137 +100,86 @@ where
 /// Searches post contents and titles with a text query.
 ///
 /// Returns summaries of the posts that contain the query.
-pub fn find_summaries(conn: &rusqlite::Connection, query: &str) -> errors::Result<Vec<Summary>> {
-    let mut stmt = conn.prepare(
-        r#"
-            SELECT title, date, summary, url
-            FROM posts
-            WHERE rowid IN (
-                SELECT docid
-                FROM post_content
-                WHERE post_content MATCH ?
-            )
-        "#,
-    )?;
+pub fn find_summaries(conn: &SqliteConnection, query: &str) -> errors::Result<Vec<Summary>> {
+    unimplemented!();
 
-    let rows = stmt.query_map(&[&query], |row| {
-        Summary {
-            title: row.get(0),
-            date: row.get(1),
-            summary: row.get(2),
-            url: row.get(3),
-        }
-    })?;
+    // let mut stmt = conn.prepare(
+    //     r#"
+    //         SELECT title, date, summary, url
+    //         FROM posts
+    //         WHERE rowid IN (
+    //             SELECT docid
+    //             FROM post_content
+    //             WHERE post_content MATCH ?
+    //         )
+    //     "#,
+    // )?;
 
-    let mut summaries = vec![];
+    // let rows = stmt.query_map(&[&query], |row| {
+    //     Summary {
+    //         title: row.get(0),
+    //         date: row.get(1),
+    //         summary: row.get(2),
+    //         url: row.get(3),
+    //     }
+    // })?;
 
-    for row in rows {
-        summaries.push(row?);
-    }
+    // let mut summaries = vec![];
 
-    Ok(summaries)
+    // for row in rows {
+    //     summaries.push(row?);
+    // }
+
+    // Ok(summaries)
 }
 
 /// Retrieves a blog post from the database given the date it was posted and its title.
 pub fn get_post(
-    conn: &rusqlite::Connection,
-    date: &NaiveDate,
-    title: &str,
+    conn: &SqliteConnection,
+    post_date: &NaiveDate,
+    post_slug: &str,
 ) -> errors::Result<Post> {
-    let mut post = conn.query_row(
-        r#"
-            SELECT title, date, html
-            FROM posts
-            WHERE REPLACE(LOWER(title), " ", "-") = $1
-                AND DATE(date) = $2
-        "#,
-        &[&title, date],
-        |row| {
-            Post {
-                title: row.get(0),
-                date: row.get(1),
-                html: Html::new(row.get(2)),
-                next_post: None,
-                prev_post: None,
-            }
-        },
-    )?;
+    use schema::posts::dsl::*;
 
-    let next_post = conn.query_row(
-        r#"
-            SELECT title, url
-            FROM posts
-            WHERE DATE(date) > ?
-            ORDER BY date ASC
-            LIMIT 1
-        "#,
-        &[&post.date.date()],
-        |row| {
-            PostLink {
-                title: row.get(0),
-                url: row.get(1),
-            }
-        },
-    );
+    // TODO: We should be able to do this in a single query.
 
-    post.next_post = match next_post {
-        Ok(post) => Some(post),
-        Err(rusqlite::Error::QueryReturnedNoRows) => None,
-        Err(e) => bail!(e),
-    };
+    let post = posts
+        .select((id, title, html, date, url))
+        .filter(slug.eq(post_slug))
+        .filter(dsl::date(date).eq(post_date))
+        .first::<::models::Post>(conn)?;
 
-    let prev_post = conn.query_row(
-        r#"
-            SELECT title, url
-            FROM posts
-            WHERE DATE(date) < ?
-            ORDER BY date DESC
-            LIMIT 1
-        "#,
-        &[&post.date.date()],
-        |row| {
-            PostLink {
-                title: row.get(0),
-                url: row.get(1),
-            }
-        },
-    );
+    let next_post = posts
+        .select((title, url))
+        .order(date.asc())
+        .filter(dsl::date(date).gt(post_date))
+        .first::<PostLink>(conn)
+        .optional()?;
 
-    post.prev_post = match prev_post {
-        Ok(post) => Some(post),
-        Err(rusqlite::Error::QueryReturnedNoRows) => None,
-        Err(e) => bail!(e),
-    };
+    let prev_post = posts
+        .select((title, url))
+        .order(date.desc())
+        .filter(dsl::date(date).lt(post_date))
+        .first::<PostLink>(conn)
+        .optional()?;
 
-    Ok(post)
+    Ok(Post {
+        title: String::from(post.title.as_str()),
+        date: post.date.clone(),
+        html: Html::new(post.html.to_string()),
+        next_post: next_post,
+        prev_post: prev_post,
+    })
 }
 
 /// Retrieves blog post summaries from the database.
-pub fn get_summaries(conn: &Connection) -> errors::Result<Vec<Summary>> {
-    let mut stmt = conn.prepare(
-        r#"
-            SELECT title, date, summary, url
-            FROM posts
-            ORDER BY date DESC
-        "#,
-    )?;
+pub fn get_summaries(conn: &SqliteConnection) -> errors::Result<Vec<Summary>> {
+    use schema::posts::dsl::*;
 
-    let rows = stmt.query_map(&[], |row| {
-        Summary {
-            title: row.get(0),
-            date: row.get(1),
-            summary: row.get(2),
-            url: row.get(3),
-        }
-    })?;
-
-    let mut summaries = vec![];
-
-    for row in rows {
-        summaries.push(row?);
-    }
-
-    Ok(summaries)
+    Ok(posts
+        .select((title, date, summary, url))
+        .order(date.desc())
+        .load::<Summary>(conn)?)
 }
 
 #[derive(Debug)]
@@ -282,19 +200,20 @@ impl ParsedPost {
             date.year(),
             date.month(),
             date.day(),
-            self.escaped_title()
+            self.slug()
         )
     }
 
-    fn escaped_title(&self) -> String {
-        self.metadata.title.to_lowercase().replace(" ", "-")
+    /// Returns the escaped title of the post, for use in the URL.
+    fn slug(&self) -> String {
+        self.metadata.title.to_lowercase().replace(' ', "-")
     }
 }
 
 #[derive(Debug, Deserialize)]
 struct Metadata {
     title: String,
-    #[serde(deserialize_with = "OnDisk::deserialize_with")]
+    #[serde(with = "on_disk_format")]
     date: NaiveDateTime,
     categories: Vec<String>,
     tags: Vec<String>,
@@ -367,42 +286,37 @@ where
         .collect()
 }
 
-trait DateSerializeWith {
-    const FORMAT: &'static str;
+mod on_disk_format {
+    use chrono::NaiveDateTime;
+    use serde::{self, Deserialize, Deserializer};
 
-    fn serialize_with<S>(date: &NaiveDateTime, serializer: S) -> Result<S::Ok, S::Error>
+    /// The date format used in the blog posts' markdown files.
+    const ON_DISK_FORMAT: &str = "%l:%M%P %m/%d/%y";
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<NaiveDateTime, D::Error>
     where
-        S: serde::Serializer,
+        D: Deserializer<'de>,
     {
-        serializer.serialize_str(&date.format(Self::FORMAT).to_string())
+        let s = String::deserialize(deserializer)?;
+        NaiveDateTime::parse_from_str(&s, ON_DISK_FORMAT).map_err(serde::de::Error::custom)
     }
 }
 
-trait DateDeserializeWith {
-    const FORMAT: &'static str;
+/// Module intended to be used by `serde(with)` to format human-readable dates for display.
+pub mod human_readable_format {
+    use chrono::NaiveDateTime;
+    use serde::Serializer;
 
-    fn deserialize_with<'de, D>(deserializer: D) -> Result<NaiveDateTime, D::Error>
+    /// The date format suitable for displaying on the website.
+    pub const HUMAN_READABLE_FORMAT: &str = "%B %e, %Y";
+
+    /// Serializes a date into a human-readable format.
+    pub fn serialize<S>(date: &NaiveDateTime, serializer: S) -> Result<S::Ok, S::Error>
     where
-        D: serde::Deserializer<'de>,
+        S: Serializer,
     {
-        let string = String::deserialize(deserializer)?;
-        NaiveDateTime::parse_from_str(&string, Self::FORMAT).or_else(|_| {
-            let msg = format!("invalid date format: expected '{}'", Self::FORMAT);
-            Err(serde::de::Error::custom(msg.as_str()))
-        })
+        serializer.serialize_str(&date.format(HUMAN_READABLE_FORMAT).to_string())
     }
-}
-
-struct HumanReadable;
-
-impl DateSerializeWith for HumanReadable {
-    const FORMAT: &'static str = HUMAN_READABLE_FORMAT;
-}
-
-struct OnDisk;
-
-impl DateDeserializeWith for OnDisk {
-    const FORMAT: &'static str = ON_DISK_FORMAT;
 }
 
 #[cfg(test)]

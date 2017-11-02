@@ -7,5 +7,6 @@ CREATE TABLE IF NOT EXISTS posts (
     date    DATETIME NOT NULL,
     html    VARCHAR NOT NULL,
     summary VARCHAR(250) NOT NULL,
-    url     VARCHAR(100) NOT NULL
+    url     VARCHAR(100) NOT NULL,
+    slug    VARCHAR NOT NULL
 );

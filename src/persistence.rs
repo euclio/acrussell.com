@@ -2,10 +2,10 @@
 
 use std::ops::Deref;
 
+use diesel::SqliteConnection;
 use iron::typemap::Key;
 use r2d2::{self, Pool};
-use r2d2_sqlite::SqliteConnectionManager;
-use rusqlite::{SQLITE_OPEN_READ_WRITE, SQLITE_OPEN_URI};
+use r2d2_diesel::ConnectionManager;
 
 use config;
 use errors::*;
@@ -39,10 +39,10 @@ impl Key for DatabaseConnectionPool {
 }
 
 /// A connection pool for maintaining multiple database connections.
-pub struct ConnectionPool(Pool<SqliteConnectionManager>);
+pub struct ConnectionPool(Pool<ConnectionManager<SqliteConnection>>);
 
 impl Deref for ConnectionPool {
-    type Target = Pool<SqliteConnectionManager>;
+    type Target = Pool<ConnectionManager<SqliteConnection>>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -55,10 +55,7 @@ impl Deref for ConnectionPool {
 /// This function panics when a connection pool cannot be established.
 pub fn get_connection_pool(database_uri: &str) -> Result<ConnectionPool> {
     let config = r2d2::Config::default();
-    let manager = SqliteConnectionManager::new_with_flags(
-        database_uri,
-        SQLITE_OPEN_URI | SQLITE_OPEN_READ_WRITE,
-    );
+    let manager = ConnectionManager::new(database_uri);
     let pool = Pool::new(config, manager).chain_err(
         || "error initializing database",
     )?;

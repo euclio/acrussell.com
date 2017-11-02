@@ -6,6 +6,7 @@ use std::path::Path;
 use std::sync::Arc;
 
 use chrono::NaiveDate;
+use diesel;
 use handlebars_iron::{DirectorySource, HandlebarsEngine, Template};
 use iron::prelude::*;
 use iron::status;
@@ -59,13 +60,19 @@ fn blog_post(req: &mut Request) -> IronResult<Response> {
     let year = iexpect!(params.find("year").and_then(|y| y.parse().ok()));
     let month = iexpect!(params.find("month").and_then(|m| m.parse().ok()));
     let day = iexpect!(params.find("day").and_then(|d| d.parse().ok()));
-    let title = iexpect!(req.extensions
+    let slug = iexpect!(req.extensions
         .get::<Router>()
         .unwrap()
-        .find("title"));
+        .find("slug"));
 
     let date = iexpect!(NaiveDate::from_ymd_opt(year, month, day));
-    let post = itry!(blog::get_post(&connection, &date, title), status::NotFound);
+    let post = match blog::get_post(&connection, &date, slug) {
+        Ok(post) => post,
+        Err(Error(ErrorKind::Sql(diesel::NotFound), _)) => {
+            return Err(IronError::new(NoRoute, status::NotFound))
+        }
+        Err(e) => return Err(IronError::new(e, status::NotFound)),
+    };
 
     Ok(Response::with(
         (status::Ok, Template::new("blog_post", post)),
@@ -134,7 +141,7 @@ fn get_router() -> Router {
         index:      get "/" => index,
         about:      get "/about" => about,
         blog:       get "/blog" => blog,
-        blog_post:  get "/blog/:year/:month/:day/:title" => blog_post,
+        blog_post:  get "/blog/:year/:month/:day/:slug" => blog_post,
         projects:   get "/projects" => projects,
         resume:     get "/resume" => resume,
 
@@ -235,7 +242,6 @@ impl AfterMiddleware for ErrorHandler {
 
 #[cfg(test)]
 mod tests {
-    extern crate iron;
     extern crate iron_test;
     extern crate tempfile;
     extern crate url;
@@ -243,7 +249,9 @@ mod tests {
     use std::fs::File;
     use std::io::prelude::*;
 
-    use self::iron::{Handler, Headers};
+    use diesel::connection::SimpleConnection;
+    use iron::{Handler, Headers};
+
     use self::iron_test::{request, response};
     use self::tempfile::NamedTempFile;
     use self::url::Url;
@@ -276,7 +284,7 @@ mod tests {
             schema
         };
 
-        connection.execute_batch(&schema).unwrap();
+        connection.batch_execute(&schema).unwrap();
 
         let handler = super::handler(
             Config { resume_link: Url::parse("http://google.com").unwrap() },
@@ -375,6 +383,14 @@ mod tests {
         let server = create_server();
         let response = request::get(
             "http://localhost:3000/this/path/does/not/exist",
+            Headers::new(),
+            &server.handler,
+        ).unwrap();
+        let body = response::extract_body_to_string(response);
+        assert!(body.contains("Page Not Found"));
+
+        let response = request::get(
+            "http://localhost:3000/blog/1992/08/18/does-not-exist",
             Headers::new(),
             &server.handler,
         ).unwrap();
