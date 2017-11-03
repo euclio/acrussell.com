@@ -1,13 +1,16 @@
 #![feature(use_extern_macros)]
 
 extern crate error_chain;
+extern crate sass_rs;
 
 use std::env;
-use std::fs;
+use std::fs::{self, File};
+use std::io::Write;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
 use error_chain::{bail, quick_main};
+use sass_rs::Options;
 
 mod errors {
     use std::io;
@@ -36,21 +39,20 @@ fn run() -> Result<()> {
     }
 
     let scss_out = out_dir.join("styles.css");
-    let status = Command::new("sassc")
-        .args(&["scss/main.scss", scss_out.to_str().unwrap()])
-        .stderr(Stdio::inherit())
-        .status()
-        .chain_err(|| "failed to run `sassc`")?;
-    if !status.success() {
-        bail!("SCSS compilation failed");
+
+    {
+        let mut scss_out = File::create(&scss_out)?;
+        let scss = sass_rs::compile_file("scss/main.scss", Options::default())?;
+        scss_out.write_all(scss.as_bytes())?;
     }
 
     let css_out = out_dir.join("static/css/");
     fs::create_dir_all(&css_out)?;
     let status = Command::new("postcss")
         .args(&["--use", "autoprefixer"])
-        .args(&["-d", css_out.to_str().unwrap()])
-        .arg(scss_out.to_str().unwrap())
+        .arg("-d")
+        .arg(&css_out)
+        .arg(&scss_out)
         .status()
         .chain_err(|| "failed to run `postcss`")?;
     if !status.success() {
