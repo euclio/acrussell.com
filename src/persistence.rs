@@ -11,8 +11,8 @@ use config;
 use errors::*;
 use projects;
 
-/// The database file that the website connects to by default. This may be overridden at runtime.
-pub const DEFAULT_DATABASE_FILE: &'static str = ":memory:";
+/// The database URI that the website connects to by default. This may be overridden at runtime.
+pub const DEFAULT_DATABASE_URI: &str = "file::memory:?cache=shared";
 
 /// The key for accessing the website configuration.
 #[derive(Copy, Clone)]
@@ -49,13 +49,13 @@ impl Deref for ConnectionPool {
     }
 }
 
-/// Creates a new connection pool to the given database file.
+/// Creates a new connection pool to the given database URI.
 ///
 /// # Panics
 /// This function panics when a connection pool cannot be established.
-pub fn get_connection_pool(database_file: &str) -> Result<ConnectionPool> {
+pub fn get_connection_pool(database_uri: &str) -> Result<ConnectionPool> {
     let config = r2d2::Config::default();
-    let manager = ConnectionManager::new(database_file);
+    let manager = ConnectionManager::new(database_uri);
     let pool = Pool::new(config, manager).chain_err(
         || "error initializing database",
     )?;
