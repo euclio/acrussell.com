@@ -5,7 +5,7 @@ extern crate sass_rs;
 
 use std::env;
 use std::fs::{self, File};
-use std::io::Write;
+use std::io::{self, Write};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
@@ -48,15 +48,23 @@ fn run() -> Result<()> {
 
     let css_out = out_dir.join("static/css/");
     fs::create_dir_all(&css_out)?;
-    let status = Command::new("postcss")
+    let postcss = Command::new("postcss")
         .args(&["--use", "autoprefixer"])
         .arg("-d")
         .arg(&css_out)
         .arg(&scss_out)
-        .status()
-        .chain_err(|| "failed to run `postcss`")?;
-    if !status.success() {
-        bail!("failed postprocessing CSS");
+        .status();
+
+    match postcss {
+        Ok(_) => (),
+        Err(ref e) if e.kind() == io::ErrorKind::NotFound => {
+            println!(
+                "cargo:warning={}",
+                "postcss not installed. Skipping CSS postprocessing."
+            );
+            fs::copy(scss_out, css_out)?;
+        }
+        Err(err) => return Err(err.into()),
     }
 
     Ok(())
