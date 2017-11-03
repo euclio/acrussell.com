@@ -44,6 +44,7 @@ url_serde = "0.2"
 
 [build-dependencies]
 error-chain = "0.11"
+sass-rs = "0.2"
 
 [dev-dependencies]
 iron-test = "0.5"
