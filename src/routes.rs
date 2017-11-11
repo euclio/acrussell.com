@@ -2,7 +2,7 @@
 
 use std::error::Error;
 use std::fs;
-use std::path::Path;
+use std::path::{PathBuf, Path};
 use std::sync::Arc;
 
 use chrono::NaiveDate;
@@ -14,6 +14,7 @@ use iron::{AfterMiddleware, Handler, itry, iexpect};
 use log::{log, error};
 use mount::Mount;
 use params::{Params, Value};
+use pathdiff;
 use persistent::{self, Read};
 use router::{Router, NoRoute, router};
 use serde_json::{self, json, json_internal};
@@ -180,10 +181,14 @@ fn initialize_templates(folder: &str, extension: &str) -> Result<Arc<HandlebarsE
 fn mount(chain: Chain) -> Mount {
     let mut mount = Mount::new();
     mount.mount("/", chain);
-    mount.mount(
-        "/static",
-        Static::new(Path::new(env!("OUT_DIR")).join("static")),
-    );
+
+    let relative_path = pathdiff::diff_paths(
+        &PathBuf::from(env!("OUT_DIR")),
+        &PathBuf::from(env!("CARGO_MANIFEST_DIR")),
+    ).unwrap();
+
+    mount.mount("/static", Static::new(relative_path.join("static")));
+
     mount
 }
 

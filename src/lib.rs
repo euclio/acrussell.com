@@ -26,6 +26,7 @@ extern crate iron;
 extern crate log;
 extern crate mount;
 extern crate params;
+extern crate pathdiff;
 extern crate persistent;
 extern crate r2d2;
 extern crate r2d2_diesel;

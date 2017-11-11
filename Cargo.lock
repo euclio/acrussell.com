@@ -907,6 +907,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "pathdiff"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "percent-encoding"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1624,6 +1629,7 @@ dependencies = [
  "log 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "mount 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "params 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "pathdiff 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "persistent 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "r2d2 0.7.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "r2d2-diesel 0.16.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1771,6 +1777,7 @@ dependencies = [
 "checksum openssl 0.9.19 (registry+https://github.com/rust-lang/crates.io-index)" = "816914b22eb15671d62c73442a51978f311e911d6a6f6cbdafa6abce1b5038fc"
 "checksum openssl-sys 0.9.19 (registry+https://github.com/rust-lang/crates.io-index)" = "1e4c63a7d559c1e5afa6d6a9e6fa34bbc5f800ffc9ae08b72c605420b0c4f5e8"
 "checksum params 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "421e9f2c30e80365c9672709be664bfc84f73b088720d1cc1f4e99675814bb37"
+"checksum pathdiff 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "a3bf70094d203e07844da868b634207e71bfab254fe713171fae9a6e751ccf31"
 "checksum percent-encoding 1.0.0 (registry+https://github.com/rust-lang/crates.io-index)" = "de154f638187706bde41d9b4738748933d64e6b37bdbffc0b47a97d16a6ae356"
 "checksum persistent 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d4c9c94f2ef72dc272c6bcc8157ccf2bc7da14f4c58c69059ac2fc48492d6916"
 "checksum pest 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "0a6dda33d67c26f0aac90d324ab2eb7239c819fc7b2552fe9faa4fe88441edc8"
