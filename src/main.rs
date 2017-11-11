@@ -3,6 +3,7 @@
 extern crate clap;
 extern crate env_logger;
 extern crate log;
+extern crate openssl_probe;
 extern crate website;
 
 use std::env;
@@ -33,6 +34,10 @@ fn main() {
     } else {
         env_logger::init().unwrap();
     }
+
+    // This is needed for musl cross-compile to work. Otherwise, OpenSSL will fail to find the
+    // certificate store on distros other than the host environment.
+    openssl_probe::init_ssl_cert_env_vars();
 
     let matches = App::new(crate_name!())
         .version(crate_version!())
