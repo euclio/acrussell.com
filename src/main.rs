@@ -1,5 +1,3 @@
-#![feature(use_extern_macros)]
-
 extern crate clap;
 extern crate env_logger;
 extern crate log;
@@ -12,8 +10,7 @@ use std::io;
 use std::process;
 
 use clap::{App, Arg, crate_name, crate_version};
-use env_logger::LogBuilder;
-use log::LogLevelFilter;
+use log::LevelFilter;
 
 use website::errors::*;
 use website::persistence::DEFAULT_DATABASE_URI;
@@ -26,13 +23,12 @@ My personal website.
 
 fn main() {
     if env::var("RUST_LOG").is_err() {
-        LogBuilder::new()
-            .filter(None, LogLevelFilter::Info)
-            .filter(Some("html5ever"), LogLevelFilter::Error)
-            .init()
-            .unwrap();
+        env_logger::Builder::new()
+            .filter(None, LevelFilter::Info)
+            .filter(Some("html5ever"), LevelFilter::Error)
+            .init();
     } else {
-        env_logger::init().unwrap();
+        env_logger::init();
     }
 
     // This is needed for musl cross-compile to work. Otherwise, OpenSSL will fail to find the

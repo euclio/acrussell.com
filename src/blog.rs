@@ -6,13 +6,14 @@ use std::io::prelude::*;
 
 use ammonia::{self, Ammonia};
 use chrono::{NaiveDateTime, NaiveDate, Datelike};
-use diesel::expression::{dsl, sql, AsExpression};
+use diesel::dsl::sql;
+use diesel::expression::{dsl, AsExpression};
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
-use diesel::types::Bool;
-use diesel::{self, ExecuteDsl};
-use log::{log, info};
-use serde_derive::{Deserialize, Serialize};
+use diesel::sql_types::Bool;
+use diesel;
+use log::*;
+use serde::{Deserialize, Serialize};
 use serde_yaml;
 
 use errors::{self, ResultExt, ErrorKind};
@@ -24,7 +25,7 @@ const SUMMARY_LENGTH: usize = 200;
 
 #[allow(missing_docs)]
 mod infix {
-    /// Diesel doesn't support FTS4 `MATCH` out of the box for SQLite, so we implement it ourselves.
+    // Diesel doesn't support FTS4 `MATCH` out of the box for SQLite, so we implement it ourselves.
     diesel_infix_operator!(Matches, " MATCH ");
 }
 
@@ -89,7 +90,7 @@ where
         })
         .collect::<Vec<_>>();
 
-    diesel::insert(&new_posts).into(posts).execute(conn)?;
+    diesel::insert_into(posts).values(&new_posts).execute(conn)?;
 
     create_fts_index(conn)?;
 
@@ -108,8 +109,8 @@ pub fn create_fts_index(conn: &SqliteConnection) -> errors::Result<()> {
     // TODO: We should actually load the content here, not the HTML.
     let new_post_content = posts.select((id, title, html)).load::<PostContent>(conn)?;
 
-    diesel::insert(&new_post_content)
-        .into(post_content::table)
+    diesel::insert_into(post_content::table)
+        .values(&new_post_content)
         .execute(conn)?;
 
     info!("optimizing blog post content index");

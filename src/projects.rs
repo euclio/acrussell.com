@@ -6,13 +6,10 @@ use std::io::prelude::*;
 use std::ops::Deref;
 use std::path::Path;
 
-use hubcaps::repositories::Repository;
 use hubcaps::{Credentials, Github};
-use hyper::Client;
-use hyper::net::HttpsConnector;
-use hyper_native_tls::NativeTlsClient;
-use serde_derive::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use serde_yaml;
+use tokio::runtime::Runtime;
 use url::Url;
 use url_serde;
 
@@ -40,24 +37,28 @@ where
     )?;
     let github = Github::new(
         concat!("acrussell.com", "/", env!("CARGO_PKG_VERSION")),
-        Client::with_connector(HttpsConnector::new(NativeTlsClient::new().unwrap())),
         Credentials::Token(String::from(dotenv!("GITHUB_TOKEN"))),
     );
+
+    let mut rt = Runtime::new()?;
+
     parse_projects(&mut projects_file)
         .chain_err(|| "problem parsing projects file")?
         .iter()
         .map(|parsed_project| {
             let repo = {
                 let components = parsed_project.repo.split('/').collect::<Vec<_>>();
-                Repository::new(&github, components[0], components[1]).get()?
+                github.repo(components[0], components[1])
             };
+
+            let repo = rt.block_on(repo.get())?;
 
             let name = &parsed_project.name;
             let owner = repo.owner.login.clone();
             let url = Url::parse(&repo.html_url)?;
 
             // Sort languages by the amount of bytes in the repository.
-            let languages = repo.languages(&github)?
+            let languages = rt.block_on(repo.languages(github.clone()))?
                 .into_iter()
                 .map(|(k, v)| (v, k))
                 .collect::<BTreeMap<_, _>>()

@@ -11,13 +11,13 @@ use handlebars_iron::{DirectorySource, HandlebarsEngine, Template};
 use iron::prelude::*;
 use iron::status;
 use iron::{AfterMiddleware, Handler, itry, iexpect};
-use log::{log, error};
+use log::*;
 use mount::Mount;
 use params::{Params, Value};
 use pathdiff;
 use persistent::{self, Read};
 use router::{Router, NoRoute, router};
-use serde_json::{self, json, json_internal};
+use serde_json::{self, json};
 use staticfile::Static;
 
 #[cfg(feature = "watch")]
