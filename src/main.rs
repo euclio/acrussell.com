@@ -5,11 +5,11 @@ extern crate openssl_probe;
 extern crate website;
 
 use std::env;
-use std::io::prelude::*;
 use std::io;
+use std::io::prelude::*;
 use std::process;
 
-use clap::{App, Arg, crate_name, crate_version};
+use clap::{crate_name, crate_version, App, Arg};
 use log::LevelFilter;
 
 use website::errors::*;
@@ -38,9 +38,10 @@ fn main() {
     let matches = App::new(crate_name!())
         .version(crate_version!())
         .about(ABOUT)
-        .arg(Arg::with_name("port").help(
-            "The port that the server should listen for connections on.",
-        ))
+        .arg(
+            Arg::with_name("port")
+                .help("The port that the server should listen for connections on."),
+        )
         .arg(
             Arg::with_name("db_uri")
                 .long("db-uri")
@@ -61,9 +62,9 @@ fn main() {
         .value_of("port")
         .and_then(|port| port.parse::<u16>().ok())
         .unwrap_or(DEFAULT_PORT);
-    let db_uri = matches.value_of("db_uri").unwrap_or_else(
-        || DEFAULT_DATABASE_URI,
-    );
+    let db_uri = matches
+        .value_of("db_uri")
+        .unwrap_or_else(|| DEFAULT_DATABASE_URI);
 
     if let Err(ref e) = run(port, db_uri) {
         let stderr = &mut io::stderr();
@@ -84,8 +85,6 @@ fn main() {
 }
 
 fn run(port: u16, db_uri: &str) -> Result<()> {
-    let _ = website::listen(("localhost", port), db_uri).chain_err(
-        || "could not start server",
-    )?;
+    let _ = website::listen(("localhost", port), db_uri).chain_err(|| "could not start server")?;
     Ok(())
 }

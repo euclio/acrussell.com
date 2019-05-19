@@ -38,9 +38,7 @@ where
 {
     let path = config_path.as_ref().to_str().unwrap();
     info!("loading configuration from {}", path);
-    let config_file = File::open(&config_path).chain_err(
-        || "error opening config file",
-    )?;
+    let config_file = File::open(&config_path).chain_err(|| "error opening config file")?;
     parse_config(config_file)
 }
 
@@ -58,7 +56,9 @@ mod tests {
 resume_link: http://google.com
 "#,
         );
-        let expected_config = Config { resume_link: Url::parse("http://google.com").unwrap() };
+        let expected_config = Config {
+            resume_link: Url::parse("http://google.com").unwrap(),
+        };
         assert_eq!(
             expected_config,
             super::parse_config(test_config.as_bytes()).unwrap()

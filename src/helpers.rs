@@ -1,6 +1,6 @@
 //! Helpers for handlebars templates.
 
-use handlebars::{Handlebars, RenderError, RenderContext, Helper};
+use handlebars::{Handlebars, Helper, RenderContext, RenderError};
 use serde_json::Value;
 
 const DEFAULT_SEPARATOR: &'static str = ", ";
@@ -31,20 +31,20 @@ const DEFAULT_SEPARATOR: &'static str = ", ";
 /// # }
 /// ```
 pub fn join(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
-    let array = h.param(0).map(|p| p.value()).ok_or_else(|| {
-        RenderError::new("Missing parameter for `join`")
-    })?;
+    let array = h
+        .param(0)
+        .map(|p| p.value())
+        .ok_or_else(|| RenderError::new("Missing parameter for `join`"))?;
 
-    let separator = h.param(1)
+    let separator = h
+        .param(1)
         .map(|p| p.value())
         .and_then(|sep| sep.as_str())
         .unwrap_or(DEFAULT_SEPARATOR);
 
     let strings = array
         .as_array()
-        .ok_or_else(|| {
-            RenderError::new("Parameter for `join` must be an array.")
-        })?
+        .ok_or_else(|| RenderError::new("Parameter for `join` must be an array."))?
         .iter()
         .map(|value| match *value {
             Value::String(ref string) => string.to_owned(),

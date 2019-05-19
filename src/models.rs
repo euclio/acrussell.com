@@ -1,7 +1,7 @@
 use chrono::NaiveDateTime;
 use serde::Serialize;
 
-use schema::{posts, post_content};
+use schema::{post_content, posts};
 
 use blog::human_readable_format;
 

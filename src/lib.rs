@@ -52,8 +52,8 @@ use std::net::ToSocketAddrs;
 
 use diesel::connection::SimpleConnection;
 use handlebars_iron::handlebars;
-use iron::Listening;
 use iron::prelude::*;
+use iron::Listening;
 use log::*;
 
 use errors::*;
@@ -64,12 +64,8 @@ where
     A: ToSocketAddrs,
 {
     let config_path = env::var("WEBSITE_CONFIG").unwrap_or_else(|_| String::from("config.yaml"));
-    let config = config::load(config_path).chain_err(
-        || "could not parse configuration",
-    )?;
-    let projects = projects::load("projects.yaml").chain_err(
-        || "problem parsing projects",
-    )?;
+    let config = config::load(config_path).chain_err(|| "could not parse configuration")?;
+    let projects = projects::load("projects.yaml").chain_err(|| "problem parsing projects")?;
 
     // Insert blog posts into the database.
     let pool = persistence::get_connection_pool(database_uri)?;
@@ -83,9 +79,7 @@ where
     };
     connection.batch_execute(&schema).unwrap();
 
-    blog::load("blog/", &connection).chain_err(
-        || "problem parsing blog posts",
-    )?;
+    blog::load("blog/", &connection).chain_err(|| "problem parsing blog posts")?;
 
     let handler = routes::handler(config, projects, pool)?;
 

@@ -32,9 +32,8 @@ pub fn load<P>(projects_path: P) -> Result<Vec<Project>>
 where
     P: AsRef<Path>,
 {
-    let mut projects_file = File::open(projects_path).chain_err(
-        || "could not open project file",
-    )?;
+    let mut projects_file =
+        File::open(projects_path).chain_err(|| "could not open project file")?;
     let github = Github::new(
         concat!("acrussell.com", "/", env!("CARGO_PKG_VERSION")),
         Credentials::Token(String::from(dotenv!("GITHUB_TOKEN"))),
@@ -58,7 +57,8 @@ where
             let url = Url::parse(&repo.html_url)?;
 
             // Sort languages by the amount of bytes in the repository.
-            let languages = rt.block_on(repo.languages(github.clone()))?
+            let languages = rt
+                .block_on(repo.languages(github.clone()))?
                 .into_iter()
                 .map(|(k, v)| (v, k))
                 .collect::<BTreeMap<_, _>>()

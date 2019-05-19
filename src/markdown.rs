@@ -2,9 +2,9 @@
 
 use std::ops::Deref;
 
+use hoedown::renderer::html;
 use hoedown::{self, Render};
 use hoedown::{AUTOLINK, FENCED_CODE, TABLES};
-use hoedown::renderer::html;
 
 use serde;
 
@@ -26,7 +26,6 @@ impl Deref for Markdown {
         &self.0
     }
 }
-
 
 impl<'de> serde::Deserialize<'de> for Markdown {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

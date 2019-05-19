@@ -2,8 +2,8 @@
 
 use std::ops::Deref;
 
-use diesel::SqliteConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
+use diesel::SqliteConnection;
 use iron::typemap::Key;
 
 use config;
@@ -54,8 +54,6 @@ impl Deref for ConnectionPool {
 /// This function panics when a connection pool cannot be established.
 pub fn get_connection_pool(database_uri: &str) -> Result<ConnectionPool> {
     let manager = ConnectionManager::new(database_uri);
-    let pool = Pool::new(manager).chain_err(
-        || "error initializing database",
-    )?;
+    let pool = Pool::new(manager).chain_err(|| "error initializing database")?;
     Ok(ConnectionPool(pool))
 }

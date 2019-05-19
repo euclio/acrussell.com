@@ -2,7 +2,7 @@
 
 use std::error::Error;
 use std::fs;
-use std::path::{PathBuf, Path};
+use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
 use chrono::NaiveDate;
@@ -10,13 +10,13 @@ use diesel;
 use handlebars_iron::{DirectorySource, HandlebarsEngine, Template};
 use iron::prelude::*;
 use iron::status;
-use iron::{AfterMiddleware, Handler, itry, iexpect};
+use iron::{iexpect, itry, AfterMiddleware, Handler};
 use log::*;
 use mount::Mount;
 use params::{Params, Value};
 use pathdiff;
 use persistent::{self, Read};
-use router::{Router, NoRoute, router};
+use router::{router, NoRoute, Router};
 use serde_json::{self, json};
 use staticfile::Static;
 
@@ -27,7 +27,7 @@ use blog;
 use config;
 use errors::*;
 use helpers;
-use persistence::{DatabaseConnectionPool, ConnectionPool, Config, Projects};
+use persistence::{Config, ConnectionPool, DatabaseConnectionPool, Projects};
 use projects::Project;
 
 /// The number of blog post summaries that should be displayed.
@@ -45,13 +45,15 @@ fn projects(req: &mut Request) -> IronResult<Response> {
     let data = json!({
         "projects": *projects,
     });
-    Ok(Response::with(
-        (status::Ok, Template::new("projects", data)),
-    ))
+    Ok(Response::with((
+        status::Ok,
+        Template::new("projects", data),
+    )))
 }
 
 fn blog_post(req: &mut Request) -> IronResult<Response> {
-    let connection = req.extensions
+    let connection = req
+        .extensions
         .get::<Read<DatabaseConnectionPool>>()
         .unwrap()
         .get()
@@ -61,10 +63,7 @@ fn blog_post(req: &mut Request) -> IronResult<Response> {
     let year = iexpect!(params.find("year").and_then(|y| y.parse().ok()));
     let month = iexpect!(params.find("month").and_then(|m| m.parse().ok()));
     let day = iexpect!(params.find("day").and_then(|d| d.parse().ok()));
-    let slug = iexpect!(req.extensions
-        .get::<Router>()
-        .unwrap()
-        .find("slug"));
+    let slug = iexpect!(req.extensions.get::<Router>().unwrap().find("slug"));
 
     let date = iexpect!(NaiveDate::from_ymd_opt(year, month, day));
     let post = match blog::get_post(&connection, &date, slug) {
@@ -75,13 +74,15 @@ fn blog_post(req: &mut Request) -> IronResult<Response> {
         Err(e) => return Err(IronError::new(e, status::NotFound)),
     };
 
-    Ok(Response::with(
-        (status::Ok, Template::new("blog_post", post)),
-    ))
+    Ok(Response::with((
+        status::Ok,
+        Template::new("blog_post", post),
+    )))
 }
 
 fn blog(req: &mut Request) -> IronResult<Response> {
-    let connection = req.get::<Read<DatabaseConnectionPool>>()
+    let connection = req
+        .get::<Read<DatabaseConnectionPool>>()
         .unwrap()
         .get()
         .unwrap();
@@ -97,9 +98,7 @@ fn blog(req: &mut Request) -> IronResult<Response> {
         blog::get_summaries(&connection)
     };
 
-    let mut data = json!({
-        "posts": itry!(summaries)
-    });
+    let mut data = json!({ "posts": itry!(summaries) });
 
     if let Some(query) = query.and_then(|query| serde_json::to_value(query).ok()) {
         data["query"] = query;
@@ -116,14 +115,13 @@ fn about(_: &mut Request) -> IronResult<Response> {
         .map(|path| path.path())
         .collect::<Vec<_>>();
 
-    let data = json!({
-        "image_urls": image_urls
-    });
+    let data = json!({ "image_urls": image_urls });
     Ok(Response::with((status::Ok, Template::new("about", data))))
 }
 
 fn index(req: &mut Request) -> IronResult<Response> {
-    let connection = req.extensions
+    let connection = req
+        .extensions
         .get::<Read<DatabaseConnectionPool>>()
         .unwrap()
         .get()
@@ -163,10 +161,8 @@ fn initialize_templates(folder: &str, extension: &str) -> Result<Arc<HandlebarsE
     let hbse = {
         let mut hbse = HandlebarsEngine::new();
         hbse.add(Box::new(DirectorySource::new(folder, extension)));
-        hbse.handlebars_mut().register_helper(
-            "join",
-            Box::new(helpers::join),
-        );
+        hbse.handlebars_mut()
+            .register_helper("join", Box::new(helpers::join));
         hbse.reload().chain_err(|| "could not reload templates")?;
 
         Arc::new(hbse)
@@ -177,7 +173,6 @@ fn initialize_templates(folder: &str, extension: &str) -> Result<Arc<HandlebarsE
     Ok(hbse)
 }
 
-
 fn mount(chain: Chain) -> Mount {
     let mut mount = Mount::new();
     mount.mount("/", chain);
@@ -185,7 +180,8 @@ fn mount(chain: Chain) -> Mount {
     let relative_path = pathdiff::diff_paths(
         &PathBuf::from(env!("OUT_DIR")),
         &PathBuf::from(env!("CARGO_MANIFEST_DIR")),
-    ).unwrap();
+    )
+    .unwrap();
 
     mount.mount("/static", Static::new(relative_path.join("static")));
 
@@ -236,9 +232,10 @@ struct ErrorHandler;
 impl AfterMiddleware for ErrorHandler {
     fn catch(&self, _: &mut Request, err: IronError) -> IronResult<Response> {
         if err.error.downcast::<NoRoute>().is_some() {
-            Ok(Response::with(
-                (status::NotFound, Template::new("not_found", ())),
-            ))
+            Ok(Response::with((
+                status::NotFound,
+                Template::new("not_found", ()),
+            )))
         } else {
             Err(err)
         }
@@ -292,10 +289,13 @@ mod tests {
         ::blog::create_fts_index(&connection).unwrap();
 
         let handler = super::handler(
-            Config { resume_link: Url::parse("http://google.com").unwrap() },
+            Config {
+                resume_link: Url::parse("http://google.com").unwrap(),
+            },
             vec![],
             pool,
-        ).unwrap();
+        )
+        .unwrap();
         Server {
             handler,
             database: tempfile,
@@ -305,8 +305,8 @@ mod tests {
     #[test]
     fn index() {
         let server = create_server();
-        let response = request::get("http://localhost:3000/", Headers::new(), &server.handler)
-            .unwrap();
+        let response =
+            request::get("http://localhost:3000/", Headers::new(), &server.handler).unwrap();
         assert!(response.status.unwrap().is_success());
     }
 
@@ -317,7 +317,8 @@ mod tests {
             "http://localhost:3000/blog",
             Headers::new(),
             &server.handler,
-        ).unwrap();
+        )
+        .unwrap();
         assert!(response.status.unwrap().is_success());
     }
 
@@ -328,7 +329,8 @@ mod tests {
             "http://localhost:3000/blog?q=nonsensequerythatwillreturnnovalues",
             Headers::new(),
             &server.handler,
-        ).unwrap();
+        )
+        .unwrap();
         assert!(response.status.unwrap().is_success());
     }
 
@@ -339,7 +341,8 @@ mod tests {
             "http://localhost:3000/about",
             Headers::new(),
             &server.handler,
-        ).unwrap();
+        )
+        .unwrap();
         assert!(response.status.unwrap().is_success());
     }
 
@@ -350,7 +353,8 @@ mod tests {
             "http://localhost:3000/projects",
             Headers::new(),
             &server.handler,
-        ).unwrap();
+        )
+        .unwrap();
         assert!(response.status.unwrap().is_success());
     }
 
@@ -361,7 +365,8 @@ mod tests {
             "http://localhost:3000/resume",
             Headers::new(),
             &server.handler,
-        ).unwrap();
+        )
+        .unwrap();
         assert!(response.status.unwrap().is_success());
     }
 
@@ -372,7 +377,8 @@ mod tests {
             "http://localhost:3000/blog/2016/13/31/invalid-date",
             Headers::new(),
             &server.handler,
-        ).unwrap();
+        )
+        .unwrap();
         assert!(response.status.unwrap().is_client_error());
     }
 
@@ -383,14 +389,16 @@ mod tests {
             "http://localhost:3000/favicon.ico",
             Headers::new(),
             &server.handler,
-        ).unwrap();
+        )
+        .unwrap();
         assert!(response.status.unwrap().is_success());
 
         let response = request::get(
             "http://localhost:3000/robots.txt",
             Headers::new(),
             &server.handler,
-        ).unwrap();
+        )
+        .unwrap();
         assert!(response.status.unwrap().is_success());
     }
 
@@ -401,7 +409,8 @@ mod tests {
             "http://localhost:3000/this/path/does/not/exist",
             Headers::new(),
             &server.handler,
-        ).unwrap();
+        )
+        .unwrap();
         let body = response::extract_body_to_string(response);
         assert!(body.contains("Page Not Found"));
 
@@ -409,7 +418,8 @@ mod tests {
             "http://localhost:3000/blog/1992/08/18/does-not-exist",
             Headers::new(),
             &server.handler,
-        ).unwrap();
+        )
+        .unwrap();
         let body = response::extract_body_to_string(response);
         assert!(body.contains("Page Not Found"));
     }
@@ -421,7 +431,8 @@ mod tests {
             "http://localhost:3000/static/css/styles.css",
             Headers::new(),
             &server.handler,
-        ).unwrap();
+        )
+        .unwrap();
         assert!(response.status.unwrap().is_success());
     }
 }

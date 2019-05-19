@@ -1,24 +1,24 @@
 //! Static blog generation.
 
 use std::fs::{self, File};
-use std::path::Path;
 use std::io::prelude::*;
+use std::path::Path;
 
 use ammonia::{self, Ammonia};
-use chrono::{NaiveDateTime, NaiveDate, Datelike};
+use chrono::{Datelike, NaiveDate, NaiveDateTime};
+use diesel;
 use diesel::dsl::sql;
 use diesel::expression::{dsl, AsExpression};
 use diesel::prelude::*;
-use diesel::sqlite::SqliteConnection;
 use diesel::sql_types::Bool;
-use diesel;
+use diesel::sqlite::SqliteConnection;
 use log::*;
 use serde::{Deserialize, Serialize};
 use serde_yaml;
 
-use errors::{self, ResultExt, ErrorKind};
+use errors::{self, ErrorKind, ResultExt};
 use markdown::{self, Html, Markdown};
-use models::{Summary, NewPost, PostLink, PostContent};
+use models::{NewPost, PostContent, PostLink, Summary};
 
 /// The length of a blog post preview.
 const SUMMARY_LENGTH: usize = 200;
@@ -36,7 +36,6 @@ where
 {
     infix::Matches::new(left, right.as_expression())
 }
-
 
 /// A struct representing a blog post.
 #[derive(Debug, Serialize)]
@@ -90,7 +89,9 @@ where
         })
         .collect::<Vec<_>>();
 
-    diesel::insert_into(posts).values(&new_posts).execute(conn)?;
+    diesel::insert_into(posts)
+        .values(&new_posts)
+        .execute(conn)?;
 
     create_fts_index(conn)?;
 
@@ -99,12 +100,10 @@ where
 
 /// Creates the full text search index for the blog posts.
 pub fn create_fts_index(conn: &SqliteConnection) -> errors::Result<()> {
-    use schema::posts::dsl::*;
     use schema::post_content;
+    use schema::posts::dsl::*;
 
-    sql::<Bool>(
-        r#"CREATE VIRTUAL TABLE post_content USING fts4(content, title)"#,
-    ).execute(conn)?;
+    sql::<Bool>(r#"CREATE VIRTUAL TABLE post_content USING fts4(content, title)"#).execute(conn)?;
 
     // TODO: We should actually load the content here, not the HTML.
     let new_post_content = posts.select((id, title, html)).load::<PostContent>(conn)?;
@@ -114,9 +113,7 @@ pub fn create_fts_index(conn: &SqliteConnection) -> errors::Result<()> {
         .execute(conn)?;
 
     info!("optimizing blog post content index");
-    sql::<Bool>(
-        r#"INSERT INTO post_content(post_content) VALUES ('optimize')"#,
-    ).execute(conn)?;
+    sql::<Bool>(r#"INSERT INTO post_content(post_content) VALUES ('optimize')"#).execute(conn)?;
 
     Ok(())
 }
@@ -129,12 +126,9 @@ pub fn find_summaries(conn: &SqliteConnection, query: &str) -> errors::Result<Ve
     use schema::post_content::dsl as content_dsl;
     use schema::posts::dsl::*;
 
-    let matching_ids = post_content::table.select(content_dsl::docid).filter(
-        fts_match(
-            content_dsl::content,
-            query,
-        ),
-    );
+    let matching_ids = post_content::table
+        .select(content_dsl::docid)
+        .filter(fts_match(content_dsl::content, query));
     let summaries = posts
         .select((title, date, summary, url))
         .filter(id.eq_any(matching_ids))
@@ -229,16 +223,15 @@ struct Metadata {
     tags: Vec<String>,
 }
 
-
 fn parse_post<R>(reader: &mut R) -> errors::Result<ParsedPost>
 where
     R: Read,
 {
     let post = {
         let mut post = String::new();
-        reader.read_to_string(&mut post).chain_err(
-            || "could not read contents of post",
-        )?;
+        reader
+            .read_to_string(&mut post)
+            .chain_err(|| "could not read contents of post")?;
         post
     };
 
@@ -263,7 +256,8 @@ fn create_summary(html: &Html, url: &str) -> Html {
     };
 
     let summary_link = format!(r#"… <a href="{}">Continue&rarr;</a>"#, url);
-    let summary = html.chars()
+    let summary = html
+        .chars()
         .take(SUMMARY_LENGTH)
         .chain(summary_link.chars())
         .collect::<String>();
@@ -285,12 +279,10 @@ where
     entries
         .map(|entry| {
             let entry = entry.unwrap();
-            let mut file = File::open(entry.path()).chain_err(
-                || "error opening directory entry",
-            )?;
-            let post = parse_post(&mut file).chain_err(|| {
-                ErrorKind::PostParse(entry.path().to_owned())
-            })?;
+            let mut file =
+                File::open(entry.path()).chain_err(|| "error opening directory entry")?;
+            let post = parse_post(&mut file)
+                .chain_err(|| ErrorKind::PostParse(entry.path().to_owned()))?;
             Ok(post)
         })
         .collect()
