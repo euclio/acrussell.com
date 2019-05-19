@@ -1,7 +1,4 @@
-#![feature(use_extern_macros)]
-
-extern crate error_chain;
-extern crate sass_rs;
+use sass_rs;
 
 use std::env;
 use std::fs::{self, File};
@@ -24,7 +21,7 @@ mod errors {
     }
 }
 
-use errors::*;
+use crate::errors::*;
 
 fn run() -> Result<()> {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());

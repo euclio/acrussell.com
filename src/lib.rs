@@ -11,27 +11,7 @@ extern crate dotenv_codegen;
 #[macro_use]
 extern crate error_chain;
 
-extern crate ammonia;
-extern crate chrono;
-extern crate dotenv;
-extern crate handlebars_iron;
-extern crate hoedown;
-extern crate hubcaps;
-extern crate iron;
-extern crate log;
-extern crate mount;
-extern crate params;
-extern crate pathdiff;
-extern crate persistent;
-extern crate router;
-extern crate serde;
-extern crate serde_json;
-extern crate serde_yaml;
-extern crate staticfile;
-extern crate tokio;
-extern crate toml;
-extern crate url;
-extern crate url_serde;
+use iron;
 
 pub mod blog;
 pub mod config;
@@ -56,7 +36,7 @@ use iron::prelude::*;
 use iron::Listening;
 use log::*;
 
-use errors::*;
+use crate::errors::*;
 
 /// Starts the server listening on the provided socket address.
 pub fn listen<A>(addr: A, database_uri: &str) -> Result<Listening>

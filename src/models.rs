@@ -1,9 +1,9 @@
 use chrono::NaiveDateTime;
 use serde::Serialize;
 
-use schema::{post_content, posts};
+use crate::schema::{post_content, posts};
 
-use blog::human_readable_format;
+use crate::blog::human_readable_format;
 
 /// A post that has been parsed from markdown and is ready for insertion into the database.
 #[derive(Debug, Insertable)]

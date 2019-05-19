@@ -1,6 +1,6 @@
 //! Helpers for handlebars templates.
 
-use handlebars::{Handlebars, Helper, RenderContext, RenderError};
+use crate::handlebars::{Handlebars, Helper, RenderContext, RenderError};
 use serde_json::Value;
 
 const DEFAULT_SEPARATOR: &'static str = ", ";
@@ -30,7 +30,7 @@ const DEFAULT_SEPARATOR: &'static str = ", ";
 /// assert_eq!(result, "1, 2, 3");
 /// # }
 /// ```
-pub fn join(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
+pub fn join(h: &Helper<'_>, _: &Handlebars, rc: &mut RenderContext<'_>) -> Result<(), RenderError> {
     let array = h
         .param(0)
         .map(|p| p.value())
@@ -57,7 +57,7 @@ pub fn join(h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> Result<(), Re
 
 #[cfg(test)]
 mod tests {
-    use handlebars::Handlebars;
+    use crate::handlebars::Handlebars;
 
     #[test]
     fn join() {

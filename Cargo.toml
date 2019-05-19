@@ -1,6 +1,7 @@
 [package]
 authors = ["arussell123@gmail.com"]
 build = "build.rs"
+edition = "2018"
 name = "website"
 version = "0.1.0"
 

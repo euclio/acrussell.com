@@ -23,24 +23,24 @@ use staticfile::Static;
 #[cfg(feature = "watch")]
 use handlebars_iron::Watchable;
 
-use blog;
-use config;
-use errors::*;
-use helpers;
-use persistence::{Config, ConnectionPool, DatabaseConnectionPool, Projects};
-use projects::Project;
+use crate::blog;
+use crate::config;
+use crate::errors::*;
+use crate::helpers;
+use crate::persistence::{Config, ConnectionPool, DatabaseConnectionPool, Projects};
+use crate::projects::Project;
 
 /// The number of blog post summaries that should be displayed.
 const NUM_SUMMARIES: usize = 3;
 
-fn resume(req: &mut Request) -> IronResult<Response> {
+fn resume(req: &mut Request<'_, '_>) -> IronResult<Response> {
     let data = json!({
         "resume_link": req.get::<Read<Config>>().unwrap().resume_link.to_string(),
     });
     Ok(Response::with((status::Ok, Template::new("resume", data))))
 }
 
-fn projects(req: &mut Request) -> IronResult<Response> {
+fn projects(req: &mut Request<'_, '_>) -> IronResult<Response> {
     let projects = req.get::<Read<Projects>>().unwrap();
     let data = json!({
         "projects": *projects,
@@ -51,7 +51,7 @@ fn projects(req: &mut Request) -> IronResult<Response> {
     )))
 }
 
-fn blog_post(req: &mut Request) -> IronResult<Response> {
+fn blog_post(req: &mut Request<'_, '_>) -> IronResult<Response> {
     let connection = req
         .extensions
         .get::<Read<DatabaseConnectionPool>>()
@@ -80,7 +80,7 @@ fn blog_post(req: &mut Request) -> IronResult<Response> {
     )))
 }
 
-fn blog(req: &mut Request) -> IronResult<Response> {
+fn blog(req: &mut Request<'_, '_>) -> IronResult<Response> {
     let connection = req
         .get::<Read<DatabaseConnectionPool>>()
         .unwrap()
@@ -107,7 +107,7 @@ fn blog(req: &mut Request) -> IronResult<Response> {
     Ok(Response::with((status::Ok, Template::new("blog", data))))
 }
 
-fn about(_: &mut Request) -> IronResult<Response> {
+fn about(_: &mut Request<'_, '_>) -> IronResult<Response> {
     let images = Path::new("static/images/slideshow");
     let image_urls = itry!(fs::read_dir(images))
         .into_iter()
@@ -119,7 +119,7 @@ fn about(_: &mut Request) -> IronResult<Response> {
     Ok(Response::with((status::Ok, Template::new("about", data))))
 }
 
-fn index(req: &mut Request) -> IronResult<Response> {
+fn index(req: &mut Request<'_, '_>) -> IronResult<Response> {
     let connection = req
         .extensions
         .get::<Read<DatabaseConnectionPool>>()
@@ -201,7 +201,7 @@ pub fn handler(
     config: config::Config,
     projects: Vec<Project>,
     connection_pool: ConnectionPool,
-) -> Result<Box<Handler>> {
+) -> Result<Box<dyn Handler>> {
     let mut chain = Chain::new(get_router());
 
     chain.link_before(persistent::Read::<Config>::one(config));
@@ -221,7 +221,7 @@ pub fn handler(
 struct ErrorReporter;
 
 impl AfterMiddleware for ErrorReporter {
-    fn catch(&self, _: &mut Request, err: IronError) -> IronResult<Response> {
+    fn catch(&self, _: &mut Request<'_, '_>, err: IronError) -> IronResult<Response> {
         error!("{}", err.description());
         Err(err)
     }
@@ -230,7 +230,7 @@ impl AfterMiddleware for ErrorReporter {
 struct ErrorHandler;
 
 impl AfterMiddleware for ErrorHandler {
-    fn catch(&self, _: &mut Request, err: IronError) -> IronResult<Response> {
+    fn catch(&self, _: &mut Request<'_, '_>, err: IronError) -> IronResult<Response> {
         if err.error.downcast::<NoRoute>().is_some() {
             Ok(Response::with((
                 status::NotFound,
@@ -244,9 +244,9 @@ impl AfterMiddleware for ErrorHandler {
 
 #[cfg(test)]
 mod tests {
-    extern crate iron_test;
-    extern crate tempfile;
-    extern crate url;
+    use iron_test;
+    use tempfile;
+    use url;
 
     use std::fs::File;
     use std::io::prelude::*;
@@ -258,11 +258,11 @@ mod tests {
     use self::tempfile::NamedTempFile;
     use self::url::Url;
 
-    use config::Config;
-    use persistence;
+    use crate::config::Config;
+    use crate::persistence;
 
     struct Server {
-        pub handler: Box<Handler>,
+        pub handler: Box<dyn Handler>,
         pub database: NamedTempFile,
     }
 
@@ -286,7 +286,7 @@ mod tests {
         };
 
         connection.batch_execute(&schema).unwrap();
-        ::blog::create_fts_index(&connection).unwrap();
+        crate::blog::create_fts_index(&connection).unwrap();
 
         let handler = super::handler(
             Config {

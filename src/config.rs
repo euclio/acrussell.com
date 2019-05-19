@@ -13,7 +13,7 @@ use serde_yaml;
 use url::Url;
 use url_serde;
 
-use errors::*;
+use crate::errors::*;
 
 /// Configuration values for the website.
 #[derive(Debug, PartialEq, Deserialize)]

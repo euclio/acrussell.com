@@ -6,9 +6,9 @@ use diesel::r2d2::{ConnectionManager, Pool};
 use diesel::SqliteConnection;
 use iron::typemap::Key;
 
-use config;
-use errors::*;
-use projects;
+use crate::config;
+use crate::errors::*;
+use crate::projects;
 
 /// The database URI that the website connects to by default. This may be overridden at runtime.
 pub const DEFAULT_DATABASE_URI: &str = "file::memory:?cache=shared";

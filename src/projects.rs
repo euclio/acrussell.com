@@ -13,8 +13,8 @@ use tokio::runtime::Runtime;
 use url::Url;
 use url_serde;
 
-use errors::*;
-use markdown::{self, Html, Markdown};
+use crate::errors::*;
+use crate::markdown::{self, Html, Markdown};
 
 /// Encapsulates a project that I have worked on.
 #[derive(Debug, Serialize)]

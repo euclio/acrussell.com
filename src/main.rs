@@ -1,8 +1,7 @@
-extern crate clap;
-extern crate env_logger;
-extern crate log;
-extern crate openssl_probe;
-extern crate website;
+use env_logger;
+
+use openssl_probe;
+use website;
 
 use std::env;
 use std::io;

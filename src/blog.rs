@@ -16,9 +16,9 @@ use log::*;
 use serde::{Deserialize, Serialize};
 use serde_yaml;
 
-use errors::{self, ErrorKind, ResultExt};
-use markdown::{self, Html, Markdown};
-use models::{NewPost, PostContent, PostLink, Summary};
+use crate::errors::{self, ErrorKind, ResultExt};
+use crate::markdown::{self, Html, Markdown};
+use crate::models::{NewPost, PostContent, PostLink, Summary};
 
 /// The length of a blog post preview.
 const SUMMARY_LENGTH: usize = 200;
@@ -63,7 +63,7 @@ pub fn load<P>(directory: P, conn: &SqliteConnection) -> errors::Result<()>
 where
     P: AsRef<Path>,
 {
-    use schema::posts::dsl::*;
+    use crate::schema::posts::dsl::*;
 
     let parsed_posts = parse_posts(&directory)?;
     info!(
@@ -100,8 +100,8 @@ where
 
 /// Creates the full text search index for the blog posts.
 pub fn create_fts_index(conn: &SqliteConnection) -> errors::Result<()> {
-    use schema::post_content;
-    use schema::posts::dsl::*;
+    use crate::schema::post_content;
+    use crate::schema::posts::dsl::*;
 
     sql::<Bool>(r#"CREATE VIRTUAL TABLE post_content USING fts4(content, title)"#).execute(conn)?;
 
@@ -122,9 +122,9 @@ pub fn create_fts_index(conn: &SqliteConnection) -> errors::Result<()> {
 ///
 /// Returns summaries of the posts that contain the query.
 pub fn find_summaries(conn: &SqliteConnection, query: &str) -> errors::Result<Vec<Summary>> {
-    use schema::post_content;
-    use schema::post_content::dsl as content_dsl;
-    use schema::posts::dsl::*;
+    use crate::schema::post_content;
+    use crate::schema::post_content::dsl as content_dsl;
+    use crate::schema::posts::dsl::*;
 
     let matching_ids = post_content::table
         .select(content_dsl::docid)
@@ -143,7 +143,7 @@ pub fn get_post(
     post_date: &NaiveDate,
     post_slug: &str,
 ) -> errors::Result<Post> {
-    use schema::posts::dsl::*;
+    use crate::schema::posts::dsl::*;
 
     // TODO: We should be able to do this in a single query.
 
@@ -151,7 +151,7 @@ pub fn get_post(
         .select((id, title, html, date, url))
         .filter(slug.eq(post_slug))
         .filter(dsl::date(date).eq(post_date))
-        .first::<::models::Post>(conn)?;
+        .first::<crate::models::Post>(conn)?;
 
     let next_post = posts
         .select((title, url))
@@ -178,7 +178,7 @@ pub fn get_post(
 
 /// Retrieves blog post summaries from the database.
 pub fn get_summaries(conn: &SqliteConnection) -> errors::Result<Vec<Summary>> {
-    use schema::posts::dsl::*;
+    use crate::schema::posts::dsl::*;
 
     Ok(posts
         .select((title, date, summary, url))
@@ -323,7 +323,7 @@ pub mod human_readable_format {
 
 #[cfg(test)]
 mod tests {
-    use markdown::Html;
+    use crate::markdown::Html;
 
     #[test]
     fn parse_all_posts() {
