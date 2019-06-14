@@ -2,7 +2,7 @@
 
 use std::error::Error;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::Arc;
 
 use chrono::NaiveDate;
@@ -14,7 +14,6 @@ use iron::{iexpect, itry, AfterMiddleware, Handler};
 use log::*;
 use mount::Mount;
 use params::{Params, Value};
-use pathdiff;
 use persistent::{self, Read};
 use router::{router, NoRoute, Router};
 use serde_json::{self, json};
@@ -168,7 +167,7 @@ fn initialize_templates(folder: &str, extension: &str) -> Result<Arc<HandlebarsE
         Arc::new(hbse)
     };
 
-    watch_templates(hbse.clone(), "./templates");
+    watch_templates(hbse.clone(), folder);
 
     Ok(hbse)
 }
@@ -176,15 +175,7 @@ fn initialize_templates(folder: &str, extension: &str) -> Result<Arc<HandlebarsE
 fn mount(chain: Chain) -> Mount {
     let mut mount = Mount::new();
     mount.mount("/", chain);
-
-    let relative_path = pathdiff::diff_paths(
-        &PathBuf::from(env!("OUT_DIR")),
-        &PathBuf::from(env!("CARGO_MANIFEST_DIR")),
-    )
-    .unwrap();
-
-    mount.mount("/static", Static::new(relative_path.join("static")));
-
+    mount.mount("/static", Static::new("dist"));
     mount
 }
 
@@ -428,7 +419,7 @@ mod tests {
     fn css() {
         let server = create_server();
         let response = request::get(
-            "http://localhost:3000/static/css/styles.css",
+            "http://localhost:3000/static/styles.css",
             Headers::new(),
             &server.handler,
         )

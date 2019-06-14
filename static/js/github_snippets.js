@@ -1,3 +1,5 @@
+import async from 'async';
+
 /*
  * Script that retrieves a random snippet of code from GitHub using their API.
  */

@@ -1,6 +1,5 @@
 [package]
 authors = ["arussell123@gmail.com"]
-build = "build.rs"
 edition = "2018"
 name = "website"
 version = "0.1.0"
@@ -27,7 +26,6 @@ log = "0.4.6"
 mount = "0.3"
 openssl-probe = "0.1"
 params = "0.6"
-pathdiff = "0.1"
 persistent = "0.3"
 router = "0.5"
 serde = { version = "1.0.90", features = ["derive"] }
@@ -38,10 +36,6 @@ toml = "0.4"
 url = "1.1"
 url_serde = "0.2"
 tokio = "0.1.19"
-
-[build-dependencies]
-error-chain = "0.11"
-sass-rs = "0.2"
 
 [dev-dependencies]
 iron-test = "0.5"
