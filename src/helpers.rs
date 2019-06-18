@@ -1,6 +1,6 @@
 //! Helpers for handlebars templates.
 
-use crate::handlebars::{Handlebars, Helper, RenderContext, RenderError};
+use handlebars::{Context, Handlebars, Helper, HelperResult, Output, RenderContext, RenderError};
 use serde_json::Value;
 
 const DEFAULT_SEPARATOR: &'static str = ", ";
@@ -9,28 +9,13 @@ const DEFAULT_SEPARATOR: &'static str = ", ";
 ///
 /// # Parameters
 /// - array: The array to join.
-///
-/// # Example
-///
-/// ```
-/// # extern crate handlebars_iron;
-/// # extern crate website;
-/// # use handlebars_iron::handlebars;
-/// use handlebars::{Handlebars, Template};
-///
-/// # fn main() {
-/// let context = vec![1, 2, 3];
-///
-/// // Register the template and helper.
-/// let mut handlebars = Handlebars::new();
-/// handlebars.register_helper("join", Box::new(website::helpers::join));
-/// handlebars.register_template_string("template", "{{ join this }}").unwrap();
-///
-/// let result = handlebars.render("template", &context).unwrap();
-/// assert_eq!(result, "1, 2, 3");
-/// # }
-/// ```
-pub fn join(h: &Helper<'_>, _: &Handlebars, rc: &mut RenderContext<'_>) -> Result<(), RenderError> {
+pub fn join(
+    h: &Helper<'_, '_>,
+    _: &Handlebars,
+    _: &Context,
+    _: &mut RenderContext<'_>,
+    out: &mut dyn Output,
+) -> HelperResult {
     let array = h
         .param(0)
         .map(|p| p.value())
@@ -51,13 +36,13 @@ pub fn join(h: &Helper<'_>, _: &Handlebars, rc: &mut RenderContext<'_>) -> Resul
             _ => value.to_string(),
         })
         .collect::<Vec<_>>();
-    rc.writer.write_all(strings.join(separator).as_bytes())?;
+    out.write(&strings.join(separator))?;
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::handlebars::Handlebars;
+    use handlebars::Handlebars;
 
     #[test]
     fn join() {

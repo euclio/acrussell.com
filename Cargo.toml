@@ -4,42 +4,19 @@ edition = "2018"
 name = "website"
 version = "0.1.0"
 
-[[bin]]
-name = "website"
-path = "src/main.rs"
-doc = false
-
 [dependencies]
-ammonia = "0.7"
-chrono = { version = "0.4", features = ["serde"] }
-clap = "2"
-diesel = { version = "1.4.2", features = ["sqlite", "chrono", "r2d2"] }
 dotenv = "0.13.0"
 dotenv_codegen = "0.11.0"
 env_logger = "0.6.1"
 error-chain = "0.11"
-handlebars-iron = "0.25"
+handlebars = "1.1.0"
 hoedown = "6"
 hubcaps = "0.5.0"
-iron = "0.5"
 log = "0.4.6"
-mount = "0.3"
-openssl-probe = "0.1"
-params = "0.6"
-persistent = "0.3"
-router = "0.5"
 serde = { version = "1.0.90", features = ["derive"] }
 serde_json = "1"
 serde_yaml = "0.7"
-staticfile = "0.4"
+tokio = "0.1.19"
 toml = "0.4"
 url = "1.1"
 url_serde = "0.2"
-tokio = "0.1.19"
-
-[dev-dependencies]
-iron-test = "0.5"
-tempfile = "2.0.0"
-
-[features]
-watch = ["handlebars-iron/watch"]

@@ -12,13 +12,6 @@ use serde;
 #[derive(Debug, Clone)]
 pub struct Markdown(String);
 
-impl Markdown {
-    /// Wraps a `String` in a `Markdown` instance, indicating that the string contains markdown.
-    pub fn new(inner: String) -> Markdown {
-        Markdown(inner)
-    }
-}
-
 impl Deref for Markdown {
     type Target = str;
 
@@ -40,13 +33,6 @@ impl<'de> serde::Deserialize<'de> for Markdown {
 /// An owned string containing HTML.
 #[derive(Debug, Clone)]
 pub struct Html(String);
-
-impl Html {
-    /// Wraps a `String` in an `Html` instance, indicating that the string contains HTML..
-    pub fn new(inner: String) -> Html {
-        Html(inner)
-    }
-}
 
 impl Deref for Html {
     type Target = str;

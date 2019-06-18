@@ -5,12 +5,6 @@
 use std::io;
 use std::path::PathBuf;
 
-use diesel;
-use hubcaps;
-use iron;
-use serde_yaml;
-use url;
-
 error_chain! {
     errors {
         PostParse(p: PathBuf){
@@ -22,10 +16,8 @@ error_chain! {
     foreign_links {
         GitHub(hubcaps::Error);
         Io(io::Error);
-        HTTP(iron::error::HttpError);
-        Sql(diesel::result::Error);
+        TemplateRender(handlebars::RenderError);
         UrlParse(url::ParseError);
         Yaml(serde_yaml::Error);
     }
-
 }

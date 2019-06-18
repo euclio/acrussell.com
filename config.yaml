@@ -1,2 +1,15 @@
 ---
 resume_link: "https://github.com/euclio/resume/blob/gh-pages/resume.pdf?raw=true"
+pages:
+  - name: Home
+    template: index
+    path: /
+  - name: About Me
+    template: about
+    path: /about
+  - name: Projects
+    template: projects
+    path: /projects
+  - name: Resume
+    template: resume
+    path: /resume

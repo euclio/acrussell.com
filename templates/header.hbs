@@ -1,11 +1,9 @@
 <div class="header">
   <nav>
     <ul>
-      <li><a href="/">Home</a></li>
-      <li><a href="/about">About Me</a></li>
-      <li><a href="/blog">Blog</a></li>
-      <li><a href="/projects">Projects</a></li>
-      <li><a href="/resume">Resume</a></li>
+      {{#each pages}}
+      <li><a href="{{ path }}">{{ name }}</a></li>
+      {{/each}}
       <li><a href="https://www.github.com/euclio">GitHub</a></li>
     </ul>
   </nav>

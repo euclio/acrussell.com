@@ -5,22 +5,46 @@
 
 use std::fs::File;
 use std::io::prelude::*;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use log::*;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_yaml;
 use url::Url;
 use url_serde;
 
 use crate::errors::*;
 
+/// Configuration values for a given page.
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Page {
+    /// The human-readable title for the page.
+    pub name: String,
+
+    /// The name of the template that should be used to render the page.
+    pub template: String,
+
+    /// The relative path that the page should be written to.
+    path: PathBuf,
+}
+
+impl Page {
+    /// The file path that the page's rendered HTML should be written to.
+    pub fn html_path(&self) -> PathBuf {
+        let path = self.path.strip_prefix("/").unwrap();
+        path.join("index.html")
+    }
+}
+
 /// Configuration values for the website.
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct Config {
     /// A link to a PDF copy of my Resume.
     #[serde(with = "url_serde")]
     pub resume_link: Url,
+
+    /// The pages of the site.
+    pub pages: Vec<Page>,
 }
 
 fn parse_config<R>(reader: R) -> Result<Config>
@@ -40,28 +64,4 @@ where
     info!("loading configuration from {}", path);
     let config_file = File::open(&config_path).chain_err(|| "error opening config file")?;
     parse_config(config_file)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    use url::Url;
-
-    #[test]
-    fn load_config() {
-        let test_config = String::from(
-            r#"
----
-resume_link: http://google.com
-"#,
-        );
-        let expected_config = Config {
-            resume_link: Url::parse("http://google.com").unwrap(),
-        };
-        assert_eq!(
-            expected_config,
-            super::parse_config(test_config.as_bytes()).unwrap()
-        );
-    }
 }

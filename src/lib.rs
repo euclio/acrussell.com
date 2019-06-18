@@ -3,70 +3,68 @@
 #![warn(missing_docs)]
 
 #[macro_use]
-extern crate diesel;
+extern crate error_chain;
 
 #[macro_use]
 extern crate dotenv_codegen;
 
-#[macro_use]
-extern crate error_chain;
+mod config;
+mod errors;
+mod helpers;
+mod markdown;
+mod projects;
 
-use iron;
+use std::fs::{self, File};
+use std::io;
+use std::path::{Path, PathBuf};
 
-pub mod blog;
-pub mod config;
-pub mod errors;
-pub mod helpers;
-pub mod markdown;
-pub mod persistence;
-pub mod projects;
-pub mod routes;
-
-mod models;
-mod schema;
-
-use std::env;
-use std::fs::File;
-use std::io::prelude::*;
-use std::net::ToSocketAddrs;
-
-use diesel::connection::SimpleConnection;
-use handlebars_iron::handlebars;
-use iron::prelude::*;
-use iron::Listening;
+use handlebars::Handlebars;
 use log::*;
+use serde_json::json;
 
 use crate::errors::*;
 
-/// Starts the server listening on the provided socket address.
-pub fn listen<A>(addr: A, database_uri: &str) -> Result<Listening>
-where
-    A: ToSocketAddrs,
-{
-    let config_path = env::var("WEBSITE_CONFIG").unwrap_or_else(|_| String::from("config.yaml"));
-    let config = config::load(config_path).chain_err(|| "could not parse configuration")?;
-    let projects = projects::load("projects.yaml").chain_err(|| "problem parsing projects")?;
+/// The entrypoint of the generator. Generates and writes static HTML based on the configuration.
+pub fn generate() -> Result<()> {
+    let config = config::load("config.yaml")?;
+    let dist = PathBuf::from("dist");
 
-    // Insert blog posts into the database.
-    let pool = persistence::get_connection_pool(database_uri)?;
-    let connection = pool.get().chain_err(|| "database connection timed out")?;
+    let mut handlebars = Handlebars::new();
 
-    let schema = {
-        let mut schema_file = File::open("schema.sql")?;
-        let mut schema = String::new();
-        schema_file.read_to_string(&mut schema)?;
-        schema
-    };
-    connection.batch_execute(&schema).unwrap();
+    handlebars.register_helper("join", Box::new(crate::helpers::join));
+    handlebars
+        .register_templates_directory(".hbs", "templates")
+        .unwrap();
 
-    blog::load("blog/", &connection).chain_err(|| "problem parsing blog posts")?;
+    let image_urls = fs::read_dir("dist/images/slideshow")?
+        .map(|entry| entry.map(|e| {
+            let path = e.path();
+            Path::new("/").join(path.strip_prefix("dist/").unwrap())
+        }))
+        .collect::<std::result::Result<Vec<_>, io::Error>>()?;
 
-    let handler = routes::handler(config, projects, pool)?;
+    let projects = projects::load("projects.yaml")?;
 
-    info!("initialization complete");
+    let context = json!({
+        "pages": config.pages,
+        "image_urls": image_urls,
+        "projects": projects,
+        "resume_link": config.resume_link.as_str(),
+    });
 
-    let listening = Iron::new(handler).http(addr)?;
-    info!("listening on {}", listening.socket);
+    for page in config.pages {
+        let html_out = dist.join(page.html_path());
+        if let Some(parent) = html_out.parent() {
+            if !parent.exists() {
+                fs::create_dir(parent)?;
+            }
+        }
 
-    Ok(listening)
+        info!("writing {}", html_out.display());
+
+        let mut out = File::create(html_out)?;
+        handlebars.render_to_write(&page.template, &context, &mut out)?;
+    }
+
+    Ok(())
 }
