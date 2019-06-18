@@ -1,0 +1,45 @@
+body {
+  font-family: 'Rubik', sans-serif;
+  width: 40em;
+  background-color: #212121;
+  color: #fafafa;
+  margin-left: 2em;
+  line-height: 1.6;
+}
+
+a {
+  text-decoration: none;
+  color: #ff0;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+code {
+  font-family: 'Source Code Pro', monospace;
+}
+
+h1 {
+  font-family: 'Major Mono Display', monospace;
+  font-size: 4em;
+  line-height: initial;
+
+  // Hack: the capital "R" in Major Mono isn't great.
+  //
+  // Since `not` can't be used with pseudoselectors, transform the whole heading
+  // into lowercase and then transform the "A" back to uppercase.
+  text-transform: lowercase;
+
+  &::first-letter {
+    text-transform: uppercase;
+  }
+}
+
+h2 {
+  border-bottom: 1px solid #eaecef;
+}
+
+li {
+  list-style-type: square;
+}

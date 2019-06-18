@@ -4,7 +4,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 module.exports = {
     entry: {
         github_snippets: './static/js/github_snippets.js',
-        styles: './scss/main.scss',
+        styles: './styles.scss',
     },
     module: {
         rules: [

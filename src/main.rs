@@ -1,19 +1,23 @@
-use std::process;
+use std::error::Error;
+use std::fs::{self, File};
 
-fn main() {
-    env_logger::init();
+use handlebars::Handlebars;
+use pulldown_cmark::Parser;
 
-    if let Err(ref e) = website::generate() {
-        eprintln!("error: {}", e);
+fn main() -> Result<(), Box<dyn Error>>{
+    let handlebars = Handlebars::new();
 
-        for e in e.iter().skip(1) {
-            eprintln!("caused by: {}", e);
-        }
+    let content = {
+        let md = fs::read_to_string("README.md")?;
+        let mut html = String::new();
+        let parser = Parser::new(&md);
+        pulldown_cmark::html::push_html(&mut html, parser);
+        html
+    };
 
-        if let Some(backtrace) = e.backtrace() {
-            eprintln!("backtrace: {:?}", backtrace);
-        }
+    let mut template = File::open("index.hbs")?;
+    let mut out = File::create("dist/index.html")?;
+    handlebars.render_template_source_to_write(&mut template, &content, &mut out)?;
 
-        process::exit(1);
-    }
+    Ok(())
 }
